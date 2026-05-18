@@ -1,0 +1,109 @@
+{
+  "destination": {
+    "racine": "~/Documents/skrivagner/personnel",
+    "sous_repertoire_classement": "Administratif",
+    "sous_repertoire_logs": "logs",
+    "vide_poches_prefixe": "vide-poches-"
+  },
+
+  "suivi": {
+    "fichier_date": "~/Documents/skrivagner/personnel/logs/dernier_scan.json",
+    "journal": "~/Documents/skrivagner/personnel/logs/journal.jsonl",
+    "sessions": "~/Documents/skrivagner/personnel/logs/sessions",
+    "logs_systeme": "~/.local/share/skrivagner/logs/skrivagner.log",
+    "securite_jours": 1,
+    "rotation": {
+      "journal_taille_max_mo": 20,
+      "journal_archives_max": 5,
+      "sessions_max": 100
+    }
+  },
+
+  "ollama": {
+    "url": "http://localhost:11434",
+    "modeles": {
+      "ocr": "glm-ocr:latest",
+      "tri_rapide": "granite4.1:3b",
+      "classification": "ibm/granite4.1:8b-Q5_K_M"
+    },
+    "seuil_confiance": 0.85,
+    "timeout_secondes": 120
+  },
+
+  "extensions_cibles": [".pdf", ".png", ".jpg", ".jpeg"],
+
+  "nommage": {
+    "format": "{date}_{emetteur}_{categorie}{ext}",
+    "separateur": "_",
+    "date_format": "%Y-%m-%d",
+    "date_inconnue_prefixe": "~",
+    "emetteur_inconnu": "Inconnu",
+    "espaces_vers": "-"
+  },
+
+  "sources_locales": [
+    {
+      "id": "vide-poches-local",
+      "chemin": "~/Documents/skrivagner/vide-poches-local",
+      "date_reference": "creation"
+    },
+    {
+      "id": "telechargements-local",
+      "chemin": "~/Téléchargements",
+      "date_reference": "creation"
+    }
+  ],
+
+  "sources_distantes": [
+    {
+      "id": "ssh-machine1",
+      "alias_ssh": "machine1",
+      "utilisateur": "utilisateur",
+      "vide_poches_destination": "vide-poches-machine1",
+      "repertoires": [
+        "~/Téléchargements"
+      ],
+      "date_reference": "creation"
+    }
+  ],
+
+  "sources_imap": [
+    {
+      "id": "imap-exemple",
+      "nom": "exemple",
+      "serveur": "imap.exemple.fr",
+      "port": 993,
+      "ssl": true,
+      "authentification": "login",
+      "utilisateur": "utilisateur@exemple.fr",
+      "mot_de_passe_env": "SKRIVAGNER_IMAP_EXEMPLE",
+      "dossiers": ["INBOX"],
+      "vide_poches_destination": "vide-poches-local",
+      "date_reference": "reception"
+    }
+  ],
+
+  "personnes": ["Personne1", "Personne2"],
+
+  "categories": [
+    "Factures",
+    "CAF",
+    "Impôts",
+    "Banques",
+    "Assurances",
+    "Mdph",
+    "Hopital",
+    "Medecin",
+    "Vétérinaire",
+    "Lycée",
+    "Loisir"
+  ],
+
+  "emetteurs_connus": {
+    "Assurances": ["MAIF", "MACIF", "AXA", "Groupama", "MATMUT"],
+    "Banques": ["Crédit Agricole", "BNP Paribas", "Société Générale", "La Banque Postale"],
+    "Factures": ["EDF", "Engie", "Orange", "SFR", "Bouygues", "Free"],
+    "CAF": ["CAF"],
+    "Impôts": ["Impôts", "Trésor Public", "DGFiP"]
+  }
+}

@@ -1,0 +1,10 @@
+# Dépendances Skrivagner
+#
+# Le code privilégie la bibliothèque standard Python.
+# Cf. STANDARDS_INGENIERIE.md section 5 :
+# - SSH via subprocess (pas Paramiko)
+# - Ollama via urllib (pas le client officiel)
+#
+# Aucune dépendance externe à ce stade (Phase 1 — squelette).
+# Les dépendances seront ajoutées progressivement par phase :
+# - Phase 7 (IMAP) : éventuellement google-auth pour OAuth2

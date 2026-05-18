@@ -1,0 +1,17 @@
+# Environnement Python local
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Configuration et logs locaux (ne jamais versionner)
+config.json
+logs/
+
+# Éditeurs
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+.vscode/
