@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # skrivagner.py — Point d'entrée
 #
-# Phase 1 — squelette opérationnel :
-# - Vérifie l'accessibilité du répertoire de destination
-# - Charge config.json
-# - Gère les modes --dry-run (défaut), --execute, --rollback
-# - Initialise le journal de session
-# - Délègue aux modules de scan/classement (à implémenter en phases ultérieures)
+# Phases livrées :
+# - Phase 1 : squelette, configuration, journal de session, modes CLI
+# - Phase 2 : scan local (sources_locales) en dry-run et execute
+#
+# Phases à venir : OCR (3), classement (4), rollback (5), SSH (6), IMAP (7).
 
 import argparse
 import json
@@ -15,6 +14,12 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from modules import journal as mod_journal
+from modules import scanner_local
+from modules import suivi as mod_suivi
+
+
+VERSION = "0.2.0-phase2"
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -27,7 +32,6 @@ def charger_configuration():
             f"        Copier config.exemple.json en config.json et l'adapter.\n"
         )
         sys.exit(1)
-
     try:
         with open(CHEMIN_CONFIG, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -54,21 +58,11 @@ def verifier_destination(configuration):
 
 def initialiser_journal_session(configuration, mode):
     sessions_dir = Path(configuration["suivi"]["sessions"])
-    sessions_dir.mkdir(parents=True, exist_ok=True)
-
     horodatage = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     chemin_session = sessions_dir / f"session_{horodatage}.jsonl"
-
-    enregistrement = {
-        "timestamp": horodatage,
-        "evenement": "session_demarree",
-        "mode": mode,
-        "version_skrivagner": "0.1.0-phase1",
-    }
-    with open(chemin_session, "a", encoding="utf-8") as f:
-        f.write(json.dumps(enregistrement, ensure_ascii=False) + "\n")
-
-    return chemin_session, horodatage
+    journal = mod_journal.JournalSession(chemin_session, horodatage)
+    journal.ajouter("session_demarree", mode=mode, version_skrivagner=VERSION)
+    return journal, horodatage
 
 
 def analyser_arguments():
@@ -77,27 +71,14 @@ def analyser_arguments():
         description="Tri automatisé de documents administratifs personnels.",
     )
     groupe = parseur.add_mutually_exclusive_group()
-    groupe.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Mode simulation (défaut) — aucun déplacement réel",
-    )
-    groupe.add_argument(
-        "--execute",
-        action="store_true",
-        help="Mode réel — déplace effectivement les fichiers",
-    )
-    groupe.add_argument(
-        "--rollback",
-        action="store_true",
-        help="Annule la dernière session (ou celle indiquée par --session)",
-    )
-    parseur.add_argument(
-        "--session",
-        type=str,
-        default=None,
-        help="Identifiant de session à annuler (utilisé avec --rollback)",
-    )
+    groupe.add_argument("--dry-run", action="store_true",
+                        help="Mode simulation (défaut) — aucun déplacement réel")
+    groupe.add_argument("--execute", action="store_true",
+                        help="Mode réel — déplace effectivement les fichiers")
+    groupe.add_argument("--rollback", action="store_true",
+                        help="Annule la dernière session (Phase 5)")
+    parseur.add_argument("--session", type=str, default=None,
+                         help="Identifiant de session à annuler (avec --rollback)")
     return parseur.parse_args()
 
 
@@ -109,30 +90,147 @@ def determiner_mode(arguments):
     return "dry-run"
 
 
+def formater_taille(octets):
+    """Affiche une taille en octets dans une unité lisible (o, Ko, Mo, Go)."""
+    valeur = float(octets)
+    for unite in ("o", "Ko", "Mo", "Go"):
+        if valeur < 1024 or unite == "Go":
+            if unite == "o":
+                return f"{int(valeur)} {unite}"
+            return f"{valeur:.1f} {unite}"
+        valeur /= 1024
+    return f"{valeur:.1f} Go"
+
+
+def afficher_scan(stats_par_source, total_candidats, total_octets):
+    """Affichage utilisateur structuré par source + récapitulatif global."""
+    for entree in stats_par_source:
+        source_id = entree["source_id"]
+        chemin = entree["chemin"]
+        stats = entree["stats"]
+        candidats = entree["candidats"]
+        accessible = stats["existe"]
+
+        print(f"Source : {source_id} ({chemin})")
+        if not accessible:
+            print("  [!] Répertoire inaccessible, source ignorée.")
+            print()
+            continue
+
+        for candidat in candidats:
+            taille = formater_taille(candidat.taille_octets)
+            mtime_str = candidat.mtime.strftime("%Y-%m-%d")
+            nom_relatif = candidat.chemin.name
+            print(f"  - {nom_relatif:<50s} ({taille}, mtime {mtime_str})")
+
+        if not candidats:
+            print("  (aucun fichier candidat)")
+        print(f"  Total source : {stats['candidats']} fichier(s), "
+              f"{formater_taille(stats['taille_octets'])}")
+        print()
+
+    print("=" * 60)
+    print(f"Total scan : {total_candidats} fichier(s) candidat(s), "
+          f"{formater_taille(total_octets)}")
+    print("=" * 60)
+
+
+def executer_phase2(configuration, mode, journal):
+    """Orchestre le scan des sources_locales et retourne (candidats, suivi_maj)."""
+    chemin_suivi = Path(configuration["suivi"]["fichier_date"])
+    suivi = mod_suivi.charger(chemin_suivi)
+    suivi_maj = dict(suivi)
+
+    scan_global = configuration.get("scan", {})
+    extensions = configuration.get("extensions_cibles", [])
+    securite_jours = configuration["suivi"].get("securite_jours", 1)
+    premier_scan_jours = configuration["suivi"].get("premier_scan_jours", 90)
+
+    sources = configuration.get("sources_locales", [])
+    total_candidats = 0
+    total_octets = 0
+    stats_par_source = []
+    horodatage_debut = datetime.now()
+
+    for source in sources:
+        derniere = mod_suivi.derniere_date(suivi, source["id"])
+        candidats, stats = scanner_local.scanner_source(
+            source=source,
+            scan_global=scan_global,
+            extensions_cibles=extensions,
+            derniere_date=derniere,
+            securite_jours=securite_jours,
+            premier_scan_jours=premier_scan_jours,
+            maintenant=horodatage_debut,
+        )
+
+        journal.ajouter(
+            "scan_source",
+            source_id=source["id"],
+            chemin=source["chemin"],
+            existe=stats["existe"],
+            fichiers_lus=stats["lus"],
+            candidats=stats["candidats"],
+            taille_octets=stats["taille_octets"],
+            derniere_date=derniere.strftime("%Y-%m-%dT%H:%M:%S") if derniere else None,
+        )
+
+        for candidat in candidats:
+            journal.ajouter(
+                "candidat_scan",
+                source_id=source["id"],
+                chemin=str(candidat.chemin),
+                taille_octets=candidat.taille_octets,
+                mtime=candidat.mtime.strftime("%Y-%m-%dT%H:%M:%S"),
+                dry_run=(mode != "execute"),
+            )
+
+        stats_par_source.append({
+            "source_id": source["id"],
+            "chemin": source["chemin"],
+            "stats": stats,
+            "candidats": candidats,
+        })
+        total_candidats += stats["candidats"]
+        total_octets += stats["taille_octets"]
+
+        if stats["existe"]:
+            suivi_maj[source["id"]] = horodatage_debut
+
+    afficher_scan(stats_par_source, total_candidats, total_octets)
+
+    if mode == "execute":
+        mod_suivi.sauvegarder(chemin_suivi, suivi_maj)
+        journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi))
+
+    return total_candidats
+
+
 def main():
     arguments = analyser_arguments()
     mode = determiner_mode(arguments)
 
     configuration = charger_configuration()
     racine_destination = verifier_destination(configuration)
-    chemin_session, horodatage = initialiser_journal_session(configuration, mode)
+    journal, horodatage = initialiser_journal_session(configuration, mode)
 
-    print(f"Skrivagner — session {horodatage}")
+    print(f"Skrivagner {VERSION} — session {horodatage}")
     print(f"  Mode               : {mode}")
     print(f"  Destination        : {racine_destination}")
-    print(f"  Journal de session : {chemin_session}")
+    print(f"  Journal de session : {journal.chemin}")
     print()
 
     if mode == "rollback":
         print("Phase 5 (rollback) non encore implémentée.")
-        print("Le rollback sera disponible une fois la Phase 5 livrée.")
+        journal.ajouter("phase_non_implementee", phase=5)
         return 0
 
-    print("Phases 2 à 7 (scan, OCR, classification, classement, journal)")
-    print("non encore implémentées — squelette Phase 1.")
+    executer_phase2(configuration, mode, journal)
+
     print()
-    print("Le script s'est lancé correctement, la configuration est valide,")
-    print("le répertoire de destination est accessible en écriture.")
+    print("Phases 3 à 7 (OCR, classification, classement, rollback,")
+    print("SSH, IMAP) non encore implémentées.")
+    journal.ajouter("session_terminee", mode=mode)
     return 0
 
 

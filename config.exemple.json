@@ -12,6 +12,7 @@
     "sessions": "~/Documents/skrivagner/personnel/logs/sessions",
     "logs_systeme": "~/.local/share/skrivagner/logs/skrivagner.log",
     "securite_jours": 1,
+    "premier_scan_jours": 90,
     "rotation": {
       "journal_taille_max_mo": 20,
       "journal_archives_max": 5,
@@ -41,16 +42,27 @@
     "espaces_vers": "-"
   },
 
+  "scan": {
+    "recursif_par_defaut": true,
+    "exclusions_automatiques": ["rebut", "doublon"],
+    "suivre_symlinks": false,
+    "ignorer_dotfiles": true
+  },
+
   "sources_locales": [
     {
       "id": "vide-poches-local",
       "chemin": "~/Documents/skrivagner/vide-poches-local",
-      "date_reference": "creation"
+      "date_reference": "modification",
+      "recursif": true,
+      "exclusions": []
     },
     {
       "id": "telechargements-local",
       "chemin": "~/Téléchargements",
-      "date_reference": "creation"
+      "date_reference": "modification",
+      "recursif": true,
+      "exclusions": []
     }
   ],
 
@@ -63,7 +75,9 @@
       "repertoires": [
         "~/Téléchargements"
       ],
-      "date_reference": "creation"
+      "date_reference": "modification",
+      "recursif": true,
+      "exclusions": []
     }
   ],
 
