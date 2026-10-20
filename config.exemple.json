@@ -63,6 +63,13 @@
     "marqueurs_mentions": ["TVA", "SIRET", "SIREN", "CGV", "conditions générales de vente"]
   },
 
+  "mesure": {
+    "graine": 20261020,
+    "documents_par_coffre": 40,
+    "exclusions": ["Archive", "rebut", "doublon"],
+    "taux_erreur_max": 0.02
+  },
+
   "extensions_cibles": [".pdf", ".png", ".jpg", ".jpeg"],
 
   "nommage": {
