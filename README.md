@@ -6,8 +6,11 @@ from local and remote directories into a normalised tree, and keeps a traceable
 journal of everything it does. No data leaves the machines: no third-party
 service, no remote model, no cloud.
 
-Status: early development. The entry point, the configuration and the local
-scanner are in place (`skrivagner.py`, `modules/`, `tests/`).
+Status: early development. The entry point, the configuration, the local
+scanner, text extraction, classification by domain, the safe move into the
+vault of the matching domain (`--execute`) and the read-only inventory of the
+existing stores (`--inventaire`) are in place (`skrivagner.py`, `modules/`,
+`tests/`). Rollback and the remote scanners are not.
 
 ## Credits
 
