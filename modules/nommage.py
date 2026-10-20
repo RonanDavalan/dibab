@@ -9,8 +9,14 @@ def _assainir(valeur, espaces_vers):
     return str(valeur).strip().replace("/", espaces_vers).replace("\\", espaces_vers).replace(" ", espaces_vers)
 
 
-def nommer(nommage, verdict, extension, date_repli, a_verifier=False):
-    """Rend le nom normalisé ; `date_repli` (datetime ou date) sert quand le verdict n'a pas de date."""
+def nommer(nommage, verdict, extension, date_repli, a_verifier=False, nom_origine=None):
+    """Rend le nom normalisé ; `date_repli` (datetime ou date) sert quand le verdict n'a pas de date.
+
+    Un document à vérifier garde son nom d'origine : le verdict qui l'y envoie est douteux, et un nom
+    normalisé fait de valeurs inconnues ne permettrait plus de le reconnaître.
+    """
+    if a_verifier and nom_origine:
+        return nommage["prefixe_a_verifier"] + nom_origine
     espaces_vers = nommage.get("espaces_vers", "-")
     if isinstance(verdict.date, date):
         texte_date = verdict.date.strftime(nommage["date_format"])

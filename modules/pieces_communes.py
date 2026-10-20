@@ -43,7 +43,7 @@ def planifier(source, verdict, configuration, date_repli):
     if not cibles:
         return None
     a_verifier = cibles[0].zone == domaines.A_VERIFIER
-    nom = nommage.nommer(configuration["nommage"], verdict, Path(source).suffix, date_repli, a_verifier)
+    nom = nommage.nommer(configuration["nommage"], verdict, Path(source).suffix, date_repli, a_verifier, Path(source).name)
     chemins = tuple(domaines.dossier_cible(cible, configuration["destinations"]) / nom for cible in cibles)
     commune = len(cibles) > 1
     return Plan(nom, tuple(cibles), chemins, empreinte_sha256(source) if commune else None)

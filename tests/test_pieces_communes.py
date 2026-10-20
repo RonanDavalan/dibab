@@ -88,7 +88,7 @@ def test_document_a_verifier_va_dans_le_dossier_a_verifier(tmp_path):
     source = piece(tmp_path)
     verdict = Verdict(True, "mixte", "Impôts", emetteur="Fisc", date=date(2026, 2, 1))
     plan = pieces_communes.planifier(source, verdict, configuration(tmp_path), datetime.now())
-    assert plan.chemins == (tmp_path / "coffre-b" / "Tri" / "[À_VÉRIFIER]2026-02-01_Fisc_Impôts.pdf",)
+    assert plan.chemins == (tmp_path / "coffre-b" / "Tri" / "[À_VÉRIFIER]scan.PDF",)
 
 
 def test_non_administratif_sans_plan(tmp_path):

@@ -148,7 +148,7 @@ def test_a_verifier_garde_son_prefixe_et_reste_a_plat(tmp_path, config):  # noqa
     plan = classement.planifier(source, verdict, config, datetime(2024, 7, 9))
     resultat = deplacement.deplacer(source, plan, config, deplacement.Registre())
     assert resultat.action == deplacement.A_VERIFIER
-    assert fichiers(tmp_path / "a") == ["Tri/[AV]~2024-07-09_Inconnu_Inconnue.pdf"]
+    assert fichiers(tmp_path / "a") == ["Tri/[AV]scan.pdf"]
 
 
 def test_prevoir_ne_touche_a_rien(tmp_path, config):  # noqa: F811

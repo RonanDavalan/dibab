@@ -49,12 +49,12 @@ def test_professionnel_range_par_annee_et_categorie(source, config, tmp_path):
 
 def test_mixte_va_a_plat_dans_a_verifier_du_coffre_professionnel(source, config, tmp_path):
     plan = planifier(source, config, domaine="mixte", categorie="Impôts", emetteur="Fisc", date=date(2026, 5, 15))
-    assert plan.chemins == (tmp_path / "b/Tri/[AV]2026-05-15_Fisc_Impôts.pdf",)
+    assert plan.chemins == (tmp_path / "b/Tri/[AV]scan.PDF",)
 
 
 def test_incertain_sans_signal_va_a_verifier_du_coffre_personnel(source, config, tmp_path):
     plan = planifier(source, config, domaine="incertain", categorie="Inconnue")
-    assert plan.chemins == (tmp_path / "a/Tri/[AV]~2024-07-09_Inconnu_Inconnue.pdf",)
+    assert plan.chemins == (tmp_path / "a/Tri/[AV]scan.PDF",)
 
 
 def test_incertain_avec_signal_professionnel_va_au_coffre_professionnel(source, config, tmp_path):
@@ -90,3 +90,8 @@ def test_une_categorie_ne_sort_pas_de_la_destination(source, config, tmp_path, c
     plan = planifier(source, config, domaine="professionnel", categorie=categorie, date=date(2026, 3, 15))
     assert (tmp_path / "b/Classement") in plan.chemins[0].parents
     assert ".." not in plan.chemins[0].relative_to(tmp_path).parts
+
+
+def test_un_document_a_verifier_garde_son_nom_d_origine(source, config):
+    plan = planifier(source, config, domaine="incertain", categorie="Inconnue")
+    assert plan.nom == "[AV]scan.PDF"
