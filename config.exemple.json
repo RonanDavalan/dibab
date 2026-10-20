@@ -38,7 +38,7 @@
       "tri_rapide": [],
       "classification": []
     },
-    "seuil_confiance": 0.85,
+    "seuil_confiance": 0.4,
     "timeout_secondes": 120,
     "keep_alive_entre_pages": "2m"
   },
