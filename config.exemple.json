@@ -22,10 +22,10 @@
 
   "ollama": {
     "url": "http://localhost:11434",
-    "modeles": {
-      "ocr": "glm-ocr:latest",
-      "tri_rapide": "granite4.1:3b",
-      "classification": "ibm/granite4.1:8b-Q5_K_M"
+    "roles": {
+      "ocr": [],
+      "tri_rapide": [],
+      "classification": []
     },
     "seuil_confiance": 0.85,
     "timeout_secondes": 120

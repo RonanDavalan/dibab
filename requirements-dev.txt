@@ -1,0 +1,2 @@
+# Développement et tests
+-r requirements.txt

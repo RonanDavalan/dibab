@@ -14,12 +14,14 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from modules import chemins as mod_chemins
 from modules import journal as mod_journal
+from modules import modeles as mod_modeles
 from modules import scanner_local
 from modules import suivi as mod_suivi
 
 
-VERSION = "0.2.0-phase2"
+VERSION = "0.3.0-phase2bis"
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -34,7 +36,7 @@ def charger_configuration():
         sys.exit(1)
     try:
         with open(CHEMIN_CONFIG, "r", encoding="utf-8") as f:
-            return json.load(f)
+            return mod_chemins.developper_chemins(json.load(f))
     except json.JSONDecodeError as erreur:
         sys.stderr.write(f"ERREUR : config.json invalide : {erreur}\n")
         sys.exit(1)
@@ -54,6 +56,15 @@ def verifier_destination(configuration):
         )
         sys.exit(2)
     return racine
+
+
+def resoudre_modeles_ou_sortir(configuration):
+    # Avant le journal et tout déplacement : un rôle sans modèle ne laisse aucune trace.
+    try:
+        return mod_modeles.resoudre_modeles(configuration["ollama"])
+    except mod_modeles.ModeleIndisponible as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n")
+        sys.exit(3)
 
 
 def initialiser_journal_session(configuration, mode):
@@ -212,12 +223,19 @@ def main():
 
     configuration = charger_configuration()
     racine_destination = verifier_destination(configuration)
+    modeles_retenus = None
+    if mode != "rollback":
+        modeles_retenus = resoudre_modeles_ou_sortir(configuration)
     journal, horodatage = initialiser_journal_session(configuration, mode)
 
     print(f"Skrivagner {VERSION} — session {horodatage}")
     print(f"  Mode               : {mode}")
     print(f"  Destination        : {racine_destination}")
     print(f"  Journal de session : {journal.chemin}")
+    if modeles_retenus:
+        for role, modele in modeles_retenus.items():
+            print(f"  Modèle {role:<14s}: {modele}")
+        journal.ajouter("modeles_retenus", **modeles_retenus)
     print()
 
     if mode == "rollback":
