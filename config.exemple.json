@@ -1,9 +1,20 @@
 {
   "destination": {
-    "racine": "~/Documents/skrivagner/personnel",
-    "sous_repertoire_classement": "Administratif",
     "sous_repertoire_logs": "logs",
     "vide_poches_prefixe": "vide-poches-"
+  },
+
+  "destinations": {
+    "personnel": {
+      "racine": "~/Documents/skrivagner/personnel",
+      "sous_repertoire_classement": "Administratif",
+      "sous_repertoire_a_verifier": "À_VÉRIFIER"
+    },
+    "professionnel": {
+      "racine": "~/Documents/skrivagner/professionnel",
+      "sous_repertoire_classement": "Classement",
+      "sous_repertoire_a_verifier": "À_VÉRIFIER"
+    }
   },
 
   "suivi": {
@@ -39,7 +50,8 @@
     "date_format": "%Y-%m-%d",
     "date_inconnue_prefixe": "~",
     "emetteur_inconnu": "Inconnu",
-    "espaces_vers": "-"
+    "espaces_vers": "-",
+    "prefixe_a_verifier": "[À_VÉRIFIER]"
   },
 
   "scan": {
@@ -110,14 +122,41 @@
     "Medecin",
     "Vétérinaire",
     "Lycée",
-    "Loisir"
+    "Loisir",
+    "Identité",
+    "Domicile",
+    "RIB"
   ],
 
+  "pieces_communes": ["Identité", "Domicile", "RIB"],
+
   "emetteurs_connus": {
-    "Assurances": ["MAIF", "MACIF", "AXA", "Groupama", "MATMUT"],
-    "Banques": ["Crédit Agricole", "BNP Paribas", "Société Générale", "La Banque Postale"],
-    "Factures": ["EDF", "Engie", "Orange", "SFR", "Bouygues", "Free"],
-    "CAF": ["CAF"],
-    "Impôts": ["Impôts", "Trésor Public", "DGFiP"]
+    "Assurances": [
+      {"nom": "MAIF", "domaine": "personnel"},
+      {"nom": "MACIF", "domaine": "personnel"},
+      {"nom": "AXA", "domaine": "mixte"},
+      {"nom": "Groupama", "domaine": "mixte"},
+      {"nom": "MATMUT", "domaine": "personnel"}
+    ],
+    "Banques": [
+      {"nom": "Crédit Agricole", "domaine": "mixte"},
+      {"nom": "BNP Paribas", "domaine": "mixte"},
+      {"nom": "Société Générale", "domaine": "mixte"},
+      {"nom": "La Banque Postale", "domaine": "mixte"}
+    ],
+    "Factures": [
+      {"nom": "EDF", "domaine": "personnel"},
+      {"nom": "Engie", "domaine": "personnel"},
+      {"nom": "Orange", "domaine": "mixte"},
+      {"nom": "SFR", "domaine": "mixte"},
+      {"nom": "Bouygues", "domaine": "mixte"},
+      {"nom": "Free", "domaine": "mixte"}
+    ],
+    "CAF": [{"nom": "CAF", "domaine": "personnel"}],
+    "Impôts": [
+      {"nom": "Impôts", "domaine": "mixte"},
+      {"nom": "Trésor Public", "domaine": "mixte"},
+      {"nom": "DGFiP", "domaine": "mixte"}
+    ]
   }
 }

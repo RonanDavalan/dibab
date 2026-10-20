@@ -6,7 +6,6 @@ import os
 # Chemins de cette machine ; les `repertoires` des sources distantes sont
 # résolus par la machine distante, pas ici.
 CHEMINS_SIMPLES = (
-    ("destination", "racine"),
     ("suivi", "fichier_date"),
     ("suivi", "journal"),
     ("suivi", "sessions"),
@@ -28,6 +27,9 @@ def developper_chemins(configuration):
     for section, cle in CHEMINS_SIMPLES:
         if isinstance(resultat.get(section, {}).get(cle), str):
             resultat[section][cle] = developper(resultat[section][cle])
+    for destination in resultat.get("destinations", {}).values():
+        if isinstance(destination.get("racine"), str):
+            destination["racine"] = developper(destination["racine"])
     for section, cle in LISTES_DE_SOURCES:
         for entree in resultat.get(section, []):
             if isinstance(entree.get(cle), str):

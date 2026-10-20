@@ -31,3 +31,12 @@ class JournalSession:
         enregistrement.update(champs)
         with open(self.chemin, "a", encoding="utf-8") as f:
             f.write(json.dumps(enregistrement, ensure_ascii=False) + "\n")
+
+
+class JournalAbsent:
+    """Journal qui n'écrit rien : la session continue sans laisser de trace en clair."""
+
+    chemin = None
+
+    def ajouter(self, evenement, **champs):
+        pass
