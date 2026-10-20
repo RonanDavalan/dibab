@@ -5,8 +5,9 @@
 # - Phase 1 : squelette, configuration, journal de session, modes CLI
 # - Phase 2 : scan local (sources_locales) en dry-run et execute
 # - Phase 2 bis : preuve des deux coffres, routage par domaine (dry-run seulement)
+# - Phase 3 (extraction) : texte des candidats par couche texte ou OCR, dry-run seulement
 #
-# Phases à venir : OCR (3), classement (4), rollback (5), SSH (6), IMAP (7).
+# Phases à venir : classification (3), classement (4), rollback (5), SSH (6), IMAP (7).
 
 import argparse
 import json
@@ -18,6 +19,7 @@ from pathlib import Path
 from modules import chemins as mod_chemins
 from modules import coffres as mod_coffres
 from modules import domaines as mod_domaines
+from modules import extraction as mod_extraction
 from modules import journal as mod_journal
 from modules import modeles as mod_modeles
 from modules import pieces_communes as mod_pieces_communes
@@ -25,7 +27,7 @@ from modules import scanner_local
 from modules import suivi as mod_suivi
 
 
-VERSION = "0.3.0-phase2bis"
+VERSION = "0.4.0-phase3-extraction"
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -85,6 +87,23 @@ def initialiser_journal_session(configuration, mode, etats_coffres):
     journal = mod_journal.JournalSession(chemin_session, horodatage)
     journal.ajouter("session_demarree", mode=mode, version_skrivagner=VERSION)
     return journal, horodatage
+
+
+def parametres_extraction_ou_sortir(configuration):
+    """Rend le bloc `extraction`, ou arrête avec le code 1 si une clé de l'extraction manque."""
+    parametres = configuration.get("extraction")
+    requis = ("seuil_caracteres_alphanumeriques", "pages_ocr", "resolution_ocr", "taille_max_texte",
+              "repertoire_temporaire", "timeout_outils_secondes", "consigne_ocr")
+    absents = [f"extraction.{cle}" for cle in requis if not parametres or cle not in parametres]
+    if "keep_alive_entre_pages" not in configuration["ollama"]:
+        absents.append("ollama.keep_alive_entre_pages")
+    if "ocr" not in configuration["ollama"].get("roles", {}):
+        absents.append("ollama.roles.ocr")
+    if absents:
+        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
+                         f"        Voir config.exemple.json.\n")
+        sys.exit(1)
+    return parametres
 
 
 def analyser_arguments():
@@ -270,12 +289,40 @@ def afficher_routage(configuration, candidats, verdicts, journal):
     print()
 
 
+def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal):
+    """Extrait le texte de chaque candidat ; affiche et journalise méthode, volume et modèle, jamais le texte."""
+    print("Extraction du texte (dry-run, le texte n'est ni affiché ni écrit)")
+    for candidat in candidats:
+        extraction = mod_extraction.extraire(candidat.chemin, parametres, configuration["ollama"], modele_ocr)
+        libelles = {"couche_texte": "couche texte", "ocr": "OCR", "echec": "échec"}
+        detail = f"{extraction.caracteres} caractère(s), {extraction.pages} page(s)"
+        if extraction.modele:
+            detail += f", modèle {extraction.modele}"
+        detail += f", {extraction.duree_secondes:.2f} s"
+        if extraction.raison:
+            detail += f" — {extraction.raison}"
+        print(f"  - {candidat.chemin.name} : {libelles[extraction.methode]}, {detail}")
+        journal.ajouter(
+            "extraction",
+            chemin=str(candidat.chemin),
+            methode=extraction.methode,
+            caracteres=extraction.caracteres,
+            pages=extraction.pages,
+            modele=extraction.modele,
+            duree_secondes=round(extraction.duree_secondes, 3),
+            raison=extraction.raison,
+            dry_run=True,
+        )
+    print()
+
+
 def main():
     arguments = analyser_arguments()
     mode = determiner_mode(arguments)
 
     configuration = charger_configuration()
     etats_coffres = verifier_coffres_ou_sortir(configuration, mode)
+    parametres = parametres_extraction_ou_sortir(configuration) if mode == "dry-run" else None
     modeles_retenus = None
     if mode != "rollback":
         modeles_retenus = resoudre_modeles_ou_sortir(configuration)
@@ -302,13 +349,15 @@ def main():
         return 0
 
     candidats = executer_phase2(configuration, mode, journal)
+    if mode == "dry-run":
+        extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
     if arguments.verdicts_simules:
         verdicts = charger_verdicts_simules(arguments.verdicts_simules)
         afficher_routage(configuration, candidats, verdicts, journal)
 
     print()
-    print("Phases 3 à 7 (OCR, classification, classement, rollback,")
-    print("SSH, IMAP) non encore implémentées.")
+    print("Classification (phase 3), classement, rollback, SSH et IMAP (phases 4 à 7)")
+    print("non encore implémentés.")
     journal.ajouter("session_terminee", mode=mode)
     return 0
 

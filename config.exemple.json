@@ -39,7 +39,18 @@
       "classification": []
     },
     "seuil_confiance": 0.85,
-    "timeout_secondes": 120
+    "timeout_secondes": 120,
+    "keep_alive_entre_pages": "2m"
+  },
+
+  "extraction": {
+    "seuil_caracteres_alphanumeriques": 200,
+    "pages_ocr": 3,
+    "resolution_ocr": 200,
+    "taille_max_texte": 20000,
+    "repertoire_temporaire": "/dev/shm",
+    "timeout_outils_secondes": 60,
+    "consigne_ocr": "Transcris fidèlement tout le texte visible de cette page. Rends uniquement le texte."
   },
 
   "extensions_cibles": [".pdf", ".png", ".jpg", ".jpeg"],
