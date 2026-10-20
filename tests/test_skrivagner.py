@@ -38,7 +38,9 @@ def banc(tmp_path, monkeypatch):
         "nommage": {"format": "{date}_{emetteur}_{categorie}{ext}", "date_format": "%Y-%m-%d",
                     "date_inconnue_prefixe": "~", "emetteur_inconnu": "Inconnu", "espaces_vers": "-",
                     "prefixe_a_verifier": "[À_VÉRIFIER]"},
-        "ollama": {"url": "http://x", "roles": {"ocr": ["m"]}, "keep_alive_entre_pages": "2m"},
+        "ollama": {"url": "http://x", "roles": {"ocr": ["m"], "tri_rapide": ["m"], "classification": ["m"]}, "keep_alive_entre_pages": "2m"},
+        "classification": {"temperature": 0, "num_ctx": 8192, "caracteres_max_prompt": 12000, "keep_alive_entre_documents": "2m", "longueur_max_champ": 80, "longueur_max_citation": 120, "marqueurs_mentions": ["TVA", "SIRET"]},
+        "categories": ["Factures"], "personnes": ["Personne1"],
         "extraction": {"seuil_caracteres_alphanumeriques": 200, "pages_ocr": 3, "resolution_ocr": 200,
                        "taille_max_texte": 20000, "repertoire_temporaire": "/dev/shm",
                        "timeout_outils_secondes": 60, "consigne_ocr": "Transcris."},
@@ -50,7 +52,7 @@ def banc(tmp_path, monkeypatch):
     verdicts = tmp_path / "verdicts.json"
     verdicts.write_text(json.dumps(CAS), encoding="utf-8")
     monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice"})
+    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
     monkeypatch.setattr(skrivagner.mod_extraction, "extraire", lambda *_, **__: skrivagner.mod_extraction.Extraction(
         "", "echec", 0, 0, None, 0.0, "extraction simulée"))
     return tmp_path, verdicts

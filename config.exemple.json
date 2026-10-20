@@ -53,6 +53,16 @@
     "consigne_ocr": "Transcris fidèlement tout le texte visible de cette page. Rends uniquement le texte."
   },
 
+  "classification": {
+    "temperature": 0,
+    "num_ctx": 8192,
+    "caracteres_max_prompt": 12000,
+    "keep_alive_entre_documents": "2m",
+    "longueur_max_champ": 80,
+    "longueur_max_citation": 120,
+    "marqueurs_mentions": ["TVA", "SIRET", "SIREN", "CGV", "conditions générales de vente"]
+  },
+
   "extensions_cibles": [".pdf", ".png", ".jpg", ".jpeg"],
 
   "nommage": {

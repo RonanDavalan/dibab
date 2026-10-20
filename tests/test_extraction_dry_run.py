@@ -6,6 +6,7 @@ from functools import partial
 import pytest
 
 import skrivagner
+from tests.textes_factices import CATEGORIES, EMETTEURS_CONNUS, PERSONNES
 from tests.test_extraction import FauxOllama, PARAMETRES, pdf_avec_couche_texte, pdf_sans_couche_texte, png_factice
 
 MOT_SECRET = "Cormoran"
@@ -29,7 +30,12 @@ def banc(tmp_path, monkeypatch):
         "pieces_communes": [],
         "suivi": {"fichier_date": str(tmp_path / "coffre-a" / "logs" / "dernier_scan.json"),
                   "sessions": str(tmp_path / "coffre-a" / "logs" / "sessions")},
-        "ollama": {"url": "http://x", "roles": {"ocr": ["m"]}, "keep_alive_entre_pages": "2m"},
+        "ollama": {"url": "http://x", "roles": {"ocr": ["m"], "tri_rapide": ["m"], "classification": ["m"]}, "keep_alive_entre_pages": "2m"},
+        "classification": {"temperature": 0, "num_ctx": 8192, "caracteres_max_prompt": 12000, "keep_alive_entre_documents": "2m", "longueur_max_champ": 80, "longueur_max_citation": 120, "marqueurs_mentions": ["TVA", "SIRET"]},
+        "categories": CATEGORIES, "personnes": PERSONNES, "emetteurs_connus": EMETTEURS_CONNUS,
+        "nommage": {"format": "{date}_{emetteur}_{categorie}{ext}", "date_format": "%Y-%m-%d",
+                    "date_inconnue_prefixe": "~", "emetteur_inconnu": "Inconnu", "espaces_vers": "-",
+                    "prefixe_a_verifier": "[AV]"},
         "extraction": {k: v for k, v in PARAMETRES.items()},
         "extensions_cibles": [".pdf", ".png"],
         "sources_locales": [{"id": "source", "chemin": str(source)}],
@@ -37,7 +43,7 @@ def banc(tmp_path, monkeypatch):
     chemin_config = tmp_path / "config.json"
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
     monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice"})
+    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
     monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers",
                         lambda racine, executer=None: "tmpfs" if str(racine) == "/dev/shm" else "fuse.gocryptfs")
     return tmp_path, chemin_config

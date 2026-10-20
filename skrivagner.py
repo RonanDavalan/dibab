@@ -6,8 +6,9 @@
 # - Phase 2 : scan local (sources_locales) en dry-run et execute
 # - Phase 2 bis : preuve des deux coffres, routage par domaine (dry-run seulement)
 # - Phase 3 (extraction) : texte des candidats par couche texte ou OCR, dry-run seulement
+# - Phase 3 (classification) : tri rapide, classification fine et domaine, dry-run seulement
 #
-# Phases à venir : classification (3), classement (4), rollback (5), SSH (6), IMAP (7).
+# Phases à venir : classement (4), rollback (5), SSH (6), IMAP (7).
 
 import argparse
 import json
@@ -16,7 +17,9 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from modules import cascade as mod_cascade
 from modules import chemins as mod_chemins
+from modules import classification as mod_classification
 from modules import coffres as mod_coffres
 from modules import domaines as mod_domaines
 from modules import extraction as mod_extraction
@@ -27,7 +30,7 @@ from modules import scanner_local
 from modules import suivi as mod_suivi
 
 
-VERSION = "0.4.0-phase3-extraction"
+VERSION = "0.5.0-phase3-classification"
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -99,6 +102,22 @@ def parametres_extraction_ou_sortir(configuration):
         absents.append("ollama.keep_alive_entre_pages")
     if "ocr" not in configuration["ollama"].get("roles", {}):
         absents.append("ollama.roles.ocr")
+    if absents:
+        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
+                         f"        Voir config.exemple.json.\n")
+        sys.exit(1)
+    return parametres
+
+
+def parametres_classification_ou_sortir(configuration):
+    """Rend le bloc `classification`, ou arrête avec le code 1 si une clé de la cascade manque."""
+    parametres = configuration.get("classification")
+    requis = ("temperature", "num_ctx", "caracteres_max_prompt", "keep_alive_entre_documents",
+              "longueur_max_champ", "longueur_max_citation", "marqueurs_mentions")
+    absents = [f"classification.{cle}" for cle in requis if not parametres or cle not in parametres]
+    absents += [f"ollama.roles.{role}" for role in ("tri_rapide", "classification")
+                if role not in configuration["ollama"].get("roles", {})]
+    absents += [cle for cle in ("categories", "personnes", "nommage") if cle not in configuration]
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
@@ -292,8 +311,10 @@ def afficher_routage(configuration, candidats, verdicts, journal):
 def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal):
     """Extrait le texte de chaque candidat ; affiche et journalise méthode, volume et modèle, jamais le texte."""
     print("Extraction du texte (dry-run, le texte n'est ni affiché ni écrit)")
+    extractions = {}
     for candidat in candidats:
         extraction = mod_extraction.extraire(candidat.chemin, parametres, configuration["ollama"], modele_ocr)
+        extractions[candidat.chemin] = extraction
         libelles = {"couche_texte": "couche texte", "ocr": "OCR", "echec": "échec"}
         detail = f"{extraction.caracteres} caractère(s), {extraction.pages} page(s)"
         if extraction.modele:
@@ -314,6 +335,46 @@ def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal
             dry_run=True,
         )
     print()
+    return extractions
+
+
+def classer_candidats(configuration, candidats, extractions, modeles, journal):
+    """Fait passer le texte des candidats par la cascade et affiche verdict, domaine et destination, sans rien déplacer."""
+    print("Classification (dry-run, aucun déplacement ; le texte n'est ni affiché ni écrit)")
+    documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
+    resultats = mod_cascade.executer(documents, configuration, modeles)
+    mtimes = {candidat.chemin: candidat.mtime for candidat in candidats}
+    libelles_tri = {mod_classification.ADMINISTRATIF: "administratif", mod_classification.NON_ADMINISTRATIF: "non administratif",
+                    mod_classification.INCERTAIN: "incertain"}
+    for resultat in resultats:
+        verdict = resultat.verdict
+        libelle_tri = libelles_tri[resultat.tri.verdict] if resultat.tri else "aucun texte"
+        plan = mod_pieces_communes.planifier(resultat.chemin, verdict, configuration, mtimes[resultat.chemin])
+        print(f"  - {resultat.chemin.name} : tri {libelle_tri}, domaine {verdict.domaine if verdict.administratif else 'sans objet'}")
+        if plan is None:
+            print("      -> ne bouge pas (non administratif)")
+        for cible, chemin in zip(plan.cibles if plan else (), plan.chemins if plan else ()):
+            suite = " (non déplacé)" if cible.zone == mod_domaines.A_VERIFIER else ""
+            print(f"      -> coffre {cible.coffre}, {cible.zone} : {chemin}{suite}")
+        fine = resultat.classification
+        journal.ajouter(
+            "classification",
+            chemin=str(resultat.chemin),
+            tri=resultat.tri.verdict if resultat.tri else None,
+            modele_tri=resultat.tri.modele if resultat.tri else None,
+            modele_classification=fine.modele if fine else None,
+            domaine=verdict.domaine if verdict.administratif else None,
+            categorie=verdict.categorie,
+            emetteur=verdict.emetteur,
+            date=verdict.date.isoformat() if verdict.date else None,
+            personne=verdict.personne,
+            signaux=[{"domaine": s["domaine"], "nature": s["nature"]} for s in verdict.signaux],
+            valide=(fine.valide if fine else None),
+            raison=(fine.raison if fine and not fine.valide else resultat.tri.raison if resultat.tri else ""),
+            destinations=[str(chemin) for chemin in plan.chemins] if plan else [],
+            dry_run=True,
+        )
+    print()
 
 
 def main():
@@ -323,6 +384,8 @@ def main():
     configuration = charger_configuration()
     etats_coffres = verifier_coffres_ou_sortir(configuration, mode)
     parametres = parametres_extraction_ou_sortir(configuration) if mode == "dry-run" else None
+    if mode == "dry-run":
+        parametres_classification_ou_sortir(configuration)
     modeles_retenus = None
     if mode != "rollback":
         modeles_retenus = resoudre_modeles_ou_sortir(configuration)
@@ -350,13 +413,14 @@ def main():
 
     candidats = executer_phase2(configuration, mode, journal)
     if mode == "dry-run":
-        extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
+        extractions = extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
+        classer_candidats(configuration, candidats, extractions, modeles_retenus, journal)
     if arguments.verdicts_simules:
         verdicts = charger_verdicts_simules(arguments.verdicts_simules)
         afficher_routage(configuration, candidats, verdicts, journal)
 
     print()
-    print("Classification (phase 3), classement, rollback, SSH et IMAP (phases 4 à 7)")
+    print("Classement, rollback, SSH et IMAP (phases 4 à 7)")
     print("non encore implémentés.")
     journal.ajouter("session_terminee", mode=mode)
     return 0

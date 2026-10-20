@@ -31,6 +31,7 @@ class Verdict:
     date: object = None
     emetteur: str = None
     personne: str = None
+    destinataire: str = None
 
 
 @dataclass(frozen=True)
@@ -74,9 +75,32 @@ def domaine_emetteur(emetteurs_connus, emetteur):
     """Rend le domaine déclaré d'un émetteur connu, ou None."""
     for entrees in emetteurs_connus.values():
         for entree in entrees:
-            if entree.get("nom") == emetteur:
+            if str(entree.get("nom", "")).casefold() == emetteur.casefold():
                 return entree.get("domaine")
     return None
+
+
+NATURES_FORTES = ("destinataire", "emetteur", "emetteur_connu")
+NATURE_MENTION = "mention"
+
+
+def decider_domaine(signaux, domaine_connu=None):
+    """Rend le domaine d'un document d'après ses signaux et le domaine déclaré de son émetteur.
+
+    Seuls les signaux forts (destinataire, émetteur) décident ; une mention (TVA, SIRET) figure
+    sur les factures de n'importe quel fournisseur et ne dit rien du destinataire. Deux domaines
+    en désaccord donnent `mixte`. Sans signal fort, un émetteur déclaré `mixte` donne `mixte`,
+    sinon `incertain` : la mention seule reste visible de `router` par `a_signal_professionnel`.
+    """
+    votes = {signal.get("domaine") for signal in signaux if signal.get("nature") in NATURES_FORTES}
+    if domaine_connu in (PERSONNEL, PROFESSIONNEL):
+        votes.add(domaine_connu)
+    votes &= {PERSONNEL, PROFESSIONNEL}
+    if len(votes) == 2:
+        return MIXTE
+    if votes:
+        return votes.pop()
+    return MIXTE if domaine_connu == MIXTE else INCERTAIN
 
 
 def verdict_depuis_dict(donnees):
