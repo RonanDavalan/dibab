@@ -5,6 +5,7 @@ déterministe sur le domaine et les signaux cités, jamais par le seul jugement
 du modèle.
 """
 
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -125,3 +126,12 @@ def verdict_depuis_dict(donnees):
         emetteur=donnees.get("emetteur"),
         personne=donnees.get("personne"),
     )
+
+
+def consensus(colonnes):
+    """Rend (domaine le plus nombreux, part des votes qu'il reçoit) ; une égalité vaut `incertain`."""
+    comptes = Counter(colonnes).most_common()
+    premier, effectif = comptes[0]
+    if len(comptes) > 1 and comptes[1][1] == effectif:
+        premier = INCERTAIN
+    return premier, effectif / len(colonnes)

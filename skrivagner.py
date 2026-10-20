@@ -8,29 +8,35 @@
 # - Phase 3 (extraction) : texte des candidats par couche texte ou OCR, dry-run seulement
 # - Phase 3 (classification) : tri rapide, classification fine et domaine, dry-run seulement
 #
-# Phases à venir : classement (4), rollback (5), SSH (6), IMAP (7).
+# - Phase 4 : classement par domaine, déplacement sûr (--execute), inventaire de l'existant (--inventaire)
+#
+# Phases à venir : rollback (5), SSH (6), IMAP (7).
 
 import argparse
 import json
+import socket
 import sys
 import os
 from datetime import datetime
 from pathlib import Path
 
 from modules import cascade as mod_cascade
+from modules import classement as mod_classement
 from modules import chemins as mod_chemins
 from modules import classification as mod_classification
 from modules import coffres as mod_coffres
+from modules import deplacement as mod_deplacement
 from modules import domaines as mod_domaines
 from modules import extraction as mod_extraction
+from modules import inventaire as mod_inventaire
 from modules import journal as mod_journal
 from modules import modeles as mod_modeles
-from modules import pieces_communes as mod_pieces_communes
 from modules import scanner_local
 from modules import suivi as mod_suivi
+from modules import verrou as mod_verrou
 
 
-VERSION = "0.5.0-phase3-classification"
+VERSION = "0.6.0-phase4-classement"
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -81,6 +87,15 @@ def resoudre_modeles_ou_sortir(configuration):
         sys.exit(3)
 
 
+def verifier_machine_ou_sortir(configuration):
+    """Refuse `--execute` hors des machines de `executer_sur` : la synchronisation des coffres vient après un seul Skrivagner."""
+    machines = configuration.get("executer_sur", [])
+    if machines and socket.gethostname() not in machines:
+        sys.stderr.write(f"ERREUR : --execute ne tourne que sur : {', '.join(machines)} (config.json : executer_sur).\n"
+                         f"        Rien n'a été touché.\n")
+        sys.exit(4)
+
+
 def initialiser_journal_session(configuration, mode, etats_coffres):
     sessions_dir = Path(configuration["suivi"]["sessions"])
     horodatage = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -125,6 +140,20 @@ def parametres_classification_ou_sortir(configuration):
     return parametres
 
 
+def parametres_classement_ou_sortir(configuration):
+    """Arrête avec le code 1 si une clé du classement ou de l'inventaire manque."""
+    requis = [("destination", "repertoire_doublon"), ("destination", "sous_repertoire_logs"),
+              ("destination", "vide_poches_prefixe"), ("nommage", "suffixe_collision"),
+              ("arborescence", "personne_inconnue"), ("inventaire", "exclusions")]
+    absents = [".".join(cle) for cle in requis if cle[1] not in configuration.get(cle[0], {})]
+    absents += [f"arborescence.{domaine}" for domaine in mod_domaines.COFFRES
+                if domaine not in configuration.get("arborescence", {})]
+    if absents:
+        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
+                         f"        Voir config.exemple.json.\n")
+        sys.exit(1)
+
+
 def analyser_arguments():
     parseur = argparse.ArgumentParser(
         prog="skrivagner",
@@ -135,6 +164,8 @@ def analyser_arguments():
                         help="Mode simulation (défaut) — aucun déplacement réel")
     groupe.add_argument("--execute", action="store_true",
                         help="Mode réel — déplace effectivement les fichiers")
+    groupe.add_argument("--inventaire", action="store_true",
+                        help="Lit l'existant des coffres et écrit un plan de migration, sans rien déplacer")
     groupe.add_argument("--rollback", action="store_true",
                         help="Annule la dernière session (Phase 5)")
     parseur.add_argument("--session", type=str, default=None,
@@ -142,7 +173,7 @@ def analyser_arguments():
     parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar="FICHIER",
                          help="Dry-run : JSON {nom de fichier: verdict} dont le routage s'affiche")
     arguments = parseur.parse_args()
-    if arguments.verdicts_simules and (arguments.execute or arguments.rollback):
+    if arguments.verdicts_simules and (arguments.execute or arguments.rollback or arguments.inventaire):
         parseur.error("--verdicts-simules ne s'emploie qu'en dry-run")
     return arguments
 
@@ -152,6 +183,8 @@ def determiner_mode(arguments):
         return "execute"
     if arguments.rollback:
         return "rollback"
+    if arguments.inventaire:
+        return "inventaire"
     return "dry-run"
 
 
@@ -200,8 +233,13 @@ def afficher_scan(stats_par_source, total_candidats, total_octets):
     print("=" * 60)
 
 
-def executer_phase2(configuration, mode, journal):
-    """Orchestre le scan des sources_locales et retourne la liste des candidats."""
+def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None):
+    """Orchestre le scan des sources_locales et retourne la liste des candidats.
+
+    En exécution, `suivi_a_ecrire` reçoit la date du scan de chaque source au lieu de l'écrire :
+    la date n'avance qu'une fois les documents de la source traités, pour qu'un document resté en
+    place après une erreur soit relu au scan suivant.
+    """
     chemin_suivi = Path(configuration["suivi"]["fichier_date"])
     suivi = mod_suivi.charger(chemin_suivi)
     suivi_maj = dict(suivi)
@@ -263,10 +301,12 @@ def executer_phase2(configuration, mode, journal):
 
         if stats["existe"]:
             suivi_maj[source["id"]] = horodatage_debut
+            if suivi_a_ecrire is not None:
+                suivi_a_ecrire[source["id"]] = horodatage_debut
 
     afficher_scan(stats_par_source, total_candidats, total_octets)
 
-    if mode == "execute":
+    if mode == "execute" and suivi_a_ecrire is None:
         mod_suivi.sauvegarder(chemin_suivi, suivi_maj)
         journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi))
 
@@ -291,7 +331,7 @@ def afficher_routage(configuration, candidats, verdicts, journal):
         if verdict is None:
             print(f"  - {candidat.chemin.name} : pas de verdict simulé")
             continue
-        plan = mod_pieces_communes.planifier(candidat.chemin, verdict, configuration, candidat.mtime)
+        plan = mod_classement.planifier(candidat.chemin, verdict, configuration, candidat.mtime)
         if plan is None:
             print(f"  - {candidat.chemin.name} : non administratif, ne bouge pas")
         else:
@@ -308,9 +348,9 @@ def afficher_routage(configuration, candidats, verdicts, journal):
     print()
 
 
-def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal):
+def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal, dry_run=True):
     """Extrait le texte de chaque candidat ; affiche et journalise méthode, volume et modèle, jamais le texte."""
-    print("Extraction du texte (dry-run, le texte n'est ni affiché ni écrit)")
+    print("Extraction du texte (le texte n'est ni affiché ni écrit)")
     extractions = {}
     for candidat in candidats:
         extraction = mod_extraction.extraire(candidat.chemin, parametres, configuration["ollama"], modele_ocr)
@@ -332,7 +372,7 @@ def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal
             modele=extraction.modele,
             duree_secondes=round(extraction.duree_secondes, 3),
             raison=extraction.raison,
-            dry_run=True,
+            dry_run=dry_run,
         )
     print()
     return extractions
@@ -344,17 +384,21 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
     documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
     resultats = mod_cascade.executer(documents, configuration, modeles)
     mtimes = {candidat.chemin: candidat.mtime for candidat in candidats}
+    registre = mod_deplacement.Registre()
     libelles_tri = {mod_classification.ADMINISTRATIF: "administratif", mod_classification.NON_ADMINISTRATIF: "non administratif",
                     mod_classification.INCERTAIN: "incertain"}
     for resultat in resultats:
         verdict = resultat.verdict
         libelle_tri = libelles_tri[resultat.tri.verdict] if resultat.tri else "aucun texte"
-        plan = mod_pieces_communes.planifier(resultat.chemin, verdict, configuration, mtimes[resultat.chemin])
-        print(f"  - {resultat.chemin.name} : tri {libelle_tri}, domaine {verdict.domaine if verdict.administratif else 'sans objet'}")
+        plan = mod_classement.planifier(resultat.chemin, verdict, configuration, mtimes[resultat.chemin])
+        confiance = f", confiance {resultat.confiance:.2f}" if resultat.confiance is not None else ""
+        print(f"  - {resultat.chemin.name} : tri {libelle_tri}, domaine {verdict.domaine if verdict.administratif else 'sans objet'}{confiance}")
         if plan is None:
             print("      -> ne bouge pas (non administratif)")
         for cible, chemin in zip(plan.cibles if plan else (), plan.chemins if plan else ()):
             suite = " (non déplacé)" if cible.zone == mod_domaines.A_VERIFIER else ""
+            if mod_deplacement.prevoir(resultat.chemin, plan, configuration, registre) == mod_deplacement.DOUBLON:
+                suite += " (doublon : irait dans doublon/)"
             print(f"      -> coffre {cible.coffre}, {cible.zone} : {chemin}{suite}")
         fine = resultat.classification
         journal.ajouter(
@@ -371,10 +415,75 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
             signaux=[{"domaine": s["domaine"], "nature": s["nature"]} for s in verdict.signaux],
             valide=(fine.valide if fine else None),
             raison=(fine.raison if fine and not fine.valide else resultat.tri.raison if resultat.tri else ""),
+            confiance=resultat.confiance,
             destinations=[str(chemin) for chemin in plan.chemins] if plan else [],
             dry_run=True,
         )
     print()
+
+
+def classer_et_deplacer(configuration, candidats, extractions, modeles, journal):
+    """Classe les candidats puis déplace chacun vers sa destination ; rend les sources dont un document a échoué."""
+    print("Classement (exécution : chaque document est copié, vérifié par SHA256, puis retiré de sa source)")
+    documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
+    resultats = mod_cascade.executer(documents, configuration, modeles)
+    par_chemin = {candidat.chemin: candidat for candidat in candidats}
+    registre = mod_deplacement.Registre()
+    sources_en_echec = set()
+    for resultat in resultats:
+        candidat = par_chemin[resultat.chemin]
+        plan = mod_classement.planifier(resultat.chemin, resultat.verdict, configuration, candidat.mtime)
+        if plan is None:
+            print(f"  - {resultat.chemin.name} : non administratif, ne bouge pas")
+            journal.ajouter("non_deplace", chemin=str(resultat.chemin), raison="non administratif", dry_run=False)
+            continue
+        deplacement = mod_deplacement.deplacer(resultat.chemin, plan, configuration, registre)
+        if deplacement.action == mod_deplacement.ECHEC:
+            sources_en_echec.add(candidat.source_id)
+            print(f"  - {resultat.chemin.name} : ÉCHEC, laissé en place ({deplacement.raison})")
+        else:
+            print(f"  - {resultat.chemin.name} : {deplacement.action}")
+            for destination in deplacement.destinations:
+                print(f"      -> {destination}")
+        journal.ajouter(
+            "deplacement",
+            chemin=str(resultat.chemin),
+            action=deplacement.action,
+            domaine=resultat.verdict.domaine,
+            confiance=resultat.confiance,
+            destinations=[str(destination) for destination in deplacement.destinations],
+            empreinte=deplacement.empreinte,
+            raison=deplacement.raison,
+            dry_run=False,
+        )
+    print()
+    return sources_en_echec
+
+
+def executer_inventaire(configuration, journal):
+    """Écrit le plan de migration de chaque coffre ; rend 0."""
+    plans = mod_inventaire.construire_plans(configuration)
+    ecrits = mod_inventaire.ecrire_plans(plans, configuration)
+    print("Inventaire de l'existant (lecture seule, rien n'est déplacé)")
+    for domaine, plan in plans.items():
+        resume = plan["resume"]
+        print(f"  Coffre {domaine:<14s}: {resume['documents']} document(s), {resume['conserver']} dans la zone classée, "
+              f"{resume['a_classer']} à classer, {resume['doublons_internes']} doublon(s), "
+              f"{resume['presents_dans_autre_coffre']} présent(s) dans l'autre coffre")
+        print(f"      plan écrit : {ecrits[domaine]}")
+        journal.ajouter("inventaire", coffre=domaine, **resume)
+    print()
+    return 0
+
+
+def modeles_de_la_cascade(configuration, modeles_retenus):
+    """Les modèles retenus, avec tous ceux du rôle `classification` : le consensus les interroge ensemble."""
+    try:
+        classeurs = mod_modeles.modeles_installes_du_role(configuration["ollama"], "classification")
+    except mod_modeles.ModeleIndisponible as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n")
+        sys.exit(3)
+    return dict(modeles_retenus, classification=classeurs)
 
 
 def main():
@@ -383,11 +492,16 @@ def main():
 
     configuration = charger_configuration()
     etats_coffres = verifier_coffres_ou_sortir(configuration, mode)
-    parametres = parametres_extraction_ou_sortir(configuration) if mode == "dry-run" else None
-    if mode == "dry-run":
+    if mode == "execute":
+        verifier_machine_ou_sortir(configuration)
+    parametres = None
+    if mode in ("dry-run", "execute"):
+        parametres = parametres_extraction_ou_sortir(configuration)
         parametres_classification_ou_sortir(configuration)
+    if mode in ("dry-run", "execute", "inventaire"):
+        parametres_classement_ou_sortir(configuration)
     modeles_retenus = None
-    if mode != "rollback":
+    if mode in ("dry-run", "execute"):
         modeles_retenus = resoudre_modeles_ou_sortir(configuration)
     journal, horodatage = initialiser_journal_session(configuration, mode, etats_coffres)
 
@@ -400,10 +514,14 @@ def main():
         print(f"  Journal de session : {journal.chemin}")
     else:
         print("  Journal de session : non écrit (coffre non monté, rien ne se dépose en clair)")
+    modeles_cascade = None
     if modeles_retenus:
+        modeles_cascade = modeles_de_la_cascade(configuration, modeles_retenus)
         for role, modele in modeles_retenus.items():
             print(f"  Modèle {role:<14s}: {modele}")
-        journal.ajouter("modeles_retenus", **modeles_retenus)
+        print(f"  Consensus          : {len(modeles_cascade['classification'])} modèle(s) de classification, "
+              f"seuil {configuration['ollama'].get('seuil_confiance', 0)}")
+        journal.ajouter("modeles_retenus", **modeles_retenus, classification_consensus=modeles_cascade["classification"])
     print()
 
     if mode == "rollback":
@@ -411,19 +529,47 @@ def main():
         journal.ajouter("phase_non_implementee", phase=5)
         return 0
 
+    if mode == "inventaire":
+        code = executer_inventaire(configuration, journal)
+        journal.ajouter("session_terminee", mode=mode)
+        return code
+
+    if mode == "execute":
+        chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "skrivagner.verrou"
+        try:
+            with mod_verrou.verrou(chemin_verrou):
+                return executer_session(configuration, parametres, modeles_cascade, journal)
+        except mod_verrou.VerrouPris as erreur:
+            sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été touché.\n")
+            return 5
+
     candidats = executer_phase2(configuration, mode, journal)
-    if mode == "dry-run":
-        extractions = extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
-        classer_candidats(configuration, candidats, extractions, modeles_retenus, journal)
+    extractions = extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
+    classer_candidats(configuration, candidats, extractions, modeles_cascade, journal)
     if arguments.verdicts_simules:
         verdicts = charger_verdicts_simules(arguments.verdicts_simules)
         afficher_routage(configuration, candidats, verdicts, journal)
 
     print()
-    print("Classement, rollback, SSH et IMAP (phases 4 à 7)")
+    print("Rollback, SSH et IMAP (phases 5 à 7)")
     print("non encore implémentés.")
     journal.ajouter("session_terminee", mode=mode)
     return 0
+
+
+def executer_session(configuration, parametres, modeles, journal):
+    """Scan, extraction, classement et déplacement ; la date du scan n'avance que pour les sources sans échec."""
+    chemin_suivi = Path(configuration["suivi"]["fichier_date"])
+    suivi = mod_suivi.charger(chemin_suivi)
+    dates_de_scan = {}
+    candidats = executer_phase2(configuration, "execute", journal, suivi_a_ecrire=dates_de_scan)
+    extractions = extraire_candidats(configuration, parametres, candidats, modeles["ocr"], journal, dry_run=False)
+    sources_en_echec = classer_et_deplacer(configuration, candidats, extractions, modeles, journal)
+    suivi.update({source: date for source, date in dates_de_scan.items() if source not in sources_en_echec})
+    mod_suivi.sauvegarder(chemin_suivi, suivi)
+    journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi), sources_non_avancees=sorted(sources_en_echec))
+    journal.ajouter("session_terminee", mode="execute")
+    return 1 if sources_en_echec else 0
 
 
 if __name__ == "__main__":

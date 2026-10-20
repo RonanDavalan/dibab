@@ -100,13 +100,7 @@ def tirer(candidats, nombre, graine):
     return sorted(random.Random(graine).sample(sorted(candidats), min(nombre, len(candidats))))
 
 
-def consensus(colonnes):
-    """Rend (colonne la plus nombreuse, confiance) ; une égalité vaut `incertain`."""
-    comptes = Counter(colonnes).most_common()
-    premier, effectif = comptes[0]
-    if len(comptes) > 1 and comptes[1][1] == effectif:
-        premier = domaines.INCERTAIN
-    return premier, effectif / len(colonnes)
+consensus = domaines.consensus
 
 
 def borne_haute_wilson(erreurs, total):

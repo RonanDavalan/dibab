@@ -5,6 +5,7 @@ import json
 import pytest
 
 import skrivagner
+from tests.textes_factices import CONFIG_CLASSEMENT
 
 CAS = {
     "perso.pdf": {"administratif": True, "domaine": "personnel", "categorie": "CAF", "emetteur": "Organisme"},
@@ -26,6 +27,7 @@ def banc(tmp_path, monkeypatch):
     for nom in CAS:
         (tmp_path / "source" / nom).write_bytes(b"factice " + nom.encode())
     configuration = {
+        **CONFIG_CLASSEMENT,
         "destinations": {
             "personnel": {"racine": str(tmp_path / "coffre-a"), "sous_repertoire_classement": "Rangement",
                           "sous_repertoire_a_verifier": "Tri"},
@@ -37,7 +39,7 @@ def banc(tmp_path, monkeypatch):
                   "sessions": str(tmp_path / "coffre-a" / "logs" / "sessions")},
         "nommage": {"format": "{date}_{emetteur}_{categorie}{ext}", "date_format": "%Y-%m-%d",
                     "date_inconnue_prefixe": "~", "emetteur_inconnu": "Inconnu", "espaces_vers": "-",
-                    "prefixe_a_verifier": "[À_VÉRIFIER]"},
+                    "prefixe_a_verifier": "[À_VÉRIFIER]", "suffixe_collision": "_{n}"},
         "ollama": {"url": "http://x", "roles": {"ocr": ["m"], "tri_rapide": ["m"], "classification": ["m"]}, "keep_alive_entre_pages": "2m"},
         "classification": {"temperature": 0, "num_ctx": 8192, "caracteres_max_prompt": 12000, "keep_alive_entre_documents": "2m", "longueur_max_champ": 80, "longueur_max_citation": 120, "marqueurs_mentions": ["TVA", "SIRET"]},
         "categories": ["Factures"], "personnes": ["Personne1"],
@@ -53,6 +55,7 @@ def banc(tmp_path, monkeypatch):
     verdicts.write_text(json.dumps(CAS), encoding="utf-8")
     monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
     monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
+    monkeypatch.setattr(skrivagner.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
     monkeypatch.setattr(skrivagner.mod_extraction, "extraire", lambda *_, **__: skrivagner.mod_extraction.Extraction(
         "", "echec", 0, 0, None, 0.0, "extraction simulée"))
     return tmp_path, verdicts

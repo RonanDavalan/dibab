@@ -4,7 +4,7 @@ Un seul modèle est chargé à la fois : toutes les requêtes d'une étape se su
 décharge le modèle (`keep_alive` à 0) avant l'étape suivante.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from modules import appel_ollama, classification, domaines
 
@@ -15,6 +15,7 @@ class Resultat:
     tri: object  # classification.Tri, ou None sans texte
     classification: object  # classification.Classification, ou None
     verdict: domaines.Verdict
+    confiance: float = None  # part des modèles de classification d'accord avec le domaine retenu
 
 
 def _verdict_incertain(signaux=()):
@@ -32,8 +33,25 @@ def _etape(elements, appliquer, keep_alive):
     return resultats
 
 
+def _choisir_classification(fines, seuil):
+    """Rend (classification retenue, confiance) d'après l'accord des modèles de classification.
+
+    Un domaine sous le seuil, une égalité ou une sortie invalide valent incertain : le signal reste
+    visible pour orienter l'`À_VÉRIFIER/`, le document n'entre jamais dans `Classement/`.
+    """
+    domaine, confiance = domaines.consensus([f.verdict.domaine if f.valide else domaines.INCERTAIN for f in fines])
+    if domaine in domaines.DOMAINES and domaine != domaines.INCERTAIN and confiance >= seuil:
+        return next(f for f in fines if f.valide and f.verdict.domaine == domaine), confiance
+    premier = fines[0]
+    return replace(premier, verdict=replace(premier.verdict, domaine=domaines.INCERTAIN)), confiance
+
+
 def executer(documents, configuration, modeles, generer=appel_ollama.generer):
-    """Rend un `Resultat` par document `(chemin, texte)` ; un texte vide (extraction en échec) vaut incertain."""
+    """Rend un `Resultat` par document `(chemin, texte)` ; un texte vide (extraction en échec) vaut incertain.
+
+    `modeles["classification"]` est un nom ou une liste de noms : chaque modèle classe tous les
+    documents à son tour, puis le consensus décide au `seuil_confiance` de la configuration.
+    """
     parametres = configuration["classification"]
     keep_alive = parametres["keep_alive_entre_documents"]
     avec_texte = [(chemin, texte) for chemin, texte in documents if texte.strip()]
@@ -44,10 +62,18 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
             doc[1], parametres, configuration["ollama"], modeles["tri_rapide"], ka, generer), keep_alive)))
 
     a_classer = [(chemin, texte) for chemin, texte in avec_texte if tris[chemin].verdict != classification.NON_ADMINISTRATIF]
-    fines = dict(zip(
-        [chemin for chemin, _ in a_classer],
-        _etape(a_classer, lambda doc, ka: classification.classifier(
-            doc[1], configuration, parametres, modeles["classification"], ka, generer), keep_alive)))
+    classeurs = [modeles["classification"]] if isinstance(modeles["classification"], str) else list(modeles["classification"])
+    seuil = configuration["ollama"].get("seuil_confiance", 0)
+    par_modele = [
+        dict(zip(
+            [chemin for chemin, _ in a_classer],
+            _etape(a_classer, lambda doc, ka, modele=modele: classification.classifier(
+                doc[1], configuration, parametres, modele, ka, generer), keep_alive)))
+        for modele in classeurs
+    ]
+    fines, confiances = {}, {}
+    for chemin, _ in a_classer:
+        fines[chemin], confiances[chemin] = _choisir_classification([accord[chemin] for accord in par_modele], seuil)
 
     resultats = []
     for chemin, _ in documents:
@@ -61,5 +87,5 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
             verdict = _verdict_incertain(fine.verdict.signaux)
         else:
             verdict = fine.verdict
-        resultats.append(Resultat(chemin, tri, fine, verdict))
+        resultats.append(Resultat(chemin, tri, fine, verdict, confiances.get(chemin)))
     return resultats

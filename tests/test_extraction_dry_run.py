@@ -6,6 +6,7 @@ from functools import partial
 import pytest
 
 import skrivagner
+from tests.textes_factices import CONFIG_CLASSEMENT
 from tests.textes_factices import CATEGORIES, EMETTEURS_CONNUS, PERSONNES
 from tests.test_extraction import FauxOllama, PARAMETRES, pdf_avec_couche_texte, pdf_sans_couche_texte, png_factice
 
@@ -21,6 +22,7 @@ def banc(tmp_path, monkeypatch):
     pdf_sans_couche_texte(source / "scan.pdf")
     png_factice(source / "photo.png")
     configuration = {
+        **CONFIG_CLASSEMENT,
         "destinations": {
             "personnel": {"racine": str(tmp_path / "coffre-a"), "sous_repertoire_classement": "R",
                           "sous_repertoire_a_verifier": "T"},
@@ -35,7 +37,7 @@ def banc(tmp_path, monkeypatch):
         "categories": CATEGORIES, "personnes": PERSONNES, "emetteurs_connus": EMETTEURS_CONNUS,
         "nommage": {"format": "{date}_{emetteur}_{categorie}{ext}", "date_format": "%Y-%m-%d",
                     "date_inconnue_prefixe": "~", "emetteur_inconnu": "Inconnu", "espaces_vers": "-",
-                    "prefixe_a_verifier": "[AV]"},
+                    "prefixe_a_verifier": "[AV]", "suffixe_collision": "_{n}"},
         "extraction": {k: v for k, v in PARAMETRES.items()},
         "extensions_cibles": [".pdf", ".png"],
         "sources_locales": [{"id": "source", "chemin": str(source)}],
@@ -44,6 +46,7 @@ def banc(tmp_path, monkeypatch):
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
     monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
     monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
+    monkeypatch.setattr(skrivagner.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
     monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers",
                         lambda racine, executer=None: "tmpfs" if str(racine) == "/dev/shm" else "fuse.gocryptfs")
     return tmp_path, chemin_config
@@ -84,10 +87,15 @@ def test_le_journal_ne_contient_aucun_texte(banc, monkeypatch):
     assert all({"caracteres", "pages", "modele", "duree_secondes"} <= e.keys() for e in extractions)
 
 
-def test_execute_n_extrait_pas(banc, monkeypatch, capsys):
-    faux = brancher_faux_modele(monkeypatch, "x")
-    assert lancer(monkeypatch, "--execute") == 0
-    assert "Extraction du texte" not in capsys.readouterr().out and faux.appels == []
+def test_execute_extrait_sans_jamais_ecrire_le_texte(banc, monkeypatch, capsys):
+    racine, _ = banc
+    brancher_faux_modele(monkeypatch, f"{MOT_SECRET} lu par OCR")
+    lancer(monkeypatch, "--execute")
+    assert MOT_SECRET not in capsys.readouterr().out
+    brut = next((racine / "coffre-a" / "logs" / "sessions").glob("session_*.jsonl")).read_text(encoding="utf-8")
+    assert brut.count(MOT_SECRET) == 0
+    extractions = [json.loads(ligne) for ligne in brut.splitlines() if '"extraction"' in ligne]
+    assert extractions and all(e["dry_run"] is False for e in extractions)
 
 
 def test_configuration_sans_bloc_extraction(banc, monkeypatch, capsys):

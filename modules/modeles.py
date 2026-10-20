@@ -70,3 +70,12 @@ def resoudre_modeles(configuration_ollama):
         configuration_ollama["url"], configuration_ollama.get("timeout_secondes", 120)
     )
     return choisir_modeles(roles, installes)
+
+
+def modeles_installes_du_role(configuration_ollama, role):
+    """Rend, dans l'ordre des préférences, tous les modèles installés d'un rôle (le consensus les interroge tous)."""
+    installes = lister_modeles_installes(
+        configuration_ollama["url"], configuration_ollama.get("timeout_secondes", 120)
+    )
+    preferences = configuration_ollama.get("roles", {}).get(role, [])
+    return [p if p in installes else f"{p}:latest" for p in preferences if _est_installe(p, installes)]

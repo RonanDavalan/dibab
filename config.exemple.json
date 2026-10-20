@@ -1,8 +1,21 @@
 {
   "destination": {
     "sous_repertoire_logs": "logs",
-    "vide_poches_prefixe": "vide-poches-"
+    "vide_poches_prefixe": "vide-poches-",
+    "repertoire_doublon": "doublon"
   },
+
+  "arborescence": {
+    "personnel": "{personne}/{annee}",
+    "professionnel": "{annee}/{categorie}",
+    "personne_inconnue": "Commun"
+  },
+
+  "inventaire": {
+    "exclusions": ["logs", "Archive", "rebut", "doublon"]
+  },
+
+  "executer_sur": [],
 
   "destinations": {
     "personnel": {
@@ -79,7 +92,8 @@
     "date_inconnue_prefixe": "~",
     "emetteur_inconnu": "Inconnu",
     "espaces_vers": "-",
-    "prefixe_a_verifier": "[À_VÉRIFIER]"
+    "prefixe_a_verifier": "[À_VÉRIFIER]",
+    "suffixe_collision": "_{n}"
   },
 
   "scan": {
