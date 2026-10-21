@@ -33,6 +33,8 @@ class Verdict:
     emetteur: str = None
     personne: str = None
     destinataire: str = None
+    # Faux tant que la cascade n'a pas prouvé l'accord : une pièce commune non prouvée n'est pas copiée.
+    categorie_unanime: bool = False
 
 
 @dataclass(frozen=True)
@@ -54,10 +56,12 @@ def router(verdict, pieces_communes=()):
     """
     if not verdict.administratif:
         return []
-    if verdict.categorie in pieces_communes:
-        return [Cible(coffre, CLASSEMENT) for coffre in COFFRES]
-
     domaine = verdict.domaine if verdict.domaine in DOMAINES else INCERTAIN
+    if verdict.categorie in pieces_communes:
+        if verdict.categorie_unanime:
+            return [Cible(coffre, CLASSEMENT) for coffre in COFFRES]
+        # Sans accord unanime sur la catégorie, aucun coffre ne se choisit seul : le document attend un tri.
+        domaine = INCERTAIN
     if domaine in (PERSONNEL, PROFESSIONNEL):
         return [Cible(domaine, CLASSEMENT)]
     if domaine == MIXTE or a_signal_professionnel(verdict.signaux):
@@ -114,6 +118,8 @@ def verdict_depuis_dict(donnees):
     signaux = donnees.get("signaux", ())
     if not all(isinstance(signal, dict) for signal in signaux):
         raise ValueError("chaque signal doit être un objet {domaine, libelle}")
+    if not isinstance(donnees.get("categorie_unanime", False), bool):
+        raise ValueError("`categorie_unanime` doit valoir true ou false")
     date = donnees.get("date")
     if date is not None:
         date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -125,6 +131,7 @@ def verdict_depuis_dict(donnees):
         date=date,
         emetteur=donnees.get("emetteur"),
         personne=donnees.get("personne"),
+        categorie_unanime=donnees.get("categorie_unanime", False),
     )
 
 

@@ -20,8 +20,9 @@ DESTINATIONS = {
 }
 
 
-def verdict(domaine, signaux=(), administratif=True, categorie="Factures"):
-    return Verdict(administratif=administratif, domaine=domaine, categorie=categorie, signaux=tuple(signaux))
+def verdict(domaine, signaux=(), administratif=True, categorie="Factures", categorie_unanime=False):
+    return Verdict(administratif=administratif, domaine=domaine, categorie=categorie, signaux=tuple(signaux),
+                   categorie_unanime=categorie_unanime)
 
 
 def test_personnel():
@@ -59,7 +60,7 @@ def test_domaine_inconnu_vaut_incertain():
 
 
 def test_piece_commune_recoit_les_deux_coffres_quel_que_soit_le_domaine():
-    cibles = router(verdict("incertain", categorie="Identité"), pieces_communes=("Identité",))
+    cibles = router(verdict("incertain", categorie="Identité", categorie_unanime=True), pieces_communes=("Identité",))
     assert cibles == [Cible(PERSONNEL, CLASSEMENT), Cible(PROFESSIONNEL, CLASSEMENT)]
 
 

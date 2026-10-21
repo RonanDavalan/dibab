@@ -127,7 +127,7 @@ def test_doublon_en_collision_de_nom_est_suffixe_aussi(tmp_path, config):  # noq
 
 def test_piece_commune_est_copiee_dans_les_deux_coffres(tmp_path, config):  # noqa: F811
     source = piece(tmp_path, nom="identite.pdf")
-    plan = plan_de(source, config, categorie="Identité")
+    plan = plan_de(source, config, categorie="Identité", categorie_unanime=True)
     resultat = deplacement.deplacer(source, plan, config, deplacement.Registre())
     assert resultat.action == deplacement.CLASSE and len(resultat.destinations) == 2 and not source.exists()
     assert {empreinte_sha256(chemin) for chemin in plan.chemins} == {resultat.empreinte}
@@ -135,7 +135,7 @@ def test_piece_commune_est_copiee_dans_les_deux_coffres(tmp_path, config):  # no
 
 def test_piece_commune_deja_presente_d_un_cote_n_est_copiee_que_de_l_autre(tmp_path, config):  # noqa: F811
     source = piece(tmp_path, nom="identite.pdf")
-    plan = plan_de(source, config, categorie="Identité")
+    plan = plan_de(source, config, categorie="Identité", categorie_unanime=True)
     plan.chemins[0].parent.mkdir(parents=True)
     plan.chemins[0].write_bytes(source.read_bytes())
     resultat = deplacement.deplacer(source, plan, config, deplacement.Registre())

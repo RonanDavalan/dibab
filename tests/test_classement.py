@@ -63,7 +63,8 @@ def test_incertain_avec_signal_professionnel_va_au_coffre_professionnel(source, 
 
 
 def test_piece_commune_a_deux_chemins_de_meme_nom_et_meme_empreinte(source, config, tmp_path):
-    plan = planifier(source, config, domaine="personnel", categorie="Identité", emetteur="Prefecture", personne="Personne2", date=date(2026, 1, 2))
+    plan = planifier(source, config, domaine="personnel", categorie="Identité", emetteur="Prefecture", personne="Personne2", date=date(2026, 1, 2),
+                   categorie_unanime=True)
     assert plan.chemins == (tmp_path / "a/Rangement/Personne2/2026/2026-01-02_Prefecture_Identité.pdf",
                             tmp_path / "b/Classement/2026/Identité/2026-01-02_Prefecture_Identité.pdf")
     assert plan.empreinte

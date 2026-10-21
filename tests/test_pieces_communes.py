@@ -61,7 +61,7 @@ def test_nom_sans_separateur_de_chemin():
 
 def test_piece_commune_deux_chemins_meme_nom_meme_empreinte(tmp_path):
     source = piece(tmp_path)
-    verdict = Verdict(True, "incertain", "Identité", emetteur="Prefecture", date=date(2026, 1, 9))
+    verdict = Verdict(True, "incertain", "Identité", emetteur="Prefecture", date=date(2026, 1, 9), categorie_unanime=True)
     plan = pieces_communes.planifier(source, verdict, configuration(tmp_path), datetime.now())
 
     assert plan.nom == "2026-01-09_Prefecture_Identité.pdf"
@@ -98,7 +98,7 @@ def test_non_administratif_sans_plan(tmp_path):
 
 def test_copie_n_ecrase_rien(tmp_path):
     source = piece(tmp_path)
-    verdict = Verdict(True, "personnel", "Identité", emetteur="Prefecture", date=date(2026, 1, 9))
+    verdict = Verdict(True, "personnel", "Identité", emetteur="Prefecture", date=date(2026, 1, 9), categorie_unanime=True)
     plan = pieces_communes.planifier(source, verdict, configuration(tmp_path), datetime.now())
     plan.chemins[1].parent.mkdir(parents=True)
     plan.chemins[1].write_bytes(b"existant")
@@ -111,7 +111,7 @@ def test_copie_n_ecrase_rien(tmp_path):
 
 def test_copie_corrompue_retiree_et_source_intacte(tmp_path, monkeypatch):
     source = piece(tmp_path)
-    verdict = Verdict(True, "personnel", "Identité", emetteur="Prefecture", date=date(2026, 1, 9))
+    verdict = Verdict(True, "personnel", "Identité", emetteur="Prefecture", date=date(2026, 1, 9), categorie_unanime=True)
     plan = pieces_communes.planifier(source, verdict, configuration(tmp_path), datetime.now())
 
     def copie_tronquee(origine, destination):

@@ -4,6 +4,7 @@ Un seul modèle est chargé à la fois : toutes les requêtes d'une étape se su
 décharge le modèle (`keep_alive` à 0) avant l'étape suivante.
 """
 
+import sys
 from dataclasses import dataclass, replace
 
 from modules import appel_ollama, classification, domaines
@@ -16,6 +17,7 @@ class Resultat:
     classification: object  # classification.Classification, ou None
     verdict: domaines.Verdict
     confiance: float = None  # part des modèles de classification d'accord avec le domaine retenu
+    categorie_unanime: bool = False  # tous les modèles de classification rendent la même catégorie valide
 
 
 def _verdict_incertain(signaux=()):
@@ -31,6 +33,11 @@ def _etape(elements, appliquer, keep_alive):
         derniere = rang == len(elements) - 1
         resultats.append(appliquer(element, 0 if derniere else keep_alive))
     return resultats
+
+
+def _signaler(message):
+    # La classification dure plusieurs dizaines de minutes : sans ligne d'avancement, la sortie paraît figée.
+    print(message, file=sys.stderr, flush=True)
 
 
 def _choisir_classification(fines, seuil):
@@ -64,16 +71,20 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
     a_classer = [(chemin, texte) for chemin, texte in avec_texte if tris[chemin].verdict != classification.NON_ADMINISTRATIF]
     classeurs = [modeles["classification"]] if isinstance(modeles["classification"], str) else list(modeles["classification"])
     seuil = configuration["ollama"].get("seuil_confiance", 0)
-    par_modele = [
-        dict(zip(
-            [chemin for chemin, _ in a_classer],
-            _etape(a_classer, lambda doc, ka, modele=modele: classification.classifier(
-                doc[1], configuration, parametres, modele, ka, generer), keep_alive)))
-        for modele in classeurs
-    ]
-    fines, confiances = {}, {}
+    par_modele = []
+    for rang, modele in enumerate(classeurs, start=1):
+        accords = {}
+        for position, (chemin, texte) in enumerate(a_classer, start=1):
+            _signaler(f"modèle {rang}/{len(classeurs)}, document {position}/{len(a_classer)}")
+            derniere = position == len(a_classer)
+            accords[chemin] = classification.classifier(texte, configuration, parametres, modele, 0 if derniere else keep_alive, generer)
+        par_modele.append(accords)
+    fines, confiances, unanimes = {}, {}, {}
     for chemin, _ in a_classer:
-        fines[chemin], confiances[chemin] = _choisir_classification([accord[chemin] for accord in par_modele], seuil)
+        accords = [accord[chemin] for accord in par_modele]
+        fines[chemin], confiances[chemin] = _choisir_classification(accords, seuil)
+        categories = {accord.verdict.categorie if accord.valide else None for accord in accords}
+        unanimes[chemin] = len(categories) == 1 and None not in categories
 
     resultats = []
     for chemin, _ in documents:
@@ -86,6 +97,6 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
         elif tri.verdict == classification.INCERTAIN:
             verdict = _verdict_incertain(fine.verdict.signaux)
         else:
-            verdict = fine.verdict
-        resultats.append(Resultat(chemin, tri, fine, verdict, confiances.get(chemin)))
+            verdict = replace(fine.verdict, categorie_unanime=unanimes[chemin])
+        resultats.append(Resultat(chemin, tri, fine, verdict, confiances.get(chemin), unanimes.get(chemin, False)))
     return resultats
