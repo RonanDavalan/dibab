@@ -7,6 +7,7 @@ Aucun chemin, nom de fichier ni texte n'entre dans la sortie (spec 24, § 9).
 
 import argparse
 import hashlib
+import itertools
 import json
 import math
 import os
@@ -164,6 +165,75 @@ def _resume_domaines(paires):
             "taux_erreur_domaine": _taux(erreurs, len(decisions))}
 
 
+def _categorie_majoritaire(categories):
+    """Catégorie rendue par plus de la moitié des modèles, ou None ; une sortie invalide (None) ne vote pas."""
+    comptes = Counter(c for c in categories if c is not None)
+    if not comptes:
+        return None
+    categorie, effectif = comptes.most_common(1)[0]
+    return categorie if effectif * 2 > len(categories) else None
+
+
+def accord_categorie(par_modele):
+    """Rend l'accord des modèles sur la catégorie, `par_modele` : {modèle: [catégorie ou None par document]}.
+
+    Seuls comptent les documents classés par au moins un modèle. Aucune catégorie ne sort de ce calcul
+    sous forme de valeur : ni effectif par catégorie, ni nom.
+    """
+    modeles_mesures = list(par_modele)
+    lignes = [tuple(par_modele[m][rang] for m in modeles_mesures) for rang in range(len(par_modele[modeles_mesures[0]]))]
+    lignes = [ligne for ligne in lignes if any(c is not None for c in ligne)]
+    majoritaires = [_categorie_majoritaire(ligne) for ligne in lignes]
+    unanimes = sum(1 for ligne in lignes if None not in ligne and len(set(ligne)) == 1)
+    avec_majorite = [(ligne, categorie) for ligne, categorie in zip(lignes, majoritaires) if categorie is not None]
+    return {
+        "documents": len(lignes),
+        "taux_unanimite": _taux(unanimes, len(lignes)),
+        "taux_majorite": _taux(len(avec_majorite), len(lignes)),
+        "accord_avec_majorite": {
+            modele: _taux(sum(1 for ligne, categorie in avec_majorite if ligne[rang] == categorie), len(avec_majorite))
+            for rang, modele in enumerate(modeles_mesures)},
+    }
+
+
+def sous_ensembles(colonnes, categories, durees_classification, duree_base, etiquettes, seuil):
+    """Rend, pour chaque sous-ensemble de modèles de classification, ses verdicts retenus et sa durée.
+
+    `colonnes` et `categories` : {modèle: [valeur par document]} ; un verdict de coffre est retenu si
+    sa confiance (part du sous-ensemble d'accord) atteint `seuil`.
+    """
+    noms = list(colonnes)
+    resultats = []
+    for taille in range(1, len(noms) + 1):
+        for groupe in itertools.combinations(noms, taille):
+            decisions = [consensus([colonnes[m][rang] for m in groupe]) for rang in range(len(etiquettes))]
+            retenus = [(etiquette, colonne) for etiquette, (colonne, confiance) in zip(etiquettes, decisions)
+                       if colonne in domaines.COFFRES and confiance >= seuil]
+            classes = [[categories[m][rang] for m in groupe] for rang in range(len(etiquettes))]
+            classes = [ligne for ligne in classes if any(c is not None for c in ligne)]
+            unanimes = sum(1 for ligne in classes if None not in ligne and len(set(ligne)) == 1)
+            resultats.append({
+                "modeles": list(groupe),
+                "verdicts_retenus": len(retenus),
+                "erreurs_retenues": sum(1 for etiquette, colonne in retenus if colonne != etiquette),
+                "taux_unanimite_categorie": _taux(unanimes, len(classes)),
+                "duree_moyenne_document_s": _moyenne([duree_base + sum(durees_classification[m] for m in groupe)]),
+            })
+    return resultats
+
+
+def sous_ensemble_retenu(candidats, reference):
+    """Le plus petit sous-ensemble d'au moins deux modèles qui rend autant de verdicts retenus que `reference`, sans erreur.
+
+    Un seul modèle rend toujours l'unanimité de catégorie : la règle des pièces communes n'aurait plus de garde.
+    À taille égale : meilleure unanimité de catégorie, puis durée la plus courte.
+    """
+    admis = [c for c in candidats if len(c["modeles"]) >= 2 and c["erreurs_retenues"] == 0
+             and c["verdicts_retenus"] >= reference["verdicts_retenus"]]
+    return min(admis, key=lambda c: (len(c["modeles"]), -(c["taux_unanimite_categorie"] or 0),
+                                     c["duree_moyenne_document_s"] or 0), default=None)
+
+
 def _colonne(resultat, extraite):
     if extraite.methode == "echec":
         return ECHEC_EXTRACTION
@@ -209,6 +279,7 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
 
     tris = {}
     classifications = {}
+    categories = {}
     modele_tri = candidats["tri_rapide"][0]
     for modele in candidats["classification"]:
         suivre(f"cascade, classification : {modele}")
@@ -221,6 +292,8 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
         resume["duree_moyenne_classification_s"] = _moyenne(
             [r.classification.duree_secondes for r in resultats if r.classification])
         resume["duree_moyenne_document_s"] = _moyenne(durees)
+        categories[modele] = [r.classification.verdict.categorie if r.classification and r.classification.valide else None
+                              for r in resultats]
         classifications[modele] = resume
         classifications[modele]["_colonnes"] = colonnes
         if modele_tri not in tris:
@@ -255,8 +328,13 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
                                   for etiquette, (colonne, confiance) in zip(etiquettes, consensuels)],
                                  configuration["mesure"]["taux_erreur_max"])
     retenu = next((ligne for ligne in courbe if ligne["seuil"] == seuil), None)
-    for resume in classifications.values():
-        del resume["_colonnes"]
+    colonnes_par_modele = {modele: resume.pop("_colonnes") for modele, resume in classifications.items()}
+    base = (_moyenne(duree_extraction) or 0) + (_moyenne(tris[modele_tri][1]) or 0)
+    candidats_sous_ensembles = sous_ensembles(
+        colonnes_par_modele, categories,
+        {modele: resume["duree_moyenne_classification_s"] or 0 for modele, resume in classifications.items()},
+        base, etiquettes, configuration["ollama"].get("seuil_confiance", 0))
+    reference = next(c for c in candidats_sous_ensembles if len(c["modeles"]) == len(classifications))
 
     return {
         "echantillon": {coffre: etiquettes.count(coffre) for coffre in domaines.COFFRES},
@@ -266,6 +344,9 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
                        for methode, valeurs in sorted(par_methode.items())},
         "tri_rapide": resume_tri,
         "classification": classifications,
+        "accord_categorie": accord_categorie(categories),
+        "sous_ensembles": candidats_sous_ensembles,
+        "sous_ensemble_retenu": sous_ensemble_retenu(candidats_sous_ensembles, reference),
         "consensus": {**_resume_domaines(list(zip(etiquettes, (colonne for colonne, _ in consensuels)))),
                       "courbe_seuil": courbe, "seuil_confiance": seuil,
                       "plafond_erreur": configuration["mesure"]["taux_erreur_max"],

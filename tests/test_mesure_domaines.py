@@ -158,7 +158,8 @@ def test_une_execution_a_blanc_rend_les_agregats(banc, capsys):
 def test_la_sortie_ne_contient_ni_chemin_ni_nom_ni_texte(banc):
     code, sortie = lancer(banc, "--a-blanc")
     assert code == 0
-    for interdit in (str(banc.racine), "p1", "q2", ".pdf", "Personne1", "Atelier Exemple", "SIRET", "allocation"):
+    for interdit in (str(banc.racine), "p1", "q2", ".pdf", "Personne1", "Atelier Exemple", "SIRET", "allocation",
+                     *CATEGORIES):
         assert interdit not in sortie
 
 
@@ -189,3 +190,38 @@ def test_un_role_sans_modele_installe_arrete_avec_le_code_3(banc, monkeypatch, c
     code, sortie = lancer(banc, "--a-blanc")
     assert code == 3 and sortie == ""
     assert "classification" in capsys.readouterr().err
+
+
+def test_l_accord_sur_la_categorie_compte_unanimite_majorite_et_accord_par_modele():
+    accord = mesure_domaines.accord_categorie({
+        "a": ["X", "X", "X", None], "b": ["X", "X", "Y", None], "c": ["X", "Y", "Z", "Z"]})
+    assert accord["documents"] == 4
+    assert accord["taux_unanimite"] == 0.25
+    assert accord["taux_majorite"] == 0.5
+    assert accord["accord_avec_majorite"] == {"a": 1.0, "b": 1.0, "c": 0.5}
+
+
+def test_une_categorie_a_egalite_n_a_pas_de_majorite():
+    accord = mesure_domaines.accord_categorie({"a": ["X"], "b": ["Y"]})
+    assert accord["taux_majorite"] == 0.0 and accord["accord_avec_majorite"] == {"a": None, "b": None}
+
+
+def test_le_sous_ensemble_retenu_est_le_plus_petit_d_au_moins_deux_modeles_sans_erreur():
+    def ligne(modeles, retenus, erreurs, unanimite, duree):
+        return {"modeles": modeles, "verdicts_retenus": retenus, "erreurs_retenues": erreurs,
+                "taux_unanimite_categorie": unanimite, "duree_moyenne_document_s": duree}
+    candidats = [ligne(["a"], 11, 0, 1.0, 5), ligne(["a", "b"], 11, 0, 0.7, 20), ligne(["a", "c"], 11, 0, 0.8, 22),
+                 ligne(["b", "c"], 9, 0, 0.9, 10), ligne(["a", "d"], 11, 1, 0.9, 10), ligne(["a", "b", "c"], 11, 0, 0.6, 30)]
+    assert mesure_domaines.sous_ensemble_retenu(candidats, candidats[5])["modeles"] == ["a", "c"]
+    assert mesure_domaines.sous_ensemble_retenu(candidats[:1], candidats[0]) is None
+
+
+def test_les_sous_ensembles_rendent_verdicts_retenus_et_duree(banc):
+    code, sortie = lancer(banc, "--a-blanc")
+    agregats = json.loads(sortie)
+    assert code == 0
+    par_modeles = {tuple(ligne["modeles"]): ligne for ligne in agregats["sous_ensembles"]}
+    assert set(par_modeles) == {("bon",), ("faux",), ("bon", "faux")}
+    assert par_modeles[("bon",)]["erreurs_retenues"] == 0 and par_modeles[("bon",)]["verdicts_retenus"] == 5
+    assert agregats["accord_categorie"]["taux_unanimite"] == 1.0
+    assert agregats["sous_ensemble_retenu"] is None or len(agregats["sous_ensemble_retenu"]["modeles"]) >= 2
