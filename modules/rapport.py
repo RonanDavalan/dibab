@@ -16,6 +16,7 @@ class Rapport:
         self.debut = time.monotonic()
         self.comptes = Counter()
         self.rapatries = 0
+        self.deposes_imap = 0
 
     def compter(self, action):
         self.comptes[action] += 1
@@ -25,7 +26,8 @@ class Rapport:
         chemin.parent.mkdir(parents=True, exist_ok=True)
         contenu = {"schema_version": SCHEMA_VERSION, "session": self.session, "mode": self.mode,
                    "duree_secondes": round(time.monotonic() - self.debut, 3), "actions": dict(self.comptes),
-                   "echecs": self.comptes.get("echec", 0), "rapatries": self.rapatries}
+                   "echecs": self.comptes.get("echec", 0), "rapatries": self.rapatries,
+                   "deposes_imap": self.deposes_imap}
         descripteur = os.open(chemin, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(descripteur, "w", encoding="utf-8") as f:
             json.dump(contenu, f, indent=2, sort_keys=True)

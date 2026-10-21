@@ -13,7 +13,7 @@
 # - Phase 5 : journal des actions, rapport de session, rollback, rotation
 # - Phase 6 : sources distantes par ssh (listage, rapatriement dans le vide-poches)
 #
-# Phase à venir : IMAP (7).
+# - Phase 7 : sources IMAP en lecture seule (pièces jointes déposées dans le vide-poches)
 
 import argparse
 import json
@@ -41,6 +41,7 @@ from modules import rollback as mod_rollback
 from modules import rotation as mod_rotation
 from modules import scanner_local
 from modules import sources_distantes as mod_sources_distantes
+from modules import sources_imap as mod_sources_imap
 from modules import suivi as mod_suivi
 from modules import verrou as mod_verrou
 
@@ -167,7 +168,7 @@ def parametres_classement_ou_sortir(configuration):
 
 
 def parametres_journal_ou_sortir(configuration, mode):
-    """Arrête avec le code 1 si une clé du journal des actions, de la rotation ou des sources distantes manque."""
+    """Arrête avec le code 1 si une clé du journal des actions, de la rotation, des sources distantes ou IMAP manque."""
     suivi = configuration.get("suivi", {})
     absents = []
     if mode in ("execute", "rollback"):
@@ -176,6 +177,7 @@ def parametres_journal_ou_sortir(configuration, mode):
                     if cle not in suivi.get("rotation", {})]
     if mode in ("dry-run", "execute"):
         absents += mod_sources_distantes.cles_absentes(configuration)
+        absents += mod_sources_imap.cles_absentes(configuration)
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
@@ -267,6 +269,19 @@ def afficher_scan(stats_par_source, total_candidats, total_octets):
     print("=" * 60)
 
 
+def dedoublonner_dossiers(sources_locales, sources_supplementaires):
+    """Un dossier n'est lu qu'une fois : la source dérivée d'un vide-poches (sans filtre de date) prime sur une source locale ou une autre dérivée du même dossier."""
+    vus = set()
+    retenues = []
+    for source in sources_supplementaires:
+        chemin = os.path.realpath(source["chemin"])
+        if chemin not in vus:
+            vus.add(chemin)
+            retenues.append(source)
+    locales = [source for source in sources_locales if os.path.realpath(source["chemin"]) not in vus]
+    return [*locales, *retenues]
+
+
 def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None, sources_supplementaires=()):
     """Orchestre le scan des sources_locales et retourne la liste des candidats.
 
@@ -283,7 +298,7 @@ def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None, sources_s
     securite_jours = configuration["suivi"].get("securite_jours", 1)
     premier_scan_jours = configuration["suivi"].get("premier_scan_jours", 90)
 
-    sources = [*configuration.get("sources_locales", []), *sources_supplementaires]
+    sources = dedoublonner_dossiers(configuration.get("sources_locales", []), sources_supplementaires)
     total_candidats = 0
     total_octets = 0
     stats_par_source = []
@@ -592,6 +607,11 @@ def main():
                                                 journal, datetime.now(), court)
         mod_sources_distantes.afficher(listages)
         derivees = mod_sources_distantes.sources_locales_derivees(configuration)
+    if configuration.get("sources_imap"):
+        resultats, _, _ = mod_sources_imap.traiter(configuration, mod_suivi.charger(configuration["suivi"]["fichier_date"]),
+                                                   journal, datetime.now(), deposer_les_pieces=False)
+        mod_sources_imap.afficher(resultats, deposer_les_pieces=False)
+    derivees += mod_sources_imap.sources_locales_derivees(configuration)
     candidats = executer_phase2(configuration, mode, journal, sources_supplementaires=derivees)
     extractions = extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
     classer_candidats(configuration, candidats, extractions, modeles_cascade, journal)
@@ -599,8 +619,6 @@ def main():
         verdicts = charger_verdicts_simules(arguments.verdicts_simules)
         afficher_routage(configuration, candidats, verdicts, journal)
 
-    print()
-    print("IMAP (phase 7) non encore implémenté.")
     journal.ajouter("session_terminee", mode=mode)
     return 0
 
@@ -619,6 +637,17 @@ def rapatrier_sources_distantes(configuration, suivi, journal, rapport):
         print(f"  {source['id']} : {len(candidats)} candidat(s)" + ("" if complet else f", listage incomplet : {'; '.join(erreurs)}"))
     print()
     return mod_sources_distantes.sources_locales_derivees(configuration), dates, en_echec
+
+
+def deposer_sources_imap(configuration, suivi, journal, rapport):
+    """Dépose les pièces jointes de chaque source IMAP ; rend les sources locales à scanner, les dates à avancer et les sources en échec."""
+    if not configuration.get("sources_imap"):
+        return [], {}, set()
+    print("Sources IMAP (lecture seule : rien n'est modifié ni supprimé dans la boîte)")
+    resultats, dates, en_echec = mod_sources_imap.traiter(configuration, suivi, journal, datetime.now(), deposer_les_pieces=True)
+    mod_sources_imap.afficher(resultats, deposer_les_pieces=True)
+    rapport.deposes_imap += sum(resultat.deposees for resultat in resultats)
+    return mod_sources_imap.sources_locales_derivees(configuration), dates, en_echec
 
 
 def executer_rollback(configuration, session, journal, horodatage):
@@ -648,12 +677,16 @@ def executer_session(configuration, parametres, modeles, journal, horodatage):
     chemin_suivi = Path(configuration["suivi"]["fichier_date"])
     suivi = mod_suivi.charger(chemin_suivi)
     derivees, dates_distantes, distantes_en_echec = rapatrier_sources_distantes(configuration, suivi, journal, rapport)
+    derivees_imap, dates_imap, imap_en_echec = deposer_sources_imap(configuration, suivi, journal, rapport)
+    derivees += derivees_imap
+    distantes_en_echec |= imap_en_echec
     dates_de_scan = {}
     candidats = executer_phase2(configuration, "execute", journal, suivi_a_ecrire=dates_de_scan, sources_supplementaires=derivees)
     extractions = extraire_candidats(configuration, parametres, candidats, modeles["ocr"], journal, dry_run=False)
     sources_en_echec = classer_et_deplacer(configuration, candidats, extractions, modeles, journal, actions, rapport)
     suivi.update({source: date for source, date in dates_de_scan.items() if source not in sources_en_echec})
     suivi.update(dates_distantes)
+    suivi.update(dates_imap)
     mod_suivi.sauvegarder(chemin_suivi, suivi)
     journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi), sources_non_avancees=sorted(sources_en_echec | distantes_en_echec))
     journal.ajouter("session_terminee", mode="execute")

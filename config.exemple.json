@@ -140,6 +140,11 @@
     }
   ],
 
+  "imap": {
+    "delai_secondes": 60,
+    "taille_max_piece_mo": 25
+  },
+
   "sources_imap": [
     {
       "id": "imap-exemple",
