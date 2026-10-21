@@ -236,6 +236,21 @@ def authentifier(connexion, utilisateur, mot_de_passe):
         raise AuthentificationRefusee("authentification refusée par le serveur")
 
 
+def authentifier_xoauth2(connexion, utilisateur, jeton_acces):
+    """XOAUTH2 : un refus arrête la source ; le défi d'échec du serveur reçoit la ligne vide que le protocole exige."""
+    if re.search(r"[\x00-\x1f\x7f]", utilisateur + jeton_acces):
+        raise AuthentificationRefusee("identifiant ou jeton invalide")
+    reponses = iter([f"user={utilisateur}\x01auth=Bearer {jeton_acces}\x01\x01".encode("utf-8")])
+    try:
+        etat, _ = connexion.authenticate("XOAUTH2", lambda _: next(reponses, b""))
+    except imaplib.IMAP4.error as erreur:
+        raise AuthentificationRefusee("authentification refusée par le serveur") from erreur
+    except OSError as erreur:
+        raise ConnexionImpossible(f"connexion perdue ({type(erreur).__name__})") from erreur
+    if etat != "OK":
+        raise AuthentificationRefusee("authentification refusée par le serveur")
+
+
 def fermer(connexion):
     try:
         connexion.logout()

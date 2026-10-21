@@ -14,6 +14,7 @@ CHEMINS_SIMPLES = (
 LISTES_DE_SOURCES = (
     ("sources_locales", "chemin"),
     ("sources_imap", "token_fichier"),
+    ("sources_imap", "client_fichier"),
 )
 
 
@@ -30,6 +31,9 @@ def developper_chemins(configuration):
     for destination in resultat.get("destinations", {}).values():
         if isinstance(destination.get("racine"), str):
             destination["racine"] = developper(destination["racine"])
+    interdits = resultat.get("oauth2", {}).get("chemins_interdits")
+    if isinstance(interdits, list):
+        resultat["oauth2"]["chemins_interdits"] = [developper(c) if isinstance(c, str) else c for c in interdits]
     for section, cle in LISTES_DE_SOURCES:
         for entree in resultat.get(section, []):
             if isinstance(entree.get(cle), str):

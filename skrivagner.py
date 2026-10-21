@@ -35,6 +35,7 @@ from modules import inventaire as mod_inventaire
 from modules import journal as mod_journal
 from modules import journal_actions as mod_journal_actions
 from modules import modeles as mod_modeles
+from modules import oauth2_google as mod_oauth2_google
 from modules import rapatriement as mod_rapatriement
 from modules import rapport as mod_rapport
 from modules import rollback as mod_rollback
@@ -204,14 +205,39 @@ def analyser_arguments():
                         help="Lit l'existant des coffres et écrit un plan de migration, sans rien déplacer")
     groupe.add_argument("--rollback", action="store_true",
                         help="Annule la dernière session de classement, ou celle de --session")
+    groupe.add_argument("--autoriser-google", type=str, default=None, metavar="ID",
+                        help="Consentement OAuth2 d'une source IMAP Google (écrit son fichier de jeton)")
     parseur.add_argument("--session", type=str, default=None,
                          help="Identifiant de session à annuler (avec --rollback)")
     parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar="FICHIER",
                          help="Dry-run : JSON {nom de fichier: verdict} dont le routage s'affiche")
     arguments = parseur.parse_args()
-    if arguments.verdicts_simules and (arguments.execute or arguments.rollback or arguments.inventaire):
+    if arguments.verdicts_simules and (arguments.execute or arguments.rollback or arguments.inventaire
+                                    or arguments.autoriser_google):
         parseur.error("--verdicts-simules ne s'emploie qu'en dry-run")
     return arguments
+
+
+def autoriser_google(configuration, identifiant):
+    """Consentement d'une source IMAP `oauth2` ; rend 0, ou 1 si la source est mal déclarée ou si le consentement échoue."""
+    sources = [s for s in configuration.get("sources_imap", []) if s.get("id") == identifiant and s.get("authentification") == "oauth2"]
+    if not sources:
+        sys.stderr.write(f"ERREUR : aucune source IMAP « {identifiant} » avec authentification oauth2 dans config.json\n")
+        return 1
+    absents = mod_sources_imap.cles_absentes({**configuration, "sources_imap": sources})
+    if absents:
+        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n        Voir config.exemple.json.\n")
+        return 1
+    source = sources[0]
+    try:
+        mod_oauth2_google.autoriser(
+            source["client_fichier"], source["token_fichier"], source["utilisateur"], configuration["oauth2"],
+            lambda adresse: print(f"Ouvrir cette adresse dans un navigateur, puis accepter le consentement :\n\n{adresse}\n", flush=True))
+    except mod_oauth2_google.ErreurOAuth2 as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été écrit.\n")
+        return 1
+    print(f"Jeton écrit pour la source {identifiant}.")
+    return 0
 
 
 def determiner_mode(arguments):
@@ -544,6 +570,10 @@ def modeles_de_la_cascade(configuration, modeles_retenus):
 
 def main():
     arguments = analyser_arguments()
+    if arguments.autoriser_google:
+        configuration = charger_configuration()
+        verifier_coffres_ou_sortir(configuration, "execute")
+        return autoriser_google(configuration, arguments.autoriser_google)
     mode = determiner_mode(arguments)
 
     configuration = charger_configuration()

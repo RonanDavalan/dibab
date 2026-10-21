@@ -338,11 +338,11 @@ def test_variable_absente_ignore_la_source_sans_connexion(serveur, tmp_path):
     assert boite.commandes == [] and dates == {} and en_echec == set()
 
 
-def test_ssl_faux_ou_oauth2_ignore_la_source(serveur, tmp_path):
+def test_ssl_faux_ou_authentification_inconnue_ignore_la_source(serveur, tmp_path):
     boite = boite_standard()
     port = serveur(boite).port
     assert traiter(configuration_minimale(tmp_path, port, ssl=False), deposer=True)[0][0].ignoree
-    assert traiter(configuration_minimale(tmp_path, port, authentification="oauth2"), deposer=True)[0][0].ignoree
+    assert traiter(configuration_minimale(tmp_path, port, authentification="kerberos"), deposer=True)[0][0].ignoree
     assert boite.commandes == []
 
 

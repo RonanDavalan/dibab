@@ -57,6 +57,7 @@ class Boite:
         self.uidvalidity = uidvalidity
         self.commandes = []
         self.parties_demandees = []
+        self.reponses_au_defi = []
 
     def instantane(self):
         return [(m["uid"], frozenset(m["flags"])) for m in self.messages]
@@ -89,6 +90,18 @@ class Gestionnaire(socketserver.StreamRequestHandler):
                     self.ecrire(f"{etiquette} OK connecte\r\n")
                 else:
                     self.ecrire(f"{etiquette} NO [AUTHENTICATIONFAILED] refuse\r\n")
+            elif verbe == "AUTHENTICATE" and "XOAUTH2" in reste.upper():
+                self.ecrire("+ \r\n")
+                chaine = base64.b64decode(self.rfile.readline().strip()).decode("utf-8")
+                correspond = re.fullmatch(r"user=([^\x01]*)\x01auth=Bearer ([^\x01]*)\x01\x01", chaine)
+                if correspond and correspond.group(1) == UTILISATEUR and correspond.group(2) in self.server.jetons_valides:
+                    authentifie = True
+                    self.ecrire(f"{etiquette} OK connecte\r\n")
+                else:
+                    defi = base64.b64encode(b'{"status":"401","schemes":"bearer","scope":"https://mail.google.com/"}').decode()
+                    self.ecrire(f"+ {defi}\r\n")
+                    boite.reponses_au_defi.append(self.rfile.readline().strip())
+                    self.ecrire(f"{etiquette} NO SASL authentication failed\r\n")
             elif verbe == "AUTHENTICATE":
                 self.ecrire("+ \r\n")
                 reponse = base64.b64decode(self.rfile.readline().strip()).decode("utf-8").split("\0")
@@ -163,10 +176,12 @@ class Serveur(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-    def __init__(self, boite, dossiers=("INBOX",), contexte_tls=None, identifiants=(UTILISATEUR, MOT_DE_PASSE)):
+    def __init__(self, boite, dossiers=("INBOX",), contexte_tls=None, identifiants=(UTILISATEUR, MOT_DE_PASSE),
+                 jetons_valides=()):
         super().__init__(("127.0.0.1", 0), Gestionnaire)
         self.boite = boite
         self.identifiants = identifiants
+        self.jetons_valides = set(jetons_valides)
         self.dossiers = dossiers
         if contexte_tls:
             self.socket = contexte_tls.wrap_socket(self.socket, server_side=True)

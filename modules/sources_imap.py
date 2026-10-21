@@ -10,14 +10,14 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from modules import journal_actions, scanner_imap, scanner_local
+from modules import journal_actions, oauth2_google, scanner_imap, scanner_local
 from modules.deplacement import chemin_libre
 from modules.pieces_communes import empreinte_sha256
 from modules.rapatriement import RegistreRapatries
 
 CLES_IMAP = ("delai_secondes", "taille_max_piece_mo")
-CLES_SOURCE = ("id", "serveur", "port", "ssl", "authentification", "utilisateur", "mot_de_passe_env", "dossiers",
-               "vide_poches_destination")
+CLES_SOURCE = ("id", "serveur", "port", "ssl", "authentification", "utilisateur", "dossiers", "vide_poches_destination")
+CLES_SOURCE_PAR_AUTHENTIFICATION = {"login": ("mot_de_passe_env",), "oauth2": ("token_fichier", "client_fichier")}
 
 DEPOSEE = "deposee"
 DEJA_DEPOSEE = "deja_deposee"
@@ -41,8 +41,11 @@ def cles_absentes(configuration):
     if not sources:
         return []
     absentes = [f"imap.{cle}" for cle in CLES_IMAP if cle not in configuration.get("imap", {})]
+    if any(source.get("authentification") == "oauth2" for source in sources):
+        absentes += [f"oauth2.{cle}" for cle in oauth2_google.CLES_OAUTH2 if cle not in configuration.get("oauth2", {})]
     for source in sources:
-        absentes += [f"sources_imap[{source.get('id', '?')}].{cle}" for cle in CLES_SOURCE if cle not in source]
+        attendues = CLES_SOURCE + CLES_SOURCE_PAR_AUTHENTIFICATION.get(source.get("authentification"), ("mot_de_passe_env",))
+        absentes += [f"sources_imap[{source.get('id', '?')}].{cle}" for cle in attendues if cle not in source]
         nom = source.get("vide_poches_destination", "")
         if "/" in nom or nom in ("", ".", ".."):
             absentes.append(f"sources_imap[{source.get('id', '?')}].vide_poches_destination (un nom, sans séparateur)")
@@ -122,7 +125,7 @@ def _deposer_pieces(connexion, resultat, pieces, dossier, registre, connues, suf
 
 def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces, registre, connues, journal, environ, ouvrir):
     resultat = ResultatSource(source)
-    if source["authentification"] != "login":
+    if source["authentification"] not in ("login", "oauth2"):
         resultat.ignoree = True
         resultat.erreurs.append(f"authentification « {source['authentification']} » non prise en charge, source ignorée")
         return resultat
@@ -130,11 +133,26 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
         resultat.ignoree = True
         resultat.erreurs.append("la connexion doit être TLS (ssl: true), source ignorée")
         return resultat
-    mot_de_passe = environ.get(source["mot_de_passe_env"])
-    if not mot_de_passe:
-        resultat.ignoree = True
-        resultat.erreurs.append(f"variable d'environnement {source['mot_de_passe_env']} non définie, source ignorée")
-        return resultat
+    if source["authentification"] == "login":
+        mot_de_passe = environ.get(source["mot_de_passe_env"])
+        if not mot_de_passe:
+            resultat.ignoree = True
+            resultat.erreurs.append(f"variable d'environnement {source['mot_de_passe_env']} non définie, source ignorée")
+            return resultat
+        authentifier = lambda connexion: scanner_imap.authentifier(connexion, source["utilisateur"], mot_de_passe)  # noqa: E731
+    else:
+        if not os.path.exists(source["token_fichier"]):
+            resultat.ignoree = True
+            resultat.erreurs.append("fichier de jeton absent, source ignorée : lancer --autoriser-google " + source["id"])
+            return resultat
+        try:
+            jeton = oauth2_google.jeton_d_acces(source["client_fichier"], source["token_fichier"], configuration["oauth2"])
+        except oauth2_google.ErreurOAuth2 as erreur:
+            resultat.erreurs.append(str(erreur))
+            journal.ajouter("scan_imap", source_id=source["id"], pieces=0, ecartees_taille=0, complet=False, erreurs=1,
+                            dry_run=not deposer_les_pieces)
+            return resultat
+        authentifier = lambda connexion: scanner_imap.authentifier_xoauth2(connexion, source["utilisateur"], jeton)  # noqa: E731
 
     imap = configuration["imap"]
     parametres = configuration["suivi"]
@@ -147,7 +165,7 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
     connexion = None
     try:
         connexion = ouvrir(source["serveur"], source["port"], imap["delai_secondes"])
-        scanner_imap.authentifier(connexion, source["utilisateur"], mot_de_passe)
+        authentifier(connexion)
         resultat.complet = True
         for nom_dossier in source["dossiers"]:
             try:
@@ -180,7 +198,7 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
 def traiter(configuration, suivi, journal, maintenant, deposer_les_pieces, environ=None, ouvrir=None):
     """Lit chaque source IMAP ; rend (résultats, dates à faire avancer, sources en échec).
 
-    Une source dont le mot de passe n'est pas défini est ignorée sans connexion et sans échec. La date d'une
+    Une source sans mot de passe défini, ou sans fichier de jeton, est ignorée sans connexion et sans échec. La date d'une
     source n'avance que si chaque dossier a été lu en entier et chaque pièce déposée ou connue.
     """
     environ = os.environ if environ is None else environ
