@@ -226,11 +226,11 @@ def sous_ensemble_retenu(candidats, reference):
     """Le plus petit sous-ensemble d'au moins deux modèles qui rend autant de verdicts retenus que `reference`, sans erreur.
 
     Un seul modèle rend toujours l'unanimité de catégorie : la règle des pièces communes n'aurait plus de garde.
-    À taille égale : meilleure unanimité de catégorie, puis durée la plus courte.
+    À taille égale : le plus de verdicts retenus, puis la durée la plus courte.
     """
     admis = [c for c in candidats if len(c["modeles"]) >= 2 and c["erreurs_retenues"] == 0
              and c["verdicts_retenus"] >= reference["verdicts_retenus"]]
-    return min(admis, key=lambda c: (len(c["modeles"]), -(c["taux_unanimite_categorie"] or 0),
+    return min(admis, key=lambda c: (len(c["modeles"]), -c["verdicts_retenus"],
                                      c["duree_moyenne_document_s"] or 0), default=None)
 
 

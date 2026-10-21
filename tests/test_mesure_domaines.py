@@ -212,7 +212,7 @@ def test_le_sous_ensemble_retenu_est_le_plus_petit_d_au_moins_deux_modeles_sans_
                 "taux_unanimite_categorie": unanimite, "duree_moyenne_document_s": duree}
     candidats = [ligne(["a"], 11, 0, 1.0, 5), ligne(["a", "b"], 11, 0, 0.7, 20), ligne(["a", "c"], 11, 0, 0.8, 22),
                  ligne(["b", "c"], 9, 0, 0.9, 10), ligne(["a", "d"], 11, 1, 0.9, 10), ligne(["a", "b", "c"], 11, 0, 0.6, 30)]
-    assert mesure_domaines.sous_ensemble_retenu(candidats, candidats[5])["modeles"] == ["a", "c"]
+    assert mesure_domaines.sous_ensemble_retenu(candidats, candidats[5])["modeles"] == ["a", "b"]
     assert mesure_domaines.sous_ensemble_retenu(candidats[:1], candidats[0]) is None
 
 
