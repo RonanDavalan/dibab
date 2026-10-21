@@ -120,11 +120,16 @@
     }
   ],
 
+  "ssh": {
+    "delai_connexion_secondes": 10,
+    "delai_commande_secondes": 120,
+    "delai_copie_secondes": 900
+  },
+
   "sources_distantes": [
     {
       "id": "ssh-machine1",
       "alias_ssh": "machine1",
-      "utilisateur": "utilisateur",
       "vide_poches_destination": "vide-poches-machine1",
       "repertoires": [
         "~/Téléchargements"

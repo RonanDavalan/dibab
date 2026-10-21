@@ -10,7 +10,10 @@
 #
 # - Phase 4 : classement par domaine, déplacement sûr (--execute), inventaire de l'existant (--inventaire)
 #
-# Phases à venir : rollback (5), SSH (6), IMAP (7).
+# - Phase 5 : journal des actions, rapport de session, rollback, rotation
+# - Phase 6 : sources distantes par ssh (listage, rapatriement dans le vide-poches)
+#
+# Phase à venir : IMAP (7).
 
 import argparse
 import json
@@ -30,13 +33,22 @@ from modules import domaines as mod_domaines
 from modules import extraction as mod_extraction
 from modules import inventaire as mod_inventaire
 from modules import journal as mod_journal
+from modules import journal_actions as mod_journal_actions
 from modules import modeles as mod_modeles
+from modules import rapatriement as mod_rapatriement
+from modules import rapport as mod_rapport
+from modules import rollback as mod_rollback
+from modules import rotation as mod_rotation
 from modules import scanner_local
+from modules import sources_distantes as mod_sources_distantes
 from modules import suivi as mod_suivi
 from modules import verrou as mod_verrou
 
 
-VERSION = "0.6.0-phase4-classement"
+VERSION = "0.7.0-phase6-sources-distantes"
+
+# Un vide-poches se relit en entier : tout ce qui s'y trouve attend son classement.
+JOURS_SANS_FILTRE_DATE = 36500
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
@@ -154,6 +166,28 @@ def parametres_classement_ou_sortir(configuration):
         sys.exit(1)
 
 
+def parametres_journal_ou_sortir(configuration, mode):
+    """Arrête avec le code 1 si une clé du journal des actions, de la rotation ou des sources distantes manque."""
+    suivi = configuration.get("suivi", {})
+    absents = []
+    if mode in ("execute", "rollback"):
+        absents += [f"suivi.{cle}" for cle in ("journal", "rotation") if cle not in suivi]
+        absents += [f"suivi.rotation.{cle}" for cle in ("journal_taille_max_mo", "journal_archives_max", "sessions_max")
+                    if cle not in suivi.get("rotation", {})]
+    if mode in ("dry-run", "execute"):
+        absents += mod_sources_distantes.cles_absentes(configuration)
+    if absents:
+        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
+                         f"        Voir config.exemple.json.\n")
+        sys.exit(1)
+
+
+def appliquer_rotation(configuration):
+    rotation = configuration["suivi"]["rotation"]
+    mod_rotation.tourner_journal(configuration["suivi"]["journal"], rotation["journal_taille_max_mo"], rotation["journal_archives_max"])
+    mod_rotation.purger_sessions(configuration["suivi"]["sessions"], rotation["sessions_max"])
+
+
 def analyser_arguments():
     parseur = argparse.ArgumentParser(
         prog="skrivagner",
@@ -167,7 +201,7 @@ def analyser_arguments():
     groupe.add_argument("--inventaire", action="store_true",
                         help="Lit l'existant des coffres et écrit un plan de migration, sans rien déplacer")
     groupe.add_argument("--rollback", action="store_true",
-                        help="Annule la dernière session (Phase 5)")
+                        help="Annule la dernière session de classement, ou celle de --session")
     parseur.add_argument("--session", type=str, default=None,
                          help="Identifiant de session à annuler (avec --rollback)")
     parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar="FICHIER",
@@ -233,7 +267,7 @@ def afficher_scan(stats_par_source, total_candidats, total_octets):
     print("=" * 60)
 
 
-def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None):
+def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None, sources_supplementaires=()):
     """Orchestre le scan des sources_locales et retourne la liste des candidats.
 
     En exécution, `suivi_a_ecrire` reçoit la date du scan de chaque source au lieu de l'écrire :
@@ -249,7 +283,7 @@ def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None):
     securite_jours = configuration["suivi"].get("securite_jours", 1)
     premier_scan_jours = configuration["suivi"].get("premier_scan_jours", 90)
 
-    sources = configuration.get("sources_locales", [])
+    sources = [*configuration.get("sources_locales", []), *sources_supplementaires]
     total_candidats = 0
     total_octets = 0
     stats_par_source = []
@@ -257,14 +291,15 @@ def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None):
     horodatage_debut = datetime.now()
 
     for source in sources:
-        derniere = mod_suivi.derniere_date(suivi, source["id"])
+        sans_filtre = source.get("toujours_complete", False)
+        derniere = None if sans_filtre else mod_suivi.derniere_date(suivi, source["id"])
         candidats, stats = scanner_local.scanner_source(
             source=source,
             scan_global=scan_global,
             extensions_cibles=extensions,
             derniere_date=derniere,
             securite_jours=securite_jours,
-            premier_scan_jours=premier_scan_jours,
+            premier_scan_jours=JOURS_SANS_FILTRE_DATE if sans_filtre else premier_scan_jours,
             maintenant=horodatage_debut,
         )
 
@@ -299,7 +334,7 @@ def executer_phase2(configuration, mode, journal, suivi_a_ecrire=None):
         total_octets += stats["taille_octets"]
         tous_candidats.extend(candidats)
 
-        if stats["existe"]:
+        if stats["existe"] and not sans_filtre:
             suivi_maj[source["id"]] = horodatage_debut
             if suivi_a_ecrire is not None:
                 suivi_a_ecrire[source["id"]] = horodatage_debut
@@ -422,7 +457,7 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
     print()
 
 
-def classer_et_deplacer(configuration, candidats, extractions, modeles, journal):
+def classer_et_deplacer(configuration, candidats, extractions, modeles, journal, journal_actions=None, rapport=None):
     """Classe les candidats puis déplace chacun vers sa destination ; rend les sources dont un document a échoué."""
     print("Classement (exécution : chaque document est copié, vérifié par SHA256, puis retiré de sa source)")
     documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
@@ -436,8 +471,14 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal)
         if plan is None:
             print(f"  - {resultat.chemin.name} : non administratif, ne bouge pas")
             journal.ajouter("non_deplace", chemin=str(resultat.chemin), raison="non administratif", dry_run=False)
+            if rapport:
+                rapport.compter("non_deplace")
             continue
         deplacement = mod_deplacement.deplacer(resultat.chemin, plan, configuration, registre)
+        if rapport:
+            rapport.compter(deplacement.action)
+        if journal_actions and deplacement.action != mod_deplacement.ECHEC:
+            journal_actions.enregistrer_deplacement(deplacement, resultat.verdict.domaine)
         if deplacement.action == mod_deplacement.ECHEC:
             sources_en_echec.add(candidat.source_id)
             print(f"  - {resultat.chemin.name} : ÉCHEC, laissé en place ({deplacement.raison})")
@@ -500,9 +541,12 @@ def main():
         parametres_classification_ou_sortir(configuration)
     if mode in ("dry-run", "execute", "inventaire"):
         parametres_classement_ou_sortir(configuration)
+    parametres_journal_ou_sortir(configuration, mode)
     modeles_retenus = None
     if mode in ("dry-run", "execute"):
         modeles_retenus = resoudre_modeles_ou_sortir(configuration)
+    if mode in ("execute", "rollback"):
+        appliquer_rotation(configuration)
     journal, horodatage = initialiser_journal_session(configuration, mode, etats_coffres)
 
     print(f"Skrivagner {VERSION} — session {horodatage}")
@@ -525,9 +569,7 @@ def main():
     print()
 
     if mode == "rollback":
-        print("Phase 5 (rollback) non encore implémentée.")
-        journal.ajouter("phase_non_implementee", phase=5)
-        return 0
+        return executer_rollback(configuration, arguments.session, journal, horodatage)
 
     if mode == "inventaire":
         code = executer_inventaire(configuration, journal)
@@ -538,12 +580,19 @@ def main():
         chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "skrivagner.verrou"
         try:
             with mod_verrou.verrou(chemin_verrou):
-                return executer_session(configuration, parametres, modeles_cascade, journal)
+                return executer_session(configuration, parametres, modeles_cascade, journal, horodatage)
         except mod_verrou.VerrouPris as erreur:
             sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été touché.\n")
             return 5
 
-    candidats = executer_phase2(configuration, mode, journal)
+    derivees = []
+    if configuration.get("sources_distantes"):
+        court, _ = mod_sources_distantes.executeurs(configuration)
+        listages = mod_sources_distantes.lister(configuration, mod_suivi.charger(configuration["suivi"]["fichier_date"]),
+                                                journal, datetime.now(), court)
+        mod_sources_distantes.afficher(listages)
+        derivees = mod_sources_distantes.sources_locales_derivees(configuration)
+    candidats = executer_phase2(configuration, mode, journal, sources_supplementaires=derivees)
     extractions = extraire_candidats(configuration, parametres, candidats, modeles_retenus["ocr"], journal)
     classer_candidats(configuration, candidats, extractions, modeles_cascade, journal)
     if arguments.verdicts_simules:
@@ -551,25 +600,66 @@ def main():
         afficher_routage(configuration, candidats, verdicts, journal)
 
     print()
-    print("Rollback, SSH et IMAP (phases 5 à 7)")
-    print("non encore implémentés.")
+    print("IMAP (phase 7) non encore implémenté.")
     journal.ajouter("session_terminee", mode=mode)
     return 0
 
 
-def executer_session(configuration, parametres, modeles, journal):
-    """Scan, extraction, classement et déplacement ; la date du scan n'avance que pour les sources sans échec."""
+def rapatrier_sources_distantes(configuration, suivi, journal, rapport):
+    """Rapatrie chaque source distante ; rend les sources locales à scanner, les dates à avancer et les sources en échec."""
+    if not configuration.get("sources_distantes"):
+        return [], {}, set()
+    maintenant = datetime.now()
+    court, copie = mod_sources_distantes.executeurs(configuration)
+    listages = mod_sources_distantes.lister(configuration, suivi, journal, maintenant, court)
+    print("Rapatriement des sources distantes (copie vérifiée par empreinte, rien n'est retiré côté distant)")
+    registre = mod_rapatriement.RegistreRapatries(Path(configuration["suivi"]["fichier_date"]).parent / "rapatries.json")
+    dates, en_echec = mod_sources_distantes.rapatrier(configuration, listages, registre, journal, rapport, maintenant, court, copie)
+    for source, candidats, complet, erreurs in listages:
+        print(f"  {source['id']} : {len(candidats)} candidat(s)" + ("" if complet else f", listage incomplet : {'; '.join(erreurs)}"))
+    print()
+    return mod_sources_distantes.sources_locales_derivees(configuration), dates, en_echec
+
+
+def executer_rollback(configuration, session, journal, horodatage):
+    """Annule une session de classement ; rend 1 si une action n'a pas pu être annulée, rien n'étant alors retiré pour elle."""
+    chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "skrivagner.verrou"
+    try:
+        with mod_verrou.verrou(chemin_verrou):
+            actions = mod_journal_actions.JournalActions(configuration["suivi"]["journal"], horodatage)
+            session, resultats = mod_rollback.annuler_session(actions, session)
+    except mod_verrou.VerrouPris as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été touché.\n")
+        return 5
+    echecs = [resultat for resultat in resultats if not resultat.annulee]
+    print(f"Rollback de la session {session or '(aucune action à annuler)'} : "
+          f"{len(resultats) - len(echecs)} annulée(s), {len(echecs)} en échec")
+    for resultat in echecs:
+        print(f"  - action {resultat.id_action} : {resultat.raison} (rien n'a été retiré)")
+    journal.ajouter("rollback", session_annulee=session, annulees=len(resultats) - len(echecs), echecs=len(echecs))
+    journal.ajouter("session_terminee", mode="rollback")
+    return 1 if echecs else 0
+
+
+def executer_session(configuration, parametres, modeles, journal, horodatage):
+    """Rapatriement, scan, extraction, classement et déplacement ; la date du scan n'avance que pour les sources sans échec."""
+    rapport = mod_rapport.Rapport(horodatage, "execute")
+    actions = mod_journal_actions.JournalActions(configuration["suivi"]["journal"], horodatage)
     chemin_suivi = Path(configuration["suivi"]["fichier_date"])
     suivi = mod_suivi.charger(chemin_suivi)
+    derivees, dates_distantes, distantes_en_echec = rapatrier_sources_distantes(configuration, suivi, journal, rapport)
     dates_de_scan = {}
-    candidats = executer_phase2(configuration, "execute", journal, suivi_a_ecrire=dates_de_scan)
+    candidats = executer_phase2(configuration, "execute", journal, suivi_a_ecrire=dates_de_scan, sources_supplementaires=derivees)
     extractions = extraire_candidats(configuration, parametres, candidats, modeles["ocr"], journal, dry_run=False)
-    sources_en_echec = classer_et_deplacer(configuration, candidats, extractions, modeles, journal)
+    sources_en_echec = classer_et_deplacer(configuration, candidats, extractions, modeles, journal, actions, rapport)
     suivi.update({source: date for source, date in dates_de_scan.items() if source not in sources_en_echec})
+    suivi.update(dates_distantes)
     mod_suivi.sauvegarder(chemin_suivi, suivi)
-    journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi), sources_non_avancees=sorted(sources_en_echec))
+    journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi), sources_non_avancees=sorted(sources_en_echec | distantes_en_echec))
     journal.ajouter("session_terminee", mode="execute")
-    return 1 if sources_en_echec else 0
+    chemin_rapport = rapport.ecrire(configuration["suivi"]["sessions"])
+    print(f"Rapport de session : {chemin_rapport}")
+    return 1 if sources_en_echec or distantes_en_echec else 0
 
 
 if __name__ == "__main__":
