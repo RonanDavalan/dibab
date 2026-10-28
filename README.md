@@ -178,7 +178,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appli
 
 Voir [CONTRIBUTING.md](CONTRIBUTING.md). Une faille se signale en privé selon [SECURITY.md](SECURITY.md), jamais dans un ticket public.
 
-## Crédits
+## Credits
 
 Skrivagner est le fruit d'une collaboration entre une personne et des modèles de langage, avec les rôles écrits tels qu'ils ont été tenus. La liste complète est dans [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
