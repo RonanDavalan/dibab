@@ -1,4 +1,4 @@
-"""Douze documents factices, deux par cas de la table de routage du spec 24 § 1.
+"""Douze documents factices, deux par cas de la table de routage par domaine.
 
 `reponse` est la réponse que donnerait un modèle exact (tri, classification) : elle permet de
 tester la règle et la validation sans modèle. `attendu` est (administratif, domaine, coffre, zone).

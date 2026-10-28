@@ -1,22 +1,22 @@
-# Acknowledgments and Contributors
+# Remerciements et contributeurs
 
-Skrivagner could not exist without the people and models who worked on it. Roles
-are written down here to reflect the work actually done, not a single vague "AI
-assistance" line. This list is updated as people contribute, not at release time.
+Skrivagner n'existerait pas sans les personnes et les modèles qui y ont travaillé. Les rôles sont écrits tels qu'ils ont été tenus, plutôt qu'une ligne vague sur une « assistance par IA ». Cette liste se met à jour le jour où quelqu'un contribue, pas à la publication.
 
-## Design and Development
+## Conception et développement
 
-*   **Ronan Davalan** — Architect and arbiter. Vision, scope decisions, validation. All architectural decisions are validated by him. Sole git author.
-*   **Claude Code (Anthropic)** — Implementation engineer. Author of the Python code of phases 1 and 2 (entry point, configuration, local scanner, journal, tracking, unit tests) and of the project framework and documentation. Models: Opus 4.7 on the code commits.
-*   **Gemini (Google)** — Design advisor. Proposed the original name "Le Greffier" and validated the final name with Ronan.
-*   **Copilot (Microsoft)** — Translated "Greffier" into Breton, which gave "Skrivagner".
+*   **Ronan Davalan** : architecte et arbitre. Vision, périmètre, validation ; toutes les décisions d'architecture passent par lui. Seul auteur git.
+*   **Claude Code (Anthropic)** : ingénieur de réalisation. Auteur du code Python (point d'entrée, configuration, scanners local, ssh et IMAP, OAuth2 Google, extraction et OCR, cascade de classification, déplacement sûr, journal, rollback, rotation) et de ses tests. Modèles : Opus 4.7 puis Sonnet 5.5.
+*   **Gemini (Google)** : conseiller de conception. A proposé le nom d'origine « Le Greffier » et validé le nom définitif avec Ronan.
+*   **Copilot (Microsoft)** : a traduit « Greffier » en breton, d'où « Skrivagner ».
 
-## Core Projects and Libraries
+## Projets et bibliothèques
 
-*   **[Python](https://www.python.org/)** standard library for the code; **[pytest](https://pytest.org/)** for the tests.
+*   **[Python](https://www.python.org/)** : bibliothèque standard seule pour le code ; **[pytest](https://pytest.org/)** pour les tests.
+*   **[Ollama](https://ollama.com/)** : exécution locale des modèles de langage, appelée en HTTP.
+*   **[poppler](https://poppler.freedesktop.org/)** (`pdftotext`, `pdftoppm`) : texte et images des PDF, appelés comme programmes externes.
 
-## Code and Documentation Contributors
+## Contributions extérieures
 
-People who contributed through pull requests or issues will be listed here.
+Les personnes qui contribuent par une demande de fusion ou un signalement sont ajoutées ici avec le rôle qu'elles ont tenu.
 
-*(No outside contribution yet — your name could be the first.)*
+*(Aucune contribution extérieure pour l'instant.)*

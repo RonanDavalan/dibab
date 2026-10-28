@@ -1,19 +1,8 @@
 #!/usr/bin/env python3
 # skrivagner.py — Point d'entrée
 #
-# Phases livrées :
-# - Phase 1 : squelette, configuration, journal de session, modes CLI
-# - Phase 2 : scan local (sources_locales) en dry-run et execute
-# - Phase 2 bis : preuve des deux coffres, routage par domaine (dry-run seulement)
-# - Phase 3 (extraction) : texte des candidats par couche texte ou OCR, dry-run seulement
-# - Phase 3 (classification) : tri rapide, classification fine et domaine, dry-run seulement
-#
-# - Phase 4 : classement par domaine, déplacement sûr (--execute), inventaire de l'existant (--inventaire)
-#
-# - Phase 5 : journal des actions, rapport de session, rollback, rotation
-# - Phase 6 : sources distantes par ssh (listage, rapatriement dans le vide-poches)
-#
-# - Phase 7 : sources IMAP en lecture seule (pièces jointes déposées dans le vide-poches)
+# Modes : --dry-run (défaut, rien ne bouge), --execute, --inventaire, --rollback, --autoriser-google.
+# Sources : répertoires locaux, machines distantes par ssh, boîtes IMAP en lecture seule.
 
 import argparse
 import json
@@ -47,7 +36,7 @@ from modules import suivi as mod_suivi
 from modules import verrou as mod_verrou
 
 
-VERSION = "0.7.0-phase6-sources-distantes"
+VERSION = "0.8.0"
 
 # Un vide-poches se relit en entier : tout ce qui s'y trouve attend son classement.
 JOURS_SANS_FILTRE_DATE = 36500

@@ -3,10 +3,33 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
 
-# Configuration et logs locaux (ne jamais versionner)
+# Configuration réelle, journaux et état d'une instance : propres à chaque foyer
 config.json
 logs/
+*.log
+journal.jsonl
+dernier_scan.json
+rapatries.json
+imap_deposes.json
+
+# Secrets : jamais versionnés, quel que soit leur nom
+jeton*.json
+client-google*.json
+client_secret*.json
+*.key
+*.pem
+.env
+
+# Documents traités et copies de sauvegarde d'historique
+vide-poches-*/
+*.bundle
+*.avant-*
+
+# Notes de travail et index locaux : ils vivent hors de ce dépôt
+notes/
+chroma_db/
 
 # Éditeurs
 *.swp

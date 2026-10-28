@@ -20,11 +20,13 @@
   "destinations": {
     "personnel": {
       "racine": "~/Documents/skrivagner/personnel",
+      "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Administratif",
       "sous_repertoire_a_verifier": "À_VÉRIFIER"
     },
     "professionnel": {
       "racine": "~/Documents/skrivagner/professionnel",
+      "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Classement",
       "sous_repertoire_a_verifier": "À_VÉRIFIER"
     }

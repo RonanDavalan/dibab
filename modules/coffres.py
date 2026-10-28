@@ -2,7 +2,8 @@
 
 Un coffre fermé laisse un dossier de montage nu sur le disque en clair : y écrire
 déposerait des documents administratifs non chiffrés. La preuve est le type du
-système de fichiers que `findmnt` rend pour la racine exacte du coffre.
+système de fichiers que `findmnt` rend pour la racine exacte du coffre. Il vaut `fuse.gocryptfs` par
+défaut ; `systemes_fichiers_acceptes` le remplace pour qui chiffre autrement (LUKS, eCryptfs…).
 """
 
 import os
@@ -33,14 +34,14 @@ def type_systeme_fichiers(racine, executer=subprocess.run):
     return resultat.stdout.strip() or None
 
 
-def verifier_coffre(domaine, racine, executer=subprocess.run):
+def verifier_coffre(domaine, racine, executer=subprocess.run, acceptes=(TYPE_COFFRE,)):
     racine = Path(racine)
     if not racine.is_dir():
         return EtatCoffre(domaine, racine, False, "répertoire introuvable")
     type_trouve = type_systeme_fichiers(racine, executer)
-    if type_trouve != TYPE_COFFRE:
+    if type_trouve not in acceptes:
         return EtatCoffre(domaine, racine, False,
-                          f"coffre non monté (type {type_trouve or 'inconnu'}, attendu {TYPE_COFFRE})")
+                          f"coffre non monté (type {type_trouve or 'inconnu'}, attendu {' ou '.join(acceptes)})")
     if not os.access(racine, os.W_OK):
         return EtatCoffre(domaine, racine, False, "non accessible en écriture")
     return EtatCoffre(domaine, racine, True)
@@ -48,7 +49,8 @@ def verifier_coffre(domaine, racine, executer=subprocess.run):
 
 def verifier_coffres(destinations, executer=subprocess.run):
     """Rend un EtatCoffre par domaine de la table `destinations`."""
-    return [verifier_coffre(domaine, destination["racine"], executer)
+    return [verifier_coffre(domaine, destination["racine"], executer,
+                            tuple(destination.get("systemes_fichiers_acceptes") or (TYPE_COFFRE,)))
             for domaine, destination in destinations.items()]
 
 

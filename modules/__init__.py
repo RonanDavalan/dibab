@@ -1,2 +1,1 @@
-# Modules de Skrivagner — stubs Phase 1.
-# Le contenu sera ajouté au fil des phases.
+# Modules de Skrivagner : un fichier par responsabilité, le point d'entrée ne fait qu'orchestrer.

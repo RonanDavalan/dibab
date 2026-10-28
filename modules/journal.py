@@ -2,7 +2,7 @@
 #
 # Un journal de session est un fichier .jsonl créé au démarrage de skrivagner.py.
 # Chaque action (démarrage, scan, candidat, déplacement, etc.) y est consignée
-# en une ligne JSON. La rotation est prévue en Phase 5.
+# en une ligne JSON. La rotation est faite par modules/rotation.py.
 
 import json
 from datetime import datetime

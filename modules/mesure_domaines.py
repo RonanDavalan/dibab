@@ -2,7 +2,7 @@
 
 Tire des documents au sort dans chaque coffre, les passe dans l'extraction puis dans la cascade en
 lecture seule, et ne rend que des agrégats : effectifs, taux, durées moyennes, noms de modèles.
-Aucun chemin, nom de fichier ni texte n'entre dans la sortie (spec 24, § 9).
+Aucun chemin, nom de fichier ni texte n'entre dans la sortie.
 """
 
 import argparse

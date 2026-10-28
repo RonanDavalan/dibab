@@ -1,9 +1,8 @@
 # Dépendances Skrivagner
 #
 # Le code privilégie la bibliothèque standard Python.
-# Cf. STANDARDS_INGENIERIE.md section 5 :
 # - SSH via subprocess (pas Paramiko)
 # - Ollama via urllib (pas le client officiel)
 
-# Tests unitaires (Phase 2+)
+# Tests unitaires
 pytest>=8.0

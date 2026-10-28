@@ -77,3 +77,19 @@ def test_coffre_non_monte_contenant(tmp_path):
     assert coffres.coffre_non_monte_contenant(tmp_path / "b" / "logs", etats) is None
     assert coffres.coffre_non_monte_contenant(tmp_path / "ailleurs", etats) is None
     assert coffres.coffre_non_monte_contenant(tmp_path / "a-voisin", etats) is None
+
+
+def test_un_type_accepte_par_la_configuration_prouve_le_coffre(tmp_path):
+    destinations = {"personnel": {"racine": tmp_path, "systemes_fichiers_acceptes": ["crypto_LUKS", "ext4"]}}
+    assert [e.monte for e in coffres.verifier_coffres(destinations, faux_findmnt("ext4"))] == [True]
+
+
+def test_sans_cle_seul_gocryptfs_prouve_le_coffre(tmp_path):
+    destinations = {"personnel": {"racine": tmp_path}}
+    assert [e.monte for e in coffres.verifier_coffres(destinations, faux_findmnt("ext4"))] == [False]
+    assert [e.monte for e in coffres.verifier_coffres(destinations, faux_findmnt("fuse.gocryptfs"))] == [True]
+
+
+def test_la_raison_nomme_les_types_attendus(tmp_path):
+    etat = coffres.verifier_coffre("personnel", tmp_path, faux_findmnt("vfat"), acceptes=("ext4", "btrfs"))
+    assert not etat.monte and "ext4 ou btrfs" in etat.raison

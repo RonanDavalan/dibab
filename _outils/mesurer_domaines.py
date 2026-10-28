@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mesure du domaine sur les documents réels des coffres : agrégats seuls (spec 24, § 9)."""
+"""Mesure du domaine sur les documents réels des coffres : agrégats seuls."""
 
 import sys
 from pathlib import Path

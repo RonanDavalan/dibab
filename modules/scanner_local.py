@@ -5,7 +5,7 @@
 # jugement métier (administratif ou pas) : il ne fait que produire la liste des
 # fichiers qui méritent qu'on les regarde.
 #
-# Critères de filtrage Phase 2 :
+# Critères de filtrage :
 # - extension dans config.extensions_cibles (comparaison insensible à la casse)
 # - mtime postérieur à (derniere_date - securite_jours), ou si pas de dernière
 #   date, postérieur à (maintenant - premier_scan_jours)
