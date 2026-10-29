@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # liste toutes les options, dans la 
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Skrivagner 0.9.0-alpha — session 2026-10-29T16:22:27
+Skrivagner 0.9.0-alpha — session 2026-10-29T17:18:29
   Mode               : dry-run
   Configuration      : ~/.config/skrivagner/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/skrivagner/sessions/session_2026-10-29T16:22:27.jsonl
+  Journal de session : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:18:29.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M

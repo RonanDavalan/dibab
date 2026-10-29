@@ -97,7 +97,7 @@ cp config.exemple.json ~/.config/skrivagner/config.json
 chmod 600 ~/.config/skrivagner/config.json
 ```
 
-4. Create the two vault roots and read the type of their file system:
+4. Create the vault of each domain and read the type of its file system:
 
 ```bash
 mkdir -p ~/Classement/Personnel ~/Classement/Professionnel
@@ -110,7 +110,7 @@ The command prints for instance `ext4`. Before every write, Skrivagner proves th
 
 | Key | Role |
 |---|---|
-| `destinations.personnel.racine` and `destinations.professionnel.racine` | the two vault roots, here `~/Classement/Personnel` and `~/Classement/Professionnel` |
+| `destinations.personnel.racine` and `destinations.professionnel.racine` | the vault of each domain, here `~/Classement/Personnel` and `~/Classement/Professionnel` |
 | `destinations.*.systemes_fichiers_acceptes` | the type read at step 4 |
 | `personnes` | the first names of the household, which name the folders of the personal domain |
 | `sources_locales[].chemin` | the directories to scan |
@@ -151,7 +151,7 @@ NON_VÉRIFIÉ destination_professionnel : depends on the configuration
 Diagnostic: 5 OK, 0 warning(s), 0 failure(s), 1 not configured, 7 not checked
 ```
 
-The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) and the identifiers are the same in every language, so that a script can compare them. Once the configuration is written, everything it declares and the machine does not hold (Ollama off, a model missing, a vault not mounted) is an `ÉCHEC` and the exit code is `1`. With the configuration of step 5 filled in and the vault roots mounted, the output ends on a summary like this one:
+The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) and the identifiers are the same in every language, so that a script can compare them. Once the configuration is written, everything it declares and the machine does not hold (Ollama off, a model missing, a vault not mounted) is an `ÉCHEC` and the exit code is `1`. With the configuration of step 5 filled in and each vault mounted, the output ends on a summary like this one:
 
 ```
 Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 0 not configured, 0 not checked
@@ -176,8 +176,8 @@ cd ~/applications/skrivagner
 venv/bin/python skrivagner.py --dry-run     # simulation (default): nothing moves
 venv/bin/python skrivagner.py --execute     # real filing
 venv/bin/python skrivagner.py --rollback    # undoes the last filing session
-venv/bin/python skrivagner.py --inventaire  # reads what the vault roots already hold, nothing is moved
-venv/bin/python skrivagner.py --diagnose    # checks the installation, the configuration, Ollama and the vault roots, writes nothing
+venv/bin/python skrivagner.py --inventaire  # reads what each vault already holds, nothing is moved
+venv/bin/python skrivagner.py --diagnose    # checks the installation, the configuration, Ollama and the vault of each domain, writes nothing
 venv/bin/python skrivagner.py --version     # prints one line, `skrivagner <version>`, and stops
 venv/bin/python skrivagner.py --dry-run --config ~/other/config.json   # reads that configuration
 venv/bin/python skrivagner.py --help        # lists every option, in the language of the session
@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # lists every option, in the languag
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Skrivagner 0.9.0-alpha — session 2026-10-29T16:22:26
+Skrivagner 0.9.0-alpha — session 2026-10-29T17:18:28
   Mode               : dry-run
   Configuration      : ~/.config/skrivagner/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T16:22:26.jsonl
+  Session journal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:18:28.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M

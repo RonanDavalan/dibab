@@ -30,7 +30,7 @@ about: doubt leads to a folder named *À_VÉRIFIER*.
 
 The language models are those of Ollama, which runs on the same machine. Ollama and its models are installed separately, by the
 user, from the Ollama website: Skrivagner contains neither. List the models with **ollama list**, then write them, role by role,
-in the key **ollama.roles** of the configuration. Only the destination vault roots, the machines and the mailboxes that the configuration
+in the key **ollama.roles** of the configuration. Only the destination vault of each domain, the machines and the mailboxes that the configuration
 names are ever reached.
 
 The default mode is the simulation. Always read the result of **\--dry-run** before running **\--execute**.
@@ -45,7 +45,7 @@ The default mode is the simulation. Always read the result of **\--dry-run** bef
     the key **executer_sur** of the configuration does not list.
 
 **\--inventaire**
-:   Reads what the vault roots already hold and writes a migration plan for each of them. Nothing is moved.
+:   Reads what each vault already holds and writes a migration plan for each of them. Nothing is moved.
 
 **\--rollback**
 :   Undoes the last filing session, or the one named by **\--session**. The document returns to its original place, the copy checked
@@ -59,7 +59,7 @@ The default mode is the simulation. Always read the result of **\--dry-run** bef
     the token file of the source.
 
 **\--diagnose**
-:   Checks the installation, the configuration, Ollama and the vault roots, one line per check, and writes nothing.
+:   Checks the installation, the configuration, Ollama and the vault of each domain, one line per check, and writes nothing.
 
 **\--verdicts-simules** *FILE*
 :   With **\--dry-run** only: a JSON file that maps a file name to a verdict, whose routing is printed.
