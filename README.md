@@ -55,18 +55,18 @@ Ces modèles sont ceux de l'instance de référence ; n'importe quels autres con
 
 ## Installation
 
-Arborescence finale, pour un utilisateur dont l'identifiant est `alice` (adaptez les chemins à votre répertoire personnel) :
+Arborescence finale (`~` est votre répertoire personnel ; adaptez les chemins à votre installation) :
 
 ```
-~/applications/skrivagner/     le dépôt cloné
+~/applications/skrivagner/               le dépôt cloné
 ├── skrivagner.py                        le point d'entrée
 ├── modules/                             un fichier par responsabilité
 ├── tests/                               les tests
 ├── config.exemple.json                  la configuration d'exemple, versionnée
 ├── config.json                          votre configuration, créée à l'étape 3, jamais versionnée
 └── venv/                                l'environnement Python, créé à l'étape 2
-~/Classement/Personnel/        le coffre du domaine personnel
-~/Classement/Professionnel/    le coffre du domaine professionnel
+~/Classement/Personnel/                  le coffre du domaine personnel
+~/Classement/Professionnel/              le coffre du domaine professionnel
 ```
 
 1. Cloner le dépôt :
