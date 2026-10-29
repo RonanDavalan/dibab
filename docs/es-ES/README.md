@@ -17,7 +17,7 @@ Hace:
 No hace:
 
 - mover un archivo del que no está seguro: la duda lleva a una carpeta `À_VÉRIFIER/`, nunca a una clasificación arriesgada;
-- borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo "Inventory and rotation" del manual);
+- borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo «Inventario y rotación» del manual);
 - modificar un buzón de correo ni una máquina remota;
 - ejecutarse en segundo plano: se lanza a mano, y el modo por defecto es la simulación (`--dry-run`);
 - montar, cifrar o sincronizar una bóveda: eso corre por su cuenta (véase «Límites»).

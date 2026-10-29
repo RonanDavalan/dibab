@@ -17,7 +17,7 @@ Es tut:
 Es tut nicht:
 
 - eine Datei bewegen, bei der es nicht sicher ist: Unsicherheit führt in einen Ordner `À_VÉRIFIER/`, nie zu einer riskanten Ablage;
-- ein Dokument löschen: Es verschiebt und kopiert, es löscht nicht (es entfernt nur seine eigenen alten Journale, Kapitel "Inventory and rotation" des Handbuchs);
+- ein Dokument löschen: Es verschiebt und kopiert, es löscht nicht (es entfernt nur seine eigenen alten Journale, Kapitel „Inventur und Rotation“ des Handbuchs);
 - ein Postfach oder eine entfernte Maschine verändern;
 - im Hintergrund laufen: Es wird von Hand gestartet, und der Standardmodus ist die Simulation (`--dry-run`);
 - einen Tresor einhängen, verschlüsseln oder synchronisieren: Das ist Ihre Sache (siehe „Grenzen“).
@@ -104,7 +104,7 @@ mkdir -p ~/Classement/Personnel ~/Classement/Professionnel
 findmnt -n -T ~/Classement/Personnel -o FSTYPE
 ```
 
-Der Befehl gibt zum Beispiel `ext4` aus. Vor jedem Schreiben beweist Skrivagner, dass die Wurzel jedes Tresors eingehängt ist, denn ein geschlossener Tresor hinterlässt einen nackten Ordner unverschlüsselt auf der Platte: Es vergleicht diesen Typ mit `systemes_fichiers_acceptes`. Das Beispiel erwartet `fuse.gocryptfs`. Wenn Sie anders verschlüsseln (LUKS, eCryptfs …), öffnen Sie den Datenträger und tragen Sie den Typ ein, den `findmnt` für ihn liefert. Auf einem unverschlüsselten Datenträger unterscheidet diese Prüfung ein fehlendes von einem vorhandenen Einhängen nicht mehr: Sie verzichten dann auf diesen Schutz.
+Der Befehl gibt zum Beispiel `ext4` aus. Vor jedem Schreiben stellt Skrivagner fest, dass die Wurzel jedes Tresors eingehängt ist, denn ein geschlossener Tresor hinterlässt einen nackten Ordner unverschlüsselt auf der Platte: Es vergleicht diesen Typ mit `systemes_fichiers_acceptes`. Das Beispiel erwartet `fuse.gocryptfs`. Wenn Sie anders verschlüsseln (LUKS, eCryptfs …), öffnen Sie den Datenträger und tragen Sie den Typ ein, den `findmnt` für ihn liefert. Auf einem unverschlüsselten Datenträger unterscheidet diese Prüfung ein fehlendes von einem vorhandenen Einhängen nicht mehr: Sie verzichten dann auf diesen Schutz.
 
 5. `~/.config/skrivagner/config.json` bearbeiten, mindestens diese Schlüssel:
 
@@ -215,7 +215,7 @@ Exit-Codes:
 |---|---|
 | `0` | Erfolg |
 | `1` | Konfiguration nicht gefunden, ungültig oder mit fehlendem Schlüssel; mindestens eine Quelle oder ein Dokument fehlgeschlagen; Rollback nur teilweise; OAuth2-Einwilligung fehlgeschlagen; `--diagnose` mit mindestens einem `ÉCHEC` |
-| `2` | Tresor vor einem schreibenden Modus nicht als eingehängt nachgewiesen; ungültige Befehlszeile |
+| `2` | Tresor vor einem schreibenden Modus nicht als eingehängt festgestellt; ungültige Befehlszeile |
 | `3` | kein Modell für eine Rolle installiert (`ollama list`), oder Ollama antwortet nicht |
 | `4` | `--execute` auf dieser Maschine abgelehnt (Schlüssel `executer_sur`) |
 | `5` | ein anderer Lauf hält die Sperre `skrivagner.verrou` (neben `suivi.fichier_date`) |
@@ -246,7 +246,7 @@ Skrivagner öffnet die Ordner schreibgeschützt (`EXAMINE`) und liest nur den An
 
 ### Google-Konten über OAuth2
 
-Ein Google-Konto wird statt mit dem Passwort mit einem OAuth2-Token abgerufen (`AUTHENTICATE XOAUTH2`). In der [Google-Cloud-Konsole](https://console.cloud.google.com), mit dem abzurufenden Konto: ein Projekt anlegen, die Gmail-API aktivieren, den OAuth-Zustimmungsbildschirm konfigurieren (Typ extern), ihn dann **veröffentlichen** (Status „In production“, denn unter „Testing“ läuft die Autorisierung nach sieben Tagen ab), schließlich einen Berechtigungsnachweis „Desktop-App“ anlegen und dessen JSON herunterladen. Legen Sie es im Tresor ab, mit Modus `600`, deklarieren Sie dann die Quelle mit `"authentification": "oauth2"`, `client_fichier` und `token_fichier` (siehe das Beispiel `imap-google-exemple`) und stimmen Sie einmalig zu:
+Ein Google-Konto wird statt mit dem Passwort mit einem OAuth2-Token abgerufen (`AUTHENTICATE XOAUTH2`). In der [Google-Cloud-Konsole](https://console.cloud.google.com), mit dem abzurufenden Konto: ein Projekt anlegen, die Gmail-API aktivieren, den OAuth-Zustimmungsbildschirm konfigurieren (Typ extern), ihn dann **veröffentlichen** (Status „In production“, denn unter „Testing“ läuft die Autorisierung nach sieben Tagen ab), schließlich einen Anmeldedaten „Desktop-App“ anlegen und dessen JSON herunterladen. Legen Sie es im Tresor ab, mit Modus `600`, deklarieren Sie dann die Quelle mit `"authentification": "oauth2"`, `client_fichier` und `token_fichier` (siehe das Beispiel `imap-google-exemple`) und stimmen Sie einmalig zu:
 
 ```bash
 venv/bin/python skrivagner.py --autoriser-google imap-google-exemple

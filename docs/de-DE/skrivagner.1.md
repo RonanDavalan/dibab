@@ -126,7 +126,7 @@ der Konfigurationsdatei.
     Rollback nur teilweise; OAuth2-Einwilligung fehlgeschlagen; **\--diagnose** mit mindestens einem **ÉCHEC**.
 
 **2**
-:   Ein Tresor vor einem schreibenden Modus nicht als eingehängt nachgewiesen; ungültige Befehlszeile.
+:   Ein Tresor vor einem schreibenden Modus nicht als eingehängt festgestellt; ungültige Befehlszeile.
 
 **3**
 :   Kein Modell für eine Rolle installiert, oder Ollama antwortet nicht.
