@@ -26,7 +26,7 @@ Skrivagner est conçu pour la gestion administrative d'un foyer, par le foyer. U
 
 ## Prérequis
 
-- Linux avec Python 3.12 ou 3.13 (les tests y passent) ; le code n'utilise que la bibliothèque standard ;
+- Linux avec Python 3.10 ou plus (les tests passent en 3.12 et 3.13) ; le code n'utilise que la bibliothèque standard ;
 - `findmnt` (paquet `util-linux`) et `git` ;
 - `pdftotext` et `pdftoppm` (paquet `poppler-utils`) ;
 - [Ollama](https://ollama.com/) installé et en marche, avec au moins un modèle par rôle ;
@@ -63,8 +63,8 @@ Arborescence finale (`~` est votre répertoire personnel ; adaptez les chemins �
 ├── modules/                             un fichier par responsabilité
 ├── tests/                               les tests
 ├── config.exemple.json                  la configuration d'exemple, versionnée
-├── config.json                          votre configuration, créée à l'étape 3, jamais versionnée
 └── venv/                                l'environnement Python, créé à l'étape 2
+~/.config/skrivagner/config.json         votre configuration, créée à l'étape 3, jamais versionnée
 ~/Classement/Personnel/                  le coffre du domaine personnel
 ~/Classement/Professionnel/              le coffre du domaine professionnel
 ```
@@ -76,7 +76,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `312 passed, 6 skipped` ; les 6 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `373 passed, 6 skipped` ; les 6 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -84,11 +84,12 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Créer la configuration, en `600` :
+3. Créer la configuration, en `600`. Skrivagner lit le premier fichier trouvé parmi : l'option `--config <chemin>`, la variable d'environnement `SKRIVAGNER_CONFIG`, `~/.config/skrivagner/config.json` (ou `$XDG_CONFIG_HOME/skrivagner/config.json`), puis `config.json` à côté de `skrivagner.py`. Une option ou une variable qui désigne un fichier absent arrête le programme : il ne retombe jamais sur un autre fichier.
 
 ```bash
-cp config.exemple.json config.json
-chmod 600 config.json
+mkdir -p ~/.config/skrivagner
+cp config.exemple.json ~/.config/skrivagner/config.json
+chmod 600 ~/.config/skrivagner/config.json
 ```
 
 4. Créer les deux coffres et lire le type de leur système de fichiers :
@@ -100,7 +101,7 @@ findmnt -n -T ~/Classement/Personnel -o FSTYPE
 
 La commande affiche par exemple `ext4`. Avant chaque écriture, Skrivagner prouve que la racine de chaque coffre est montée, parce qu'un coffre fermé laisse un dossier nu sur le disque en clair : il compare ce type à `systemes_fichiers_acceptes`. L'exemple attend `fuse.gocryptfs`. Si vous chiffrez autrement (LUKS, eCryptfs…), ouvrez le volume et écrivez le type que `findmnt` rend pour lui. Sur un volume non chiffré, ce contrôle ne distingue plus un montage absent d'un montage présent : vous renoncez alors à cette protection.
 
-5. Éditer `config.json`, ces clés au minimum :
+5. Éditer `~/.config/skrivagner/config.json`, ces clés au minimum :
 
 | Clé | Rôle |
 |---|---|
@@ -108,16 +109,18 @@ La commande affiche par exemple `ext4`. Avant chaque écriture, Skrivagner prouv
 | `destinations.*.systemes_fichiers_acceptes` | le type lu à l'étape 4 |
 | `personnes` | les prénoms du foyer, qui nomment les dossiers du domaine personnel |
 | `sources_locales[].chemin` | les répertoires à scanner |
-| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | à placer dans le coffre (par exemple `~/Classement/Personnel/logs/…`) : le journal est une donnée sensible |
+| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | absentes, l'état s'écrit en clair sous `~/.local/state/skrivagner/` (ou `$XDG_STATE_HOME/skrivagner/`) ; pour le chiffrer, ajoutez ces trois clés dans le coffre (par exemple `~/Classement/Personnel/logs/…`) : le journal est une donnée sensible |
 | `ollama.roles` | pour chaque rôle, les modèles préférés dans l'ordre ; le premier installé est retenu |
 
 La liste complète des clés et leur effet : lire `config.exemple.json`, dont chaque bloc est un exemple réaliste. Les mots de passe n'y entrent jamais.
 
-6. Créer le dossier des journaux :
+6. Vérifier l'installation, sans rien écrire :
 
 ```bash
-mkdir -p ~/Classement/Personnel/logs/sessions
+venv/bin/python skrivagner.py --diagnose
 ```
+
+Une ligne par vérification, `<ÉTAT> <identifiant> : <message>`, puis un bilan. Dans un domicile neuf, sans configuration ni Ollama, le bilan est `5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 7 non vérifié(s)` et le code de sortie `0`. Une fois la configuration écrite, tout ce qu'elle déclare et que la machine ne tient pas (Ollama éteint, modèle absent, coffre non monté) est un `ÉCHEC` et le code de sortie vaut `1`.
 
 ## Usage
 
@@ -127,11 +130,14 @@ venv/bin/python skrivagner.py --dry-run     # simulation (défaut) : rien ne bou
 venv/bin/python skrivagner.py --execute     # classement réel
 venv/bin/python skrivagner.py --rollback    # annule la dernière session de classement
 venv/bin/python skrivagner.py --inventaire  # lit l'existant des coffres, rien n'est déplacé
+venv/bin/python skrivagner.py --diagnose    # vérifie l'installation, la configuration, Ollama et les coffres, sans rien écrire
+venv/bin/python skrivagner.py --version     # écrit une ligne, `skrivagner <version>`, et s'arrête
+venv/bin/python skrivagner.py --dry-run --config ~/autre/config.json   # lit cette configuration-là
 ```
 
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (trois modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`.
 
-Codes de sortie : `0` réussi ; `1` configuration invalide, clé absente ou document resté en place ; `2` coffre non prouvé monté ; `3` aucun modèle installé pour un rôle (`ollama list`) ; `4` `--execute` refusé sur cette machine (clé `executer_sur`) ; `5` une autre exécution tient le verrou `logs/skrivagner.verrou`.
+Codes de sortie : `0` réussi ; `1` configuration introuvable, invalide ou à clé absente, document resté en place, ou `--diagnose` avec au moins un `ÉCHEC` ; `2` coffre non prouvé monté ; `3` aucun modèle installé pour un rôle (`ollama list`) ; `4` `--execute` refusé sur cette machine (clé `executer_sur`) ; `5` une autre exécution tient le verrou `skrivagner.verrou` (à côté de `suivi.fichier_date`).
 
 Chaque déplacement s'inscrit dans le journal des actions (`suivi.journal`, une ligne JSON par action, sans texte de document) et chaque session laisse un rapport dans `suivi.sessions`. `--rollback --session <horodatage>` annule une session précise : le document revient à sa place d'origine, copie vérifiée par empreinte.
 
