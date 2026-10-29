@@ -17,7 +17,7 @@ It does:
 It does not:
 
 - move a file it is not sure about: doubt leads to a `À_VÉRIFIER/` folder, never to a risky filing;
-- delete anything: it moves and copies, it does not erase;
+- delete a document: it moves and copies, it does not erase (it only prunes its own old journals, chapter "Inventory and rotation" of the manual);
 - modify a mailbox or a remote machine;
 - run in the background: you start it by hand, and the default mode is the simulation (`--dry-run`);
 - mount, encrypt or synchronise a vault: that is up to you (see "Limits").
@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # lists every option, in the languag
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Skrivagner 0.9.0-alpha — session 2026-10-29T17:18:28
+Skrivagner 0.9.0-alpha — session 2026-10-29T17:33:28
   Mode               : dry-run
   Configuration      : ~/.config/skrivagner/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:18:28.jsonl
+  Session journal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:33:28.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M
@@ -265,7 +265,7 @@ Open the address that is printed in a browser, accept the "unverified applicatio
 
 - Linux only. The mount check relies on `findmnt`.
 - The filing is worth what your models are worth: on the reference instance, a first trial on 15 real documents filed 2, set 3 aside as not administrative and put 10 in `À_VÉRIFIER/`, as a matter of caution. Measure before trusting: the domain measurement is in `_outils/mesurer_domaines.py`.
-- Skrivagner does not mount, encrypt or synchronise any vault, and erases nothing: disk space and backups are up to you.
+- Skrivagner does not mount, encrypt or synchronise any vault, and erases no document: disk space and backups are up to you.
 - The categories, the known senders and the naming template of `config.exemple.json` reflect French administrative life (family allowance fund, tax office, insurers); adapt them to your country.
 - The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.
 - The project is young: version 0.9.0-alpha, no continuous integration.

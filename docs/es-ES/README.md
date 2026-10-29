@@ -17,7 +17,7 @@ Hace:
 No hace:
 
 - mover un archivo del que no está seguro: la duda lleva a una carpeta `À_VÉRIFIER/`, nunca a una clasificación arriesgada;
-- borrar nada: mueve y copia, no borra;
+- borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo "Inventory and rotation" del manual);
 - modificar un buzón de correo ni una máquina remota;
 - ejecutarse en segundo plano: se lanza a mano, y el modo por defecto es la simulación (`--dry-run`);
 - montar, cifrar o sincronizar una bóveda: eso corre por su cuenta (véase «Límites»).
@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # lista todas las opciones, en el id
 Empiece siempre con `--dry-run`, revise cada destino propuesto y después lance `--execute`. La primera pasada es lenta (varios modelos leen cada documento); la salida de error muestra el avance, `modelo i/n, documento j/m`. Aquí tiene un `--dry-run` sobre una carpeta de origen vacía, que necesita Ollama y los tres modelos de los roles:
 
 ```
-Skrivagner 0.9.0-alpha — sesión 2026-10-29T17:18:30
+Skrivagner 0.9.0-alpha — sesión 2026-10-29T17:33:30
   Modo               : dry-run
   Configuración      : ~/.config/skrivagner/config.json
   Bóveda personnel     : ~/Classement/Personnel — montada
   Bóveda professionnel : ~/Classement/Professionnel — montada
-  Diario de sesión   : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:18:30.jsonl
+  Diario de sesión   : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:33:30.jsonl
   Modelo ocr           : glm-ocr:latest
   Modelo tri_rapide    : gemma3:4b
   Modelo classification: granite4.2:8b-Q5_K_M
@@ -264,7 +264,7 @@ Abra la dirección mostrada en un navegador, acepte la advertencia «aplicación
 
 - Solo Linux. La comprobación de montaje se apoya en `findmnt`.
 - La clasificación vale lo que valen sus modelos: en la instancia de referencia, un primer ensayo con 15 documentos reales clasificó 2, apartó 3 como no administrativos y dejó 10 en `À_VÉRIFIER/`, por prudencia. Mida antes de confiar: la medición del ámbito está en `_outils/mesurer_domaines.py`.
-- Skrivagner no monta, no cifra ni sincroniza ninguna bóveda, y no borra nada: el espacio en disco y las copias de seguridad corren por su cuenta.
+- Skrivagner no monta, no cifra ni sincroniza ninguna bóveda, y no borra ningún documento: el espacio en disco y las copias de seguridad corren por su cuenta.
 - Las categorías, los remitentes conocidos y la plantilla de nombres de `config.exemple.json` reflejan la vida administrativa francesa (caja de subsidios familiares, hacienda, seguros); adáptelas a su país.
 - Los pasos en la consola de Google dependen de la interfaz de Google, que cambia: las nociones siguen siendo las de su documentación OAuth2.
 - El proyecto es joven: versión 0.9.0-alpha, sin integración continua.

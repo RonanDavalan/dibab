@@ -17,7 +17,7 @@ Il fait :
 Il ne fait pas :
 
 - bouger un fichier dont il n'est pas sûr : l'incertitude mène à un dossier `À_VÉRIFIER/`, jamais à un classement hasardeux ;
-- supprimer quoi que ce soit : il déplace et copie, il n'efface pas ;
+- supprimer un document : il déplace et copie, il n'efface pas (il ne retire que ses propres vieux journaux, chapitre « Inventory and rotation » du manuel) ;
 - modifier une boîte mail ni une machine distante ;
 - tourner en tâche de fond : il se lance à la main, et le mode par défaut est la simulation (`--dry-run`) ;
 - monter, chiffrer ou synchroniser un coffre : c'est votre affaire (voir « Limites »).
@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # liste toutes les options, dans la 
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Skrivagner 0.9.0-alpha — session 2026-10-29T17:18:29
+Skrivagner 0.9.0-alpha — session 2026-10-29T17:33:29
   Mode               : dry-run
   Configuration      : ~/.config/skrivagner/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:18:29.jsonl
+  Journal de session : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:33:29.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M
@@ -264,7 +264,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appli
 
 - Linux seulement. Le contrôle de montage repose sur `findmnt`.
 - Le classement vaut ce que valent vos modèles : sur l'instance de référence, un premier essai sur 15 documents réels en a classé 2, écarté 3 comme non administratifs et mis 10 en `À_VÉRIFIER/`, par choix de prudence. Mesurez avant de faire confiance : la mesure du domaine est dans `_outils/mesurer_domaines.py`.
-- Skrivagner ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface rien : l'espace disque et les sauvegardes sont à votre charge.
+- Skrivagner ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface aucun document : l'espace disque et les sauvegardes sont à votre charge.
 - Les catégories, les émetteurs connus et le gabarit de nommage de `config.exemple.json` reflètent la vie administrative française (CAF, impôts, assurances) ; adaptez-les à votre pays.
 - Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
 - Le projet est jeune : version 0.9.0-alpha, pas d'intégration continue.
