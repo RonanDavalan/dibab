@@ -186,12 +186,12 @@ venv/bin/python skrivagner.py --help        # listet alle Optionen, in der Sprac
 Beginnen Sie immer mit `--dry-run`, prüfen Sie jedes vorgeschlagene Ziel und starten Sie dann `--execute`. Der erste Durchlauf ist langsam (mehrere Modelle lesen jedes Dokument); die Fehlerausgabe zeigt den Fortschritt, `Modell i/n, Dokument j/m`. Hier ein `--dry-run` auf einem leeren Quellordner, der Ollama und die drei Modelle der Rollen voraussetzt:
 
 ```
-Skrivagner 0.9.0-alpha — Sitzung 2026-10-29T16:18:47
+Skrivagner 0.9.0-alpha — Sitzung 2026-10-29T16:22:27
   Modus              : dry-run
   Konfiguration      : ~/.config/skrivagner/config.json
   Tresor personnel     : ~/Classement/Personnel — eingehängt
   Tresor professionnel : ~/Classement/Professionnel — eingehängt
-  Sitzungsjournal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T16:18:47.jsonl
+  Sitzungsjournal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T16:22:27.jsonl
   Modell ocr           : glm-ocr:latest
   Modell tri_rapide    : gemma3:4b
   Modell classification: granite4.2:8b-Q5_K_M
