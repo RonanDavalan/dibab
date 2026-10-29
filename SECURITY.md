@@ -1,37 +1,37 @@
-# Politique de sécurité
+# Security policy
 
-Skrivagner manipule des documents administratifs (santé, banque, impôts, succession) et des accès à des boîtes mail : une faille y a un coût réel pour des tiers. Cette politique dit comment la signaler et ce que vous pouvez attendre en retour.
+Skrivagner handles administrative documents (health, bank, tax, inheritance) and access to mailboxes: a flaw has a real cost for third parties. This policy says how to report one and what you can expect in return.
 
-## Versions prises en charge
+## Supported versions
 
-Seule la dernière version publiée reçoit des correctifs de sécurité. Le projet n'a pas de branche de maintenance : la correction paraît sur `main` et dans une nouvelle version.
+Only the latest published version receives security fixes. The project has no maintenance branch: the fix appears on `main` and in a new version.
 
-## Signaler une faille
+## Reporting a vulnerability
 
-Passez par le signalement privé de GitHub : onglet « Security » du dépôt, puis « Report a vulnerability » (GitHub Security Advisories). **N'ouvrez jamais de ticket public** pour une faille : la publier avant le correctif expose les personnes qui utilisent déjà Skrivagner.
+Use the private reporting of GitHub: the "Security" tab of the repository, then "Report a vulnerability" (GitHub Security Advisories). **Never open a public issue** for a flaw: publishing it before the fix exposes the people who already use Skrivagner.
 
-Indiquez la version (`venv/bin/python skrivagner.py --dry-run` l'affiche en tête), ce que vous avez observé, les étapes pour le reproduire et, si possible, ce que vous jugez en danger. N'envoyez aucun document réel ni aucun secret : un texte factice suffit.
+State the version (`venv/bin/python skrivagner.py --version` prints it), what you observed, the steps to reproduce it and, if possible, what you judge to be in danger. Do not send any real document and no secret: a fictitious text is enough.
 
-## Délais
+## Delays
 
-- accusé de réception sous 72 heures ;
-- première évaluation (faille confirmée ou non, gravité) sous 7 jours ;
-- correctif visé sous 30 jours pour une faille confirmée ; si ce délai ne peut pas être tenu, vous en êtes informé avec la raison.
+- acknowledgement within 72 hours;
+- first assessment (flaw confirmed or not, severity) within 7 days;
+- fix aimed at within 30 days for a confirmed flaw; if this delay cannot be kept, you are told so with the reason.
 
-Le projet est tenu par une personne : ces délais sont ceux d'un engagement de bonne foi, pas d'un service d'astreinte.
+The project is held by one person: these delays are those of a good-faith commitment, not of an on-call service.
 
-## Divulgation coordonnée
+## Coordinated disclosure
 
-Merci de laisser le temps de corriger avant toute publication ; une fois le correctif publié, vous pouvez décrire la faille, et vous êtes crédité si vous le souhaitez. Une recherche de bonne foi, menée sur votre propre installation et dans ce cadre, ne donnera lieu à aucune poursuite de la part du projet.
+Please leave time to fix before any publication; once the fix is published, you can describe the flaw, and you are credited if you wish. Good-faith research, carried out on your own installation and within this framework, will not give rise to any prosecution by the project.
 
-## Ce qui compte comme faille
+## What counts as a flaw
 
-Par exemple : une écriture ou une suppression hors du périmètre déclaré, une modification de boîte mail ou de machine distante, un secret (mot de passe, jeton, secret du client OAuth2) qui atteint un journal, un rapport, la sortie ou un fichier lisible par d'autres, un nom de fichier ou de pièce jointe qui fait exécuter une commande ou sortir d'un répertoire, un document écrit dans un coffre non monté.
+For instance: a write or a deletion outside the declared scope, a modification of a mailbox or of a remote machine, a secret (password, token, secret of the OAuth2 client) that reaches a journal, a report, the output or a file readable by others, a file name or an attachment name that makes a command run or leaves a directory, a document written into a vault that is not mounted.
 
-## Hors périmètre
+## Out of scope
 
-- les forks et copies non officiels ;
-- les versions antérieures à la dernière publiée ;
-- la configuration de l'utilisateur : un coffre non chiffré, un `config.json` lisible par tous, un accès `ssh` ouvert par trop de clés ;
-- Ollama, les modèles de langage, `ssh`, les serveurs IMAP et les services de Google, qui ont leurs propres canaux de signalement ;
-- une mauvaise classification par un modèle : c'est une limite connue (le document va en `À_VÉRIFIER/` et `--rollback` le remet en place), pas une faille.
+- unofficial forks and copies;
+- versions older than the latest published;
+- the configuration of the user: an unencrypted vault, a `config.json` readable by everyone, an `ssh` access opened to too many keys;
+- Ollama, the language models, `ssh`, the IMAP servers and the services of Google, which have their own reporting channels;
+- a wrong classification by a model: it is a known limit (the document goes to `À_VÉRIFIER/` and `--rollback` puts it back), not a flaw.

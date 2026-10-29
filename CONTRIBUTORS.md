@@ -1,22 +1,22 @@
-# Remerciements et contributeurs
+# Acknowledgements and contributors
 
-Skrivagner n'existerait pas sans les personnes et les modèles qui y ont travaillé. Les rôles sont écrits tels qu'ils ont été tenus, plutôt qu'une ligne vague sur une « assistance par IA ». Cette liste se met à jour le jour où quelqu'un contribue, pas à la publication.
+Skrivagner would not exist without the people and the models that worked on it. The roles are written as they were held, rather than a vague line about "AI assistance". This list is updated the day someone contributes, not at publication.
 
-## Conception et développement
+## Design and development
 
-*   **Ronan Davalan** : architecte et arbitre. Vision, périmètre, validation ; toutes les décisions d'architecture passent par lui. Seul auteur git.
-*   **Claude Code (Anthropic)** : ingénieur de réalisation. Auteur du code Python (point d'entrée, configuration, scanners local, ssh et IMAP, OAuth2 Google, extraction et OCR, cascade de classification, déplacement sûr, journal, rollback, rotation, installation et diagnostic) et de ses tests. Modèles : Opus 4.7 puis Sonnet 5.5.
-*   **Gemini (Google)** : conseiller de conception. A proposé le nom d'origine « Le Greffier » et validé le nom définitif avec Ronan.
-*   **Copilot (Microsoft)** : a traduit « Greffier » en breton, d'où « Skrivagner ».
+*   **Ronan Davalan**: architect and arbiter. Vision, scope, validation; every architecture decision goes through him. Sole git author.
+*   **Claude Code (Anthropic)**: implementation engineer. Author of the Python code (entry point, configuration, local, ssh and IMAP scanners, Google OAuth2, extraction and OCR, classification cascade, safe move, journal, rollback, rotation, installation and diagnosis, messages in four languages) and of its tests, and of the public documents (the README and its translations, the manual page, CONTRIBUTING.md, SECURITY.md). Models: Opus 4.7, then Sonnet 5.5.
+*   **Gemini (Google)**: design adviser. Proposed the original name "Le Greffier" and validated the final name with Ronan.
+*   **Copilot (Microsoft)**: translated "Greffier" into Breton, hence "Skrivagner".
 
-## Projets et bibliothèques
+## Projects and libraries
 
-*   **[Python](https://www.python.org/)** : bibliothèque standard seule pour le code ; **[pytest](https://pytest.org/)** pour les tests.
-*   **[Ollama](https://ollama.com/)** : exécution locale des modèles de langage, appelée en HTTP.
-*   **[poppler](https://poppler.freedesktop.org/)** (`pdftotext`, `pdftoppm`) : texte et images des PDF, appelés comme programmes externes.
+*   **[Python](https://www.python.org/)**: the standard library alone for the code; **[pytest](https://pytest.org/)** for the tests.
+*   **[Ollama](https://ollama.com/)**: local execution of the language models, called over HTTP.
+*   **[poppler](https://poppler.freedesktop.org/)** (`pdftotext`, `pdftoppm`): text and images of the PDFs, called as external programs.
 
-## Contributions extérieures
+## Outside contributions
 
-Les personnes qui contribuent par une demande de fusion ou un signalement sont ajoutées ici avec le rôle qu'elles ont tenu.
+People who contribute through a pull request or a report are added here with the role they held.
 
-*(Aucune contribution extérieure pour l'instant.)*
+*(No outside contribution so far.)*

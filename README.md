@@ -1,45 +1,47 @@
 # Skrivagner
 
-Skrivagner (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucune donnée ne quitte le réseau local, sans service tiers, sans modèle distant, sans nuage. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
+**English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
 
-Licence : [GNU Affero General Public License version 3](LICENSE).
+Skrivagner ("scribe" in Breton) collects, analyses and files the personal administrative documents of a household (invoices, letters, contracts, notices from public bodies) into a normalised tree, and keeps a journal of everything it does. It runs in sovereign mode: no data leaves the local network, with no third-party service, no remote model and no cloud. The language models are those of [Ollama](https://ollama.com/), on your own machine.
 
-## Ce que fait Skrivagner, et ce qu'il ne fait pas
+Licence: [GNU Affero General Public License version 3](LICENSE).
 
-Il fait :
+## What Skrivagner does, and what it does not
 
-- scanner des répertoires locaux, des machines distantes par `ssh` (copie vérifiée par empreinte, fichiers d'origine intacts) et des boîtes mail par IMAP en lecture seule (les pièces jointes sont déposées dans un « vide-poches » ; la boîte n'est pas modifiée) ;
-- extraire le texte (couche texte du PDF, sinon lecture par un modèle de vision), trier les documents administratifs des autres, puis les classer par catégorie et par domaine (personnel ou professionnel) avec un consensus de plusieurs modèles ;
-- renommer et déplacer chaque document dans le coffre de son domaine, avec journal horodaté et annulation possible (`--rollback`).
+It does:
 
-Il ne fait pas :
+- scan local directories, remote machines over `ssh` (copy checked by fingerprint, original files left intact) and mailboxes over read-only IMAP (attachments are dropped into a "drop folder"; the mailbox is not modified);
+- extract the text (the text layer of the PDF, otherwise a reading by a vision model), sort the administrative documents from the others, then file them by category and by domain (personal or professional) with a consensus of several models;
+- rename and move each document into the vault of its domain, with a timestamped journal and the possibility to undo it (`--rollback`).
 
-- bouger un fichier dont il n'est pas sûr : l'incertitude mène à un dossier `À_VÉRIFIER/`, jamais à un classement hasardeux ;
-- supprimer quoi que ce soit : il déplace et copie, il n'efface pas ;
-- modifier une boîte mail ni une machine distante ;
-- tourner en tâche de fond : il se lance à la main, et le mode par défaut est la simulation (`--dry-run`) ;
-- monter, chiffrer ou synchroniser un coffre : c'est votre affaire (voir « Limites »).
+It does not:
 
-## Un outil de foyer
+- move a file it is not sure about: doubt leads to a `À_VÉRIFIER/` folder, never to a risky filing;
+- delete anything: it moves and copies, it does not erase;
+- modify a mailbox or a remote machine;
+- run in the background: you start it by hand, and the default mode is the simulation (`--dry-run`);
+- mount, encrypt or synchronise a vault: that is up to you (see "Limits").
 
-Skrivagner est conçu pour la gestion administrative d'un foyer, par le foyer. Une machine, un répertoire ou un compte mail n'entre dans le périmètre qu'avec l'accord, explicite ou implicite, de la personne concernée ; en cas de doute, ne l'incluez pas. Le logiciel ne peut pas garantir ce respect : c'est l'administrateur de l'instance qui s'y engage. Le journal contient des noms de fichiers et des émetteurs, qui révèlent déjà beaucoup (un courrier d'un organisme de santé suffit) : il vit dans le coffre, pas à côté.
+## A tool for a household
 
-## Prérequis
+Skrivagner is designed for the administrative life of a household, by the household. A machine, a directory or a mail account enters the scope only with the agreement, explicit or implicit, of the person concerned; when in doubt, leave it out. The software cannot guarantee this respect: the administrator of the instance commits to it. The journal holds file names and senders, which already reveal a lot (a letter from a health body is enough): it lives in the vault, not beside it.
 
-- Linux avec Python 3.10 ou plus (les tests passent en 3.12 et 3.13) ; le code n'utilise que la bibliothèque standard ;
-- `findmnt` (paquet `util-linux`) et `git` ;
-- `pdftotext` et `pdftoppm` (paquet `poppler-utils`) ;
-- [Ollama](https://ollama.com/) installé et en marche, avec au moins un modèle par rôle ;
-- pour les machines distantes : `ssh` avec une clé qui ouvre une session sans mot de passe ;
-- un répertoire de destination par domaine, sur un volume chiffré de préférence.
+## Requirements
 
-Sur Debian :
+- Linux with Python 3.10 or later (the tests pass on 3.12 and 3.13); the code uses only the standard library;
+- `findmnt` (package `util-linux`) and `git`;
+- `pdftotext` and `pdftoppm` (package `poppler-utils`);
+- [Ollama](https://ollama.com/) installed and running, with at least one model per role;
+- for remote machines: `ssh` with a key that opens a session without a password;
+- one destination directory per domain, preferably on an encrypted volume.
+
+On Debian:
 
 ```bash
 sudo apt install python3 python3-venv git util-linux poppler-utils openssh-client
 ```
 
-Les modèles, par rôle (`ocr` lit les pages numérisées, `tri_rapide` écarte ce qui n'est pas administratif, `classification` classe) :
+The models, by role (`ocr` reads scanned pages, `tri_rapide` sets aside what is not administrative, `classification` files):
 
 ```bash
 ollama pull glm-ocr
@@ -51,32 +53,35 @@ ollama pull granite4.2:8b-Q5_K_M
 ollama pull mistral-nemo:12b-instruct-2407-q6_K
 ```
 
-Ces modèles sont ceux de l'instance de référence ; n'importe quels autres conviennent, il suffit de les nommer dans `ollama.roles` (plus bas). Les trois modèles de `classification` votent : un document n'est classé que si leur accord atteint `ollama.seuil_confiance`.
+These models are those of the reference instance; any others will do, you only have to name them in `ollama.roles` (below). The models of the `classification` role vote: a document is filed only if their agreement reaches `ollama.seuil_confiance`. Ollama is not part of Skrivagner and is never installed by it.
 
-## Installation
+## Installation from the sources
 
-Arborescence finale (`~` est votre répertoire personnel ; adaptez les chemins à votre installation) :
+Final tree (`~` is your home directory; adapt the paths to your installation):
 
 ```
-~/applications/skrivagner/               le dépôt cloné
-├── skrivagner.py                        le point d'entrée
-├── modules/                             un fichier par responsabilité
-├── tests/                               les tests
-├── config.exemple.json                  la configuration d'exemple, versionnée
-└── venv/                                l'environnement Python, créé à l'étape 2
-~/.config/skrivagner/config.json         votre configuration, créée à l'étape 3, jamais versionnée
-~/Classement/Personnel/                  le coffre du domaine personnel
-~/Classement/Professionnel/              le coffre du domaine professionnel
+~/applications/skrivagner/               the cloned repository
+├── skrivagner.py                        the entry point
+├── modules/                             one file per responsibility
+│   └── langues/                         the message dictionaries: en, fr, de, es
+├── docs/                                the translations of this README and the manual page
+├── tests/                               the tests
+├── config.exemple.json                  the example configuration, versioned
+└── venv/                                the Python environment, created at step 2
+~/.config/skrivagner/config.json         your configuration, created at step 3, never versioned
+~/.local/state/skrivagner/               the state, the journal and the session reports (default location)
+~/Classement/Personnel/                  the vault of the personal domain
+~/Classement/Professionnel/              the vault of the professional domain
 ```
 
-1. Cloner le dépôt :
+1. Clone the repository:
 
 ```bash
 mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.git ~/applications/skrivagner
 cd ~/applications/skrivagner
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `373 passed, 6 skipped` ; les 6 sautés sont les essais contre un Ollama qui répond) :
+2. Create the Python environment and check the tests (expected: `410 passed, 6 skipped`; the 6 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -84,7 +89,7 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Créer la configuration, en `600`. Skrivagner lit le premier fichier trouvé parmi : l'option `--config <chemin>`, la variable d'environnement `SKRIVAGNER_CONFIG`, `~/.config/skrivagner/config.json` (ou `$XDG_CONFIG_HOME/skrivagner/config.json`), puis `config.json` à côté de `skrivagner.py`. Une option ou une variable qui désigne un fichier absent arrête le programme : il ne retombe jamais sur un autre fichier.
+3. Create the configuration, with mode `600`. Skrivagner reads the first file found among: the `--config <path>` option, the `SKRIVAGNER_CONFIG` environment variable, `~/.config/skrivagner/config.json` (or `$XDG_CONFIG_HOME/skrivagner/config.json`), then `config.json` next to `skrivagner.py`. An option or a variable that names a missing file stops the program: it never falls back on another file.
 
 ```bash
 mkdir -p ~/.config/skrivagner
@@ -92,103 +97,188 @@ cp config.exemple.json ~/.config/skrivagner/config.json
 chmod 600 ~/.config/skrivagner/config.json
 ```
 
-4. Créer les deux coffres et lire le type de leur système de fichiers :
+4. Create the two vault roots and read the type of their file system:
 
 ```bash
 mkdir -p ~/Classement/Personnel ~/Classement/Professionnel
 findmnt -n -T ~/Classement/Personnel -o FSTYPE
 ```
 
-La commande affiche par exemple `ext4`. Avant chaque écriture, Skrivagner prouve que la racine de chaque coffre est montée, parce qu'un coffre fermé laisse un dossier nu sur le disque en clair : il compare ce type à `systemes_fichiers_acceptes`. L'exemple attend `fuse.gocryptfs`. Si vous chiffrez autrement (LUKS, eCryptfs…), ouvrez le volume et écrivez le type que `findmnt` rend pour lui. Sur un volume non chiffré, ce contrôle ne distingue plus un montage absent d'un montage présent : vous renoncez alors à cette protection.
+The command prints for instance `ext4`. Before every write, Skrivagner proves that the root of each vault is mounted, because a closed vault leaves a bare folder on the disk in clear: it compares this type with `systemes_fichiers_acceptes`. The example expects `fuse.gocryptfs`. If you encrypt differently (LUKS, eCryptfs...), open the volume and write the type that `findmnt` returns for it. On an unencrypted volume this check no longer tells an absent mount from a present one: you then give up this protection.
 
-5. Éditer `~/.config/skrivagner/config.json`, ces clés au minimum :
+5. Edit `~/.config/skrivagner/config.json`, these keys at least:
 
-| Clé | Rôle |
+| Key | Role |
 |---|---|
-| `destinations.personnel.racine` et `destinations.professionnel.racine` | les deux coffres, ici `~/Classement/Personnel` et `~/Classement/Professionnel` |
-| `destinations.*.systemes_fichiers_acceptes` | le type lu à l'étape 4 |
-| `personnes` | les prénoms du foyer, qui nomment les dossiers du domaine personnel |
-| `sources_locales[].chemin` | les répertoires à scanner |
-| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | absentes, l'état s'écrit en clair sous `~/.local/state/skrivagner/` (ou `$XDG_STATE_HOME/skrivagner/`) ; pour le chiffrer, ajoutez ces trois clés dans le coffre (par exemple `~/Classement/Personnel/logs/…`) : le journal est une donnée sensible |
-| `ollama.roles` | pour chaque rôle, les modèles préférés dans l'ordre ; le premier installé est retenu |
+| `destinations.personnel.racine` and `destinations.professionnel.racine` | the two vault roots, here `~/Classement/Personnel` and `~/Classement/Professionnel` |
+| `destinations.*.systemes_fichiers_acceptes` | the type read at step 4 |
+| `personnes` | the first names of the household, which name the folders of the personal domain |
+| `sources_locales[].chemin` | the directories to scan |
+| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | when absent, the state is written in clear under `~/.local/state/skrivagner/` (or `$XDG_STATE_HOME/skrivagner/`); to encrypt it, add these three keys inside the vault (for instance `~/Classement/Personnel/logs/...`): the journal is sensitive data |
+| `ollama.roles` | for each role, the preferred models in order; the first one installed is kept |
 
-La liste complète des clés et leur effet : lire `config.exemple.json`, dont chaque bloc est un exemple réaliste. Les mots de passe n'y entrent jamais.
+The complete list of keys and their effect: read `config.exemple.json`, each block of which is a realistic example. Passwords never go in it.
 
-6. Vérifier l'installation, sans rien écrire :
+6. Check the installation, without writing anything:
 
 ```bash
+venv/bin/python skrivagner.py --version
 venv/bin/python skrivagner.py --diagnose
 ```
 
-Une ligne par vérification, `<ÉTAT> <identifiant> : <message>`, puis un bilan. Dans un domicile neuf, sans configuration ni Ollama, le bilan est `5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 7 non vérifié(s)` et le code de sortie `0`. Une fois la configuration écrite, tout ce qu'elle déclare et que la machine ne tient pas (Ollama éteint, modèle absent, coffre non monté) est un `ÉCHEC` et le code de sortie vaut `1`.
+`--version` prints one line and stops:
+
+```
+skrivagner 0.9.0-alpha
+```
+
+`--diagnose` prints one line per check, `<STATE> <identifier> : <message>`, then a summary. In a new home directory, with no configuration and no Ollama, the output is the following and the exit code is `0`:
+
+```
+OK python : 3.13.5
+OK outil_pdftotext : /usr/bin/pdftotext
+OK outil_pdftoppm : /usr/bin/pdftoppm
+OK outil_findmnt : /usr/bin/findmnt
+OK outil_ssh : /usr/bin/ssh
+NON_CONFIGURÉ configuration : no configuration found (the --config option: not given; the SKRIVAGNER_CONFIG variable: not given; the XDG location: ~/.config/skrivagner/config.json; the script folder: ~/applications/skrivagner/config.json)
+NON_VÉRIFIÉ emplacement_etat : depends on the configuration
+NON_VÉRIFIÉ ollama : depends on the configuration
+NON_VÉRIFIÉ modele_ocr : depends on the configuration
+NON_VÉRIFIÉ modele_tri_rapide : depends on the configuration
+NON_VÉRIFIÉ modele_classification : depends on the configuration
+NON_VÉRIFIÉ destination_personnel : depends on the configuration
+NON_VÉRIFIÉ destination_professionnel : depends on the configuration
+Diagnostic: 5 OK, 0 warning(s), 0 failure(s), 1 not configured, 7 not checked
+```
+
+The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) and the identifiers are the same in every language, so that a script can compare them. Once the configuration is written, everything it declares and the machine does not hold (Ollama off, a model missing, a vault not mounted) is an `ÉCHEC` and the exit code is `1`. With the configuration of step 5 filled in and the vault roots mounted, the output ends on a summary like this one:
+
+```
+Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 0 not configured, 0 not checked
+```
+
+The one warning is the state and the journal in clear text under `~/.local/state/skrivagner/`, until you move them into a vault.
+
+## Language of the messages
+
+Skrivagner writes its messages in English, French, German or Spanish. The language is read once at start, in the first of `LC_ALL`, `LC_MESSAGES` and `LANG` that is not empty: `fr_FR.UTF-8` gives French, `de_DE.UTF-8` German, `es_ES.UTF-8` Spanish, `en_US.UTF-8` English, and any other value, or none, English. To read the same check in another language:
+
+```bash
+LC_ALL=fr_FR.UTF-8 venv/bin/python skrivagner.py --diagnose
+```
+
+The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk is in English, so that a journal written in one language is replayed by `--rollback` in any other. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
 
 ## Usage
 
 ```bash
 cd ~/applications/skrivagner
-venv/bin/python skrivagner.py --dry-run     # simulation (défaut) : rien ne bouge
-venv/bin/python skrivagner.py --execute     # classement réel
-venv/bin/python skrivagner.py --rollback    # annule la dernière session de classement
-venv/bin/python skrivagner.py --inventaire  # lit l'existant des coffres, rien n'est déplacé
-venv/bin/python skrivagner.py --diagnose    # vérifie l'installation, la configuration, Ollama et les coffres, sans rien écrire
-venv/bin/python skrivagner.py --version     # écrit une ligne, `skrivagner <version>`, et s'arrête
-venv/bin/python skrivagner.py --dry-run --config ~/autre/config.json   # lit cette configuration-là
+venv/bin/python skrivagner.py --dry-run     # simulation (default): nothing moves
+venv/bin/python skrivagner.py --execute     # real filing
+venv/bin/python skrivagner.py --rollback    # undoes the last filing session
+venv/bin/python skrivagner.py --inventaire  # reads what the vault roots already hold, nothing is moved
+venv/bin/python skrivagner.py --diagnose    # checks the installation, the configuration, Ollama and the vault roots, writes nothing
+venv/bin/python skrivagner.py --version     # prints one line, `skrivagner <version>`, and stops
+venv/bin/python skrivagner.py --dry-run --config ~/other/config.json   # reads that configuration
+venv/bin/python skrivagner.py --help        # lists every option, in the language of the session
 ```
 
-Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (trois modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`.
+Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
-Codes de sortie : `0` réussi ; `1` configuration introuvable, invalide ou à clé absente, document resté en place, ou `--diagnose` avec au moins un `ÉCHEC` ; `2` coffre non prouvé monté ; `3` aucun modèle installé pour un rôle (`ollama list`) ; `4` `--execute` refusé sur cette machine (clé `executer_sur`) ; `5` une autre exécution tient le verrou `skrivagner.verrou` (à côté de `suivi.fichier_date`).
+```
+Skrivagner 0.9.0-alpha — session 2026-10-29T16:18:46
+  Mode               : dry-run
+  Configuration      : ~/.config/skrivagner/config.json
+  Vault personnel     : ~/Classement/Personnel — mounted
+  Vault professionnel : ~/Classement/Professionnel — mounted
+  Session journal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T16:18:46.jsonl
+  Model ocr           : glm-ocr:latest
+  Model tri_rapide    : gemma3:4b
+  Model classification: granite4.2:8b-Q5_K_M
+  Consensus          : 1 classification model(s), threshold 0.4
 
-Chaque déplacement s'inscrit dans le journal des actions (`suivi.journal`, une ligne JSON par action, sans texte de document) et chaque session laisse un rapport dans `suivi.sessions`. `--rollback --session <horodatage>` annule une session précise : le document revient à sa place d'origine, copie vérifiée par empreinte.
+Source: entrant (~/Classement/Entrant)
+  (no candidate file)
+  Source total: 0 file(s), 0 B
 
-### Machines distantes par ssh
+============================================================
+Scan total: 0 candidate file(s), 0 B
+============================================================
+Text extraction (the text is neither shown nor written)
 
-Déclarez chaque machine dans `sources_distantes` (alias `ssh`, répertoires, `vide_poches_destination`). `ssh <alias> true` doit réussir sans mot de passe, et la machine doit offrir `find`, `sha256sum` et `cat`. En simulation, Skrivagner liste les fichiers sans rien copier ; en exécution, il les copie dans le vide-poches de la machine, vérifie leur empreinte, puis les traite comme des fichiers locaux. Les fichiers d'origine restent intacts. Un refus de connexion arrête la machine concernée : ne relancez pas en boucle.
+Classification (dry-run, nothing is moved; the text is neither shown nor written)
 
-### Boîtes mail par IMAP
+```
 
-Déclarez chaque boîte dans `sources_imap`. Le mot de passe se lit dans la variable d'environnement nommée par `mot_de_passe_env`, jamais dans le fichier :
+Exit codes:
+
+| Code | Meaning |
+|---|---|
+| `0` | success |
+| `1` | configuration not found, invalid or missing a key; at least one source or document in failure; rollback only partly done; OAuth2 consent failed; `--diagnose` with at least one `ÉCHEC` |
+| `2` | vault not proven mounted before a mode that writes; invalid command line |
+| `3` | no model installed for a role (`ollama list`), or Ollama does not answer |
+| `4` | `--execute` refused on this machine (key `executer_sur`) |
+| `5` | another run holds the lock `skrivagner.verrou` (next to `suivi.fichier_date`) |
+
+Every move is written in the action journal (`suivi.journal`, one JSON line per action, no document text) and every session leaves a report in `suivi.sessions`. `--rollback --session <timestamp>` undoes a given session: the document returns to its original place, the copy checked by fingerprint.
+
+### Manual page
+
+The manual page is written in Markdown in `docs/skrivagner.1.md`, with its translations in `docs/fr-FR/`, `docs/de-DE/` and `docs/es-ES/`. To read it from the sources:
+
+```bash
+pandoc --standalone --from markdown-smart --to man docs/skrivagner.1.md | man -l -
+```
+
+### Remote machines over ssh
+
+Declare each machine in `sources_distantes` (`ssh` alias, directories, `vide_poches_destination`). `ssh <alias> true` must succeed without a password, and the machine must offer `find`, `sha256sum` and `cat`. In simulation, Skrivagner lists the files without copying anything; in execution, it copies them into the drop folder of the machine, checks their fingerprint, then treats them as local files. The original files stay intact. A refused connection stops the machine concerned: do not retry in a loop.
+
+### Mailboxes over IMAP
+
+Declare each mailbox in `sources_imap`. The password is read from the environment variable named by `mot_de_passe_env`, never from the file:
 
 ```bash
 read -rs SKRIVAGNER_IMAP_EXEMPLE && export SKRIVAGNER_IMAP_EXEMPLE
 ```
 
-Skrivagner ouvre les dossiers en lecture seule (`EXAMINE`) et ne lit que la pièce jointe (`BODY.PEEK`) : aucun message n'est marqué lu, aucun drapeau n'est posé.
+Skrivagner opens the folders read-only (`EXAMINE`) and reads only the attachment (`BODY.PEEK`): no message is marked as read, no flag is set.
 
-### Comptes Google par OAuth2
+### Google accounts over OAuth2
 
-Un compte Google se relève avec un jeton OAuth2 à la place du mot de passe (`AUTHENTICATE XOAUTH2`). Dans la [console Google Cloud](https://console.cloud.google.com), avec le compte à relever : créer un projet, activer l'API Gmail, configurer l'écran de consentement OAuth (type externe), puis le **publier** (statut « In production », car en « Testing » l'autorisation expire au bout de sept jours), enfin créer un identifiant « Application de bureau » et télécharger son JSON. Rangez-le dans le coffre, en `600`, puis déclarez la source avec `"authentification": "oauth2"`, `client_fichier` et `token_fichier` (voir l'exemple `imap-google-exemple`) et consentez une seule fois :
+A Google account is read with an OAuth2 token instead of the password (`AUTHENTICATE XOAUTH2`). In the [Google Cloud console](https://console.cloud.google.com), with the account to read: create a project, enable the Gmail API, configure the OAuth consent screen (external type), then **publish** it (status "In production", because in "Testing" the authorisation expires after seven days), and finally create a "Desktop application" credential and download its JSON. Keep it in the vault, with mode `600`, then declare the source with `"authentification": "oauth2"`, `client_fichier` and `token_fichier` (see the `imap-google-exemple` example) and consent once:
 
 ```bash
 venv/bin/python skrivagner.py --autoriser-google imap-google-exemple
 ```
 
-Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « application non vérifiée » (c'est votre propre application) et le consentement. Le jeton est écrit en `600` dans le dossier du `token_fichier`, qui refuse un dépôt git et les chemins de `oauth2.chemins_interdits` ; il se renouvelle seul et n'apparaît ni au journal ni à l'écran. Si Google le révoque (accès retiré, mot de passe du compte changé, six mois sans scan), Skrivagner s'arrête avec un message explicite : refaites la commande.
+Open the address that is printed in a browser, accept the "unverified application" warning (it is your own application) and the consent. The token is written with mode `600` in the folder of the `token_fichier`, which refuses a git repository and the paths of `oauth2.chemins_interdits`; it renews itself and appears neither in the journal nor on screen. If Google revokes it (access removed, account password changed, six months without a scan), Skrivagner stops with an explicit message: run the command again.
 
-## Souveraineté
+## Sovereignty
 
-- Les appels à Ollama sont des requêtes HTTP vers `ollama.url` (par défaut `http://localhost:11434`) ; aucun document ni nom de fichier ne part ailleurs.
-- Les seuls services extérieurs que le code peut joindre sont ceux que vous déclarez : vos machines par `ssh`, vos boîtes IMAP, et, si vous activez OAuth2, les points d'extrémité d'autorisation de Google.
-- Aucun secret n'est stocké dans `config.json` : mots de passe en variable d'environnement, jetons en fichiers `600` hors de tout dépôt.
+- The calls to Ollama are HTTP requests to `ollama.url` (by default `http://localhost:11434`); no document and no file name goes anywhere else.
+- The only outside services the code can reach are those you declare: your machines over `ssh`, your IMAP mailboxes and, if you enable OAuth2, the authorisation endpoints of Google.
+- No secret is stored in `config.json`: passwords in an environment variable, tokens in `600` files outside any repository.
 
-## Limites
+## Limits
 
-- Linux seulement. Le contrôle de montage repose sur `findmnt`.
-- Le classement vaut ce que valent vos modèles : sur l'instance de référence, un premier essai sur 15 documents réels en a classé 2, écarté 3 comme non administratifs et mis 10 en `À_VÉRIFIER/`, par choix de prudence. Mesurez avant de faire confiance : la mesure du domaine est dans `_outils/mesurer_domaines.py`.
-- Skrivagner ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface rien : l'espace disque et les sauvegardes sont à votre charge.
-- Les catégories, les émetteurs connus et le gabarit de nommage de `config.exemple.json` reflètent la vie administrative française (CAF, impôts, assurances) ; adaptez-les à votre pays.
-- Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
-- Le projet est jeune : aucune version publiée avant la 0.8.0, pas de paquet, pas d'intégration continue.
+- Linux only. The mount check relies on `findmnt`.
+- The filing is worth what your models are worth: on the reference instance, a first trial on 15 real documents filed 2, set 3 aside as not administrative and put 10 in `À_VÉRIFIER/`, as a matter of caution. Measure before trusting: the domain measurement is in `_outils/mesurer_domaines.py`.
+- Skrivagner does not mount, encrypt or synchronise any vault, and erases nothing: disk space and backups are up to you.
+- The categories, the known senders and the naming template of `config.exemple.json` reflect French administrative life (family allowance fund, tax office, insurers); adapt them to your country.
+- The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.
+- The project is young: version 0.9.0-alpha, no continuous integration.
 
-## Contribuer, signaler une faille
+## Contributing, reporting a vulnerability
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md). Une faille se signale en privé selon [SECURITY.md](SECURITY.md), jamais dans un ticket public.
+See [CONTRIBUTING.md](CONTRIBUTING.md). A vulnerability is reported in private according to [SECURITY.md](SECURITY.md), never in a public issue.
 
 ## Credits
 
-Skrivagner est le fruit d'une collaboration entre une personne et des modèles de langage, avec les rôles écrits tels qu'ils ont été tenus. La liste complète est dans [CONTRIBUTORS.md](CONTRIBUTORS.md).
+Skrivagner is the fruit of a collaboration between a person and language models, with the roles written as they were held. The complete list is in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
-*   **Ronan Davalan** : architecte et arbitre ; vision, décisions, périmètre, validation. Seul auteur git.
-*   **Claude Code (Anthropic)** : ingénieur de réalisation ; code Python et tests.
-*   **Gemini (Google)** : conseiller de conception ; a proposé le nom d'origine « Le Greffier ».
-*   **Copilot (Microsoft)** : a traduit ce nom en breton, d'où « Skrivagner ».
+*   **Ronan Davalan**: architect and arbiter; vision, decisions, scope, validation. Sole git author.
+*   **Claude Code (Anthropic)**: implementation engineer; Python code and tests, and the public documents (this README and its translations, the manual page, `CONTRIBUTING.md`, `SECURITY.md`).
+*   **Gemini (Google)**: design adviser; proposed the original name "Le Greffier".
+*   **Copilot (Microsoft)**: translated that name into Breton, hence "Skrivagner".

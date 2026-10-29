@@ -1,14 +1,14 @@
-# Contribuer à Skrivagner
+# Contributing to Skrivagner
 
-Merci de l'intérêt. Skrivagner classe des documents administratifs sensibles : la prudence passe avant la vitesse, et chaque contribution est jugée d'abord sur ce qu'elle ne risque pas de casser.
+Thank you for your interest. Skrivagner files sensitive administrative documents: caution comes before speed, and every contribution is judged first on what it must not risk breaking.
 
-## Avant d'écrire du code
+## Before writing code
 
-- Ouvrez un ticket qui décrit le besoin avant une grosse modification (nouvelle source, nouveau comportement visible). Une correction de défaut ou de documentation peut arriver directement en demande de fusion.
-- Une faille de sécurité ne se signale jamais dans un ticket : voir [SECURITY.md](SECURITY.md).
-- Skrivagner reste un outil de foyer et souverain : pas de service tiers, pas de modèle distant, pas de télémétrie, pas de mode « nuage ». Une contribution qui les introduit sera refusée.
+- Open an issue that describes the need before a large change (a new source, a new visible behaviour). A defect fix or a documentation fix can arrive directly as a pull request.
+- A security flaw is never reported in an issue: see [SECURITY.md](SECURITY.md).
+- Skrivagner stays a sovereign household tool: no third-party service, no remote model, no telemetry, no "cloud" mode. A contribution that introduces them will be refused.
 
-## Environnement
+## Environment
 
 ```bash
 git clone https://github.com/RonanDavalan/skrivagner.git ~/applications/skrivagner
@@ -18,24 +18,25 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-Les tests ne touchent ni Ollama, ni `ssh`, ni IMAP, ni Google : ils emploient de faux serveurs et des documents factices (`tests/faux_imap.py`, `tests/faux_ssh.py`, `tests/textes_factices.py`). Les tests marqués `ollama_reel` sont sautés tant que `SKRIVAGNER_MODELE_OCR_ESSAI` ne nomme pas un modèle installé.
+The tests touch neither Ollama, nor `ssh`, nor IMAP, nor Google: they use fake servers and fictitious documents (`tests/faux_imap.py`, `tests/faux_ssh.py`, `tests/textes_factices.py`). The tests marked `ollama_reel` are skipped as long as `SKRIVAGNER_MODELE_OCR_ESSAI` does not name an installed model.
 
-## Les règles du code
+## The rules of the code
 
-- **Bibliothèque standard seulement** pour le code (`ssh` par `subprocess`, Ollama par `urllib`). Une dépendance nouvelle se justifie dans la demande de fusion.
-- **Simulation par défaut** : tout nouveau geste qui écrit ou déplace est inactif en `--dry-run` et laisse une trace au journal des actions, de façon que `--rollback` puisse le défaire.
-- **Jamais de suppression**, jamais d'écriture dans une boîte mail ni sur une machine distante.
-- **Aucun secret dans un fichier versionné, un journal, un rapport ou une sortie** : mots de passe en variable d'environnement, jetons en fichier `600`. Un test le prouve pour tout nouveau secret.
-- **Aucun document réel, aucun nom de personne, d'hôte ou de chemin personnel** dans le code, les tests, les exemples, les tickets et les captures. Les tests emploient des textes factices.
-- **Chaque comportement a son test**, y compris le cas d'échec ; un défaut corrigé reçoit le test qui l'aurait attrapé. Les nouveaux tests échouent sans la modification qu'ils couvrent.
-- **Commentaires en français, au pourquoi seulement** : l'intention, la contrainte, le piège qui surprendrait un lecteur compétent. Ni évidence, ni historique de l'édition (« ajouté », « corrigé »). Le français est écrit avec ses accents.
-- **Les clés de `config.json` ne se renomment pas** : on ajoute une clé, avec une valeur par défaut qui conserve le comportement existant, et on la documente dans `config.exemple.json` et le `README.md`.
+- **Standard library only** for the code (`ssh` through `subprocess`, Ollama through `urllib`). A new dependency is justified in the pull request.
+- **Simulation by default**: every new gesture that writes or moves is inactive in `--dry-run` and leaves a trace in the action journal, so that `--rollback` can undo it.
+- **Never any deletion**, never any write into a mailbox or onto a remote machine.
+- **No secret in a versioned file, a journal, a report or an output**: passwords in an environment variable, tokens in a `600` file. A test proves it for every new secret.
+- **No real document, no name of a person, of a host or of a personal path** in the code, the tests, the examples, the issues and the screenshots. The tests use fictitious texts.
+- **Every behaviour has its test**, the failure case included; a fixed defect gets the test that would have caught it. The new tests fail without the change they cover.
+- **Every text the tool shows lives in the message dictionaries** (`modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`), read through `traduire("key", name=value)`, never written in the code. A new message is added to the four dictionaries, with the same names between braces in each; `tests/test_messages.py` fails otherwise. English is the source, the other three are translated from it. What is written in a journal or a plan is composed in English.
+- **Comments in French, about the why only**: the intention, the constraint, the trap that would surprise a competent reader. Neither the obvious, nor the history of the edit ("added", "fixed"). French is written with its accents.
+- **The keys of `config.json` are never renamed**: add a key, with a default value that keeps the existing behaviour, and document it in `config.exemple.json` and the `README.md`.
 
-## Demande de fusion
+## Pull request
 
-1. Une branche par sujet, des commits qui disent ce qu'ils changent.
-2. `venv/bin/python -m pytest -q tests` passe en entier.
-3. `git grep -nE '/hom[e]/|@gmai[l]|ssh -'` ne trouve rien de personnel dans ce que vous ajoutez.
-4. Le `README.md` et `config.exemple.json` sont à jour si le comportement visible ou la configuration change.
+1. One branch per subject, commits that say what they change.
+2. `venv/bin/python -m pytest -q tests` passes in full.
+3. `git grep -nE '/hom[e]/|@gmai[l]|ssh -'` finds nothing personal in what you add.
+4. The `README.md` (and its translations in `docs/`) and `config.exemple.json` are up to date if the visible behaviour or the configuration changes.
 
-En contribuant, vous acceptez que votre apport soit publié sous la licence du projet, la [GNU Affero General Public License version 3](LICENSE). Votre nom et le rôle tenu sont ajoutés à [CONTRIBUTORS.md](CONTRIBUTORS.md) le jour de la fusion.
+By contributing, you agree that your contribution is published under the licence of the project, the [GNU Affero General Public License version 3](LICENSE). Your name and the role you held are added to [CONTRIBUTORS.md](CONTRIBUTORS.md) on the day of the merge.
