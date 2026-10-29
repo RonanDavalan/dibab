@@ -5,7 +5,7 @@ lecture seule, et ne rend que des agrégats : effectifs, taux, durées moyennes,
 Aucun chemin, nom de fichier ni texte n'entre dans la sortie.
 """
 
-import argparse
+
 import hashlib
 import itertools
 import json
@@ -17,6 +17,7 @@ from collections import Counter
 from pathlib import Path
 
 from modules import appel_ollama, cascade, chemins, classification, coffres, domaines, extraction, installation, modeles
+from modules.messages import ParseurTraduit, texte_de, traduire
 
 NON_ADMINISTRATIF = "non_administratif"
 ECHEC_EXTRACTION = "echec_extraction"
@@ -268,7 +269,7 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
     extractions = []
     for rang, (_, chemin) in enumerate(documents, 1):
         extractions.append(extraction.extraire(chemin, parametres, ollama, modele_ocr, generer=generer, **options))
-        suivre(f"extraction {rang}/{len(documents)}")
+        suivre(traduire("mesure_suivi_extraction", rang=rang, total=len(documents)))
     textes = [(chemin, extraite.texte) for (_, chemin), extraite in zip(documents, extractions)]
     etiquettes = [etiquette for etiquette, _ in documents]
 
@@ -282,7 +283,7 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
     categories = {}
     modele_tri = candidats["tri_rapide"][0]
     for modele in candidats["classification"]:
-        suivre(f"cascade, classification : {modele}")
+        suivre(traduire("mesure_suivi_cascade", modele=modele))
         resultats = cascade.executer(textes, configuration, {"tri_rapide": modele_tri, "classification": modele}, generer)
         colonnes = [_colonne(resultat, extraite) for resultat, extraite in zip(resultats, extractions)]
         durees = [(resultat.tri.duree_secondes if resultat.tri else 0)
@@ -301,7 +302,7 @@ def mesurer(documents, configuration, candidats, modele_ocr, generer=appel_ollam
                                 [r.tri.duree_secondes for r in resultats if r.tri])
 
     for modele in candidats["tri_rapide"][1:]:
-        suivre(f"tri : {modele}")
+        suivre(traduire("mesure_suivi_tri", modele=modele))
         verdicts, durees = [], []
         for rang, (_, texte) in enumerate(textes):
             if not texte.strip():
@@ -368,14 +369,14 @@ def _liste(texte):
 
 
 def analyser_arguments(argv=None):
-    parseur = argparse.ArgumentParser(description="Mesure du domaine sur les documents réels des coffres (agrégats seuls).")
+    parseur = ParseurTraduit(description=traduire("aide_mesure_description"))
     parseur.add_argument("--configuration", "--config", type=Path, default=None,
-                         help="config.json à lire (sinon SKRIVAGNER_CONFIG, XDG, puis à côté du script)")
-    parseur.add_argument("--tri", help="modèles de tri à mesurer, séparés par des virgules (défaut : ollama.roles.tri_rapide)")
+                         metavar=traduire("aide_meta_chemin"), help=traduire("aide_mesure_configuration"))
+    parseur.add_argument("--tri", help=traduire("aide_mesure_tri"))
     parseur.add_argument("--classification",
-                         help="modèles de classification à mesurer (défaut : ollama.roles.classification)")
+                         help=traduire("aide_mesure_classification"))
     parseur.add_argument("--a-blanc", action="store_true",
-                         help="ne prouve pas les coffres : pour une configuration qui pointe un répertoire factice")
+                         help=traduire("aide_mesure_a_blanc"))
     return parseur.parse_args(argv)
 
 
@@ -385,21 +386,21 @@ def main(argv=None, generer=appel_ollama.generer, executer=None, sortie=sys.stdo
         chemin = installation.rechercher_configuration(arguments.configuration, os.environ, CHEMIN_CONFIG)
         configuration = chemins.developper_chemins(installation.lire_configuration(chemin))
     except installation.ErreurConfiguration as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n")
+        sys.stderr.write(traduire("erreur_prefixe", detail=texte_de(erreur)) + "\n")
         return 1
     absentes = cles_absentes(configuration)
     if absentes:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absentes)}\n        Voir config.exemple.json.\n")
+        sys.stderr.write(traduire("erreur_prefixe", detail=traduire("config_cles_absentes", cles=", ".join(absentes)) + "\n        " + traduire("suite_voir_exemple")) + "\n")
         return 1
     if not arguments.a_blanc:
         defaillants = [etat for etat in coffres.verifier_coffres(configuration["destinations"]) if not etat.monte]
         if defaillants:
-            sys.stderr.write(f"ERREUR : coffre non prouvé : {', '.join(etat.domaine for etat in defaillants)}. Rien n'a été lu.\n")
+            sys.stderr.write(traduire("erreur_prefixe", detail=traduire("mesure_coffre_non_prouve", domaines=", ".join(etat.domaine for etat in defaillants))) + "\n")
             return 2
     try:
         installes = modeles.lister_modeles_installes(configuration["ollama"]["url"], configuration["ollama"].get("timeout_secondes", 120))
     except modeles.ModeleIndisponible as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n")
+        sys.stderr.write(traduire("erreur_prefixe", detail=texte_de(erreur)) + "\n")
         return 3
     roles = configuration["ollama"]["roles"]
     candidats = {"tri_rapide": _installes_parmi(_liste(arguments.tri) or roles["tri_rapide"], installes),
@@ -407,7 +408,7 @@ def main(argv=None, generer=appel_ollama.generer, executer=None, sortie=sys.stdo
     ocr = _installes_parmi(roles["ocr"], installes)
     manquants = [role for role, liste in (("ocr", ocr), *candidats.items()) if not liste]
     if manquants:
-        sys.stderr.write(f"ERREUR : aucun modèle installé pour : {', '.join(manquants)}\n")
+        sys.stderr.write(traduire("erreur_prefixe", detail=traduire("mesure_aucun_modele", roles=", ".join(manquants))) + "\n")
         return 3
 
     mesure = configuration["mesure"]
@@ -417,7 +418,7 @@ def main(argv=None, generer=appel_ollama.generer, executer=None, sortie=sys.stdo
     documents = [(coffre, chemin) for coffre in domaines.COFFRES
                  for chemin in tirer(uniques[coffre], mesure["documents_par_coffre"], mesure["graine"])]
     if not documents:
-        sys.stderr.write("ERREUR : aucun document à mesurer.\n")
+        sys.stderr.write(traduire("erreur_prefixe", detail=traduire("mesure_aucun_document")) + "\n")
         return 4
 
     agregats = mesurer(documents, configuration, candidats, ocr[0], generer, executer)

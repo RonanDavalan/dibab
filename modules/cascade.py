@@ -8,6 +8,7 @@ import sys
 from dataclasses import dataclass, replace
 
 from modules import appel_ollama, classification, domaines
+from modules.messages import traduire
 
 
 @dataclass(frozen=True)
@@ -75,7 +76,7 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
     for rang, modele in enumerate(classeurs, start=1):
         accords = {}
         for position, (chemin, texte) in enumerate(a_classer, start=1):
-            _signaler(f"modèle {rang}/{len(classeurs)}, document {position}/{len(a_classer)}")
+            _signaler(traduire("cascade_avancement", rang=rang, total=len(classeurs), position=position, nombre=len(a_classer)))
             derniere = position == len(a_classer)
             accords[chemin] = classification.classifier(texte, configuration, parametres, modele, 0 if derniere else keep_alive, generer)
         par_modele.append(accords)

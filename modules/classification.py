@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from modules import appel_ollama, domaines
+from modules.messages import texte_de, traduire
 
 ADMINISTRATIF = "administratif"
 NON_ADMINISTRATIF = "non_administratif"
@@ -80,9 +81,9 @@ def _objet_json(brut):
     try:
         donnees = json.loads(brut)
     except ValueError as erreur:
-        raise ValueError(f"JSON invalide : {erreur}") from erreur
+        raise ValueError(traduire("json_invalide", erreur=texte_de(erreur))) from erreur
     if not isinstance(donnees, dict):
-        raise ValueError("la réponse n'est pas un objet JSON")
+        raise ValueError(traduire("json_pas_un_objet"))
     return donnees
 
 
@@ -104,10 +105,10 @@ def tri_rapide(texte, parametres, configuration_ollama, modele, keep_alive, gene
     try:
         donnees = _objet_json(_appeler(consigne, schema, modele, parametres, configuration_ollama, keep_alive, generer))
         if set(donnees) != {"verdict"} or donnees["verdict"] not in VERDICTS_TRI:
-            raise ValueError("champs hors du schéma fermé")
+            raise ValueError(traduire("champs_hors_schema"))
         return Tri(donnees["verdict"], modele, time.perf_counter() - debut)
     except (ValueError, appel_ollama.ErreurOllama) as erreur:
-        return Tri(INCERTAIN, modele, time.perf_counter() - debut, str(erreur))
+        return Tri(INCERTAIN, modele, time.perf_counter() - debut, texte_de(erreur))
 
 
 def _schema_classification(categories, personnes):
@@ -142,7 +143,7 @@ def _consigne_classification(document, configuration):
 
 def _champ_libre(valeur, longueur_max):
     if not isinstance(valeur, str):
-        raise ValueError("champ texte attendu")
+        raise ValueError(traduire("champ_texte_attendu"))
     propre = " ".join(valeur.replace("/", " ").replace("\\", " ").split())[:longueur_max].strip()
     return None if propre in ("", ".", "..") else propre
 
@@ -169,15 +170,15 @@ def valider_classification(brut, texte, configuration, parametres):
     """Rend le `Verdict` d'une réponse du modèle ; ValueError si elle sort du schéma fermé."""
     donnees = _objet_json(brut)
     if set(donnees) != {"date", "emetteur", "destinataire", "nature_destinataire", "categorie", "personne"}:
-        raise ValueError("champs hors du schéma fermé")
+        raise ValueError(traduire("champs_hors_schema"))
     longueur = parametres["longueur_max_champ"]
     categorie, personne, nature = donnees["categorie"], donnees["personne"], donnees["nature_destinataire"]
     if categorie != SANS_VALEUR and categorie not in configuration["categories"]:
-        raise ValueError("catégorie hors liste")
+        raise ValueError(traduire("categorie_hors_liste"))
     if personne != SANS_VALEUR and personne not in configuration["personnes"]:
-        raise ValueError("personne hors liste")
+        raise ValueError(traduire("personne_hors_liste"))
     if nature not in NATURES_DESTINATAIRE:
-        raise ValueError("nature de destinataire hors liste")
+        raise ValueError(traduire("nature_hors_liste"))
     date = _champ_libre(donnees["date"], 10)
     if date is not None:
         date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -214,4 +215,4 @@ def classifier(texte, configuration, parametres, modele, keep_alive, generer=app
         return Classification(verdict, modele, time.perf_counter() - debut, True)
     except (ValueError, appel_ollama.ErreurOllama) as erreur:
         incertain = domaines.Verdict(administratif=True, domaine=domaines.INCERTAIN, categorie=CATEGORIE_INCONNUE)
-        return Classification(incertain, modele, time.perf_counter() - debut, False, str(erreur))
+        return Classification(incertain, modele, time.perf_counter() - debut, False, texte_de(erreur))

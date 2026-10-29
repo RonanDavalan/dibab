@@ -10,6 +10,7 @@ from pathlib import Path
 from modules import journal_actions
 from modules.deplacement import copier_verifie
 from modules.pieces_communes import empreinte_sha256
+from modules.messages import texte_de, traduire
 
 
 @dataclass(frozen=True)
@@ -27,18 +28,18 @@ def _annuler_une(action):
     destinations = [Path(d["chemin"]) for d in action["destinations"]]
     for destination, attendue in zip(destinations, (d["empreinte_apres"] for d in action["destinations"])):
         if not destination.is_file():
-            return "destination introuvable"
+            return traduire("rollback_destination_introuvable")
         if empreinte_sha256(destination) != attendue:
-            return "destination modifiée depuis le classement"
+            return traduire("rollback_destination_modifiee")
     origine = Path(action["origine"])
     if origine.exists():
-        return "source réoccupée par un autre fichier"
+        return traduire("rollback_source_reoccupee")
     try:
         copier_verifie(destinations[0], origine, action["empreinte_avant"])
         for destination in destinations:
             destination.unlink()
     except OSError as erreur:
-        return f"restitution impossible : {erreur}"
+        return traduire("rollback_restitution_impossible", erreur=texte_de(erreur))
     return ""
 
 

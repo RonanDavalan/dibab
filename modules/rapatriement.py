@@ -12,6 +12,7 @@ from pathlib import Path
 from modules.deplacement import chemin_libre
 from modules.pieces_communes import empreinte_sha256
 from modules.scanner_ssh import ErreurSsh, expression_distante
+from modules.messages import traduire
 
 DEJA_RAPATRIE = "deja_rapatrie"
 RAPATRIE = "rapatrie"
@@ -63,7 +64,7 @@ def empreinte_distante(fichier, executer):
     retour = executer(fichier.alias, commande)
     mots = retour.stdout.decode("utf-8", "replace").split()
     if retour.returncode != 0 or not mots or not re.fullmatch(r"[0-9a-f]{64}", mots[0]):
-        raise ErreurSsh("empreinte distante illisible")
+        raise ErreurSsh(traduire("ssh_empreinte_illisible"))
     return mots[0]
 
 
@@ -85,9 +86,9 @@ def rapatrier_fichier(fichier, dossier, registre, suffixe_collision, executer, e
         with open(provisoire, "wb") as f:
             retour = executer_copie(fichier.alias, f"cat -- {expression_distante(fichier.repertoire, fichier.relatif)}", stdout=f)
         if retour.returncode != 0:
-            raise ErreurSsh("copie distante interrompue")
+            raise ErreurSsh(traduire("ssh_copie_interrompue"))
         if empreinte_sha256(provisoire) != empreinte:
-            raise ErreurSsh("empreinte différente après copie")
+            raise ErreurSsh(traduire("ssh_empreinte_differente"))
         os.utime(provisoire, (fichier.mtime.timestamp(), fichier.mtime.timestamp()))
         os.rename(provisoire, final)
     except BaseException:

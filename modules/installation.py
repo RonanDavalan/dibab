@@ -9,6 +9,7 @@ qui ferait travailler le produit sur d'autres coffres que ceux désignés.
 import json
 import os
 from pathlib import Path
+from modules.messages import texte_de, traduire
 
 NOM_DOSSIER = "skrivagner"
 VARIABLE_CONFIGURATION = "SKRIVAGNER_CONFIG"
@@ -49,10 +50,10 @@ def emplacements_de_configuration(option, environ, chemin_du_script):
     """Rend les quatre emplacements dans l'ordre : (libellé de la source, chemin ou None si la source n'est pas donnée)."""
     variable = environ.get(VARIABLE_CONFIGURATION)
     return [
-        ("l'option --config", Path(option) if option else None),
-        (f"la variable {VARIABLE_CONFIGURATION}", Path(variable) if variable else None),
-        ("l'emplacement XDG", dossier_configuration_xdg(environ) / "config.json"),
-        ("le dossier du script", Path(chemin_du_script)),
+        (traduire("config_source_option"), Path(option) if option else None),
+        (traduire("config_source_variable", variable=VARIABLE_CONFIGURATION), Path(variable) if variable else None),
+        (traduire("config_source_xdg"), dossier_configuration_xdg(environ) / "config.json"),
+        (traduire("config_source_script"), Path(chemin_du_script)),
     ]
 
 
@@ -65,11 +66,11 @@ def rechercher_configuration(option, environ, chemin_du_script):
         if chemin.is_file():
             return chemin
         if rang < 2:
-            raise ErreurConfiguration(f"{source} désigne {chemin}, qui n'existe pas.")
-    lignes = ["configuration introuvable. Emplacements essayés, dans l'ordre :"]
+            raise ErreurConfiguration(traduire("config_source_inexistante", source=source, chemin=chemin))
+    lignes = [traduire("config_introuvable_entete")]
     for rang, (source, chemin) in enumerate(emplacements, start=1):
-        lignes.append(f"        {rang}. {source} : {chemin if chemin else 'non donnée'}")
-    lignes.append("        Copier config.exemple.json en config.json à l'un de ces emplacements et l'adapter.")
+        lignes.append("        " + traduire("config_emplacement_essaye", rang=rang, source=source, chemin=chemin or traduire("config_non_donnee")))
+    lignes.append("        " + traduire("config_introuvable_conseil"))
     raise ConfigurationIntrouvable("\n".join(lignes))
 
 
@@ -79,9 +80,9 @@ def lire_configuration(chemin):
         with open(chemin, "r", encoding="utf-8") as fichier:
             configuration = json.load(fichier)
     except (OSError, ValueError) as erreur:
-        raise ErreurConfiguration(f"configuration illisible ou invalide : {chemin} : {erreur}") from erreur
+        raise ErreurConfiguration(traduire("config_illisible", chemin=chemin, erreur=texte_de(erreur))) from erreur
     if not isinstance(configuration, dict):
-        raise ErreurConfiguration(f"configuration invalide : {chemin} : l'objet JSON attendu est absent")
+        raise ErreurConfiguration(traduire("config_objet_absent", chemin=chemin))
     return configuration
 
 

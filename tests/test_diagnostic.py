@@ -253,7 +253,7 @@ def test_main_diagnose_avec_une_configuration_valide_et_ollama_eteint_rend_1(tmp
 
 def test_diagnose_par_la_ligne_de_commande_dans_un_domicile_vide(tmp_path):
     resultat = subprocess.run([sys.executable, str(RACINE / "skrivagner.py"), "--diagnose"], capture_output=True, text=True,
-                              env={"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1"}, cwd=tmp_path)
+                              env={"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "LC_ALL": "fr_FR.UTF-8"}, cwd=tmp_path)
     lignes = resultat.stdout.splitlines()
     assert any(ligne.startswith("NON_CONFIGURÉ configuration : ") for ligne in lignes)
     assert lignes[-1].startswith("Diagnostic : ")

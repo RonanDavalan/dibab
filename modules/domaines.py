@@ -9,6 +9,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from modules.messages import traduire
 
 PERSONNEL = "personnel"
 PROFESSIONNEL = "professionnel"
@@ -112,14 +113,14 @@ def verdict_depuis_dict(donnees):
     """Construit un Verdict depuis un dict à champs fermés ; ValueError si un champ manque ou n'est pas valide."""
     for champ in ("administratif", "categorie"):
         if champ not in donnees:
-            raise ValueError(f"champ absent du verdict : {champ}")
+            raise ValueError(traduire("verdict_champ_absent", champ=champ))
     if not isinstance(donnees["administratif"], bool):
-        raise ValueError("`administratif` doit valoir true ou false")
+        raise ValueError(traduire("verdict_administratif_booleen"))
     signaux = donnees.get("signaux", ())
     if not all(isinstance(signal, dict) for signal in signaux):
-        raise ValueError("chaque signal doit être un objet {domaine, libelle}")
+        raise ValueError(traduire("verdict_signal_objet"))
     if not isinstance(donnees.get("categorie_unanime", False), bool):
-        raise ValueError("`categorie_unanime` doit valoir true ou false")
+        raise ValueError(traduire("verdict_unanime_booleen"))
     date = donnees.get("date")
     if date is not None:
         date = datetime.strptime(date, "%Y-%m-%d").date()

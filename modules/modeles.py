@@ -7,6 +7,7 @@ de préférences ; le premier modèle réellement installé l'emporte.
 import json
 import urllib.error
 import urllib.request
+from modules.messages import texte_de, traduire
 
 
 class ModeleIndisponible(Exception):
@@ -20,10 +21,7 @@ def lister_modeles_installes(url, timeout):
         with urllib.request.urlopen(requete, timeout=timeout) as reponse:
             donnees = json.load(reponse)
     except (urllib.error.URLError, OSError, ValueError) as erreur:
-        raise ModeleIndisponible(
-            f"Ollama ne répond pas à {requete} : {erreur}\n"
-            f"        Vérifier `ollama.url` dans config.json et que le service tourne."
-        ) from erreur
+        raise ModeleIndisponible(traduire("modeles_ollama_muet", requete=requete, erreur=texte_de(erreur))) from erreur
     return [entree["name"] for entree in donnees.get("models", []) if "name" in entree]
 
 
@@ -48,14 +46,12 @@ def choisir_modeles(roles, installes):
             retenus[role] = choix if choix in installes else f"{choix}:latest"
 
     if manquants:
-        lignes = [f"Aucun modèle installé pour le rôle : {', '.join(manquants)}."]
-        lignes.append("Modèles présents dans Ollama : " + (", ".join(sorted(installes)) or "aucun"))
+        lignes = [traduire("modeles_aucun_pour_roles", roles=", ".join(manquants)),
+                  traduire("modeles_presents", modeles=", ".join(sorted(installes)) or traduire("modeles_aucun_present"))]
         for role in manquants:
-            lignes.append(
-                f"Ligne à corriger dans config.json : ollama.roles.{role} "
-                f"(préférences actuelles : {roles[role]})"
-            )
-        raise ModeleIndisponible("\n".join(lignes))
+            lignes.append(traduire("modeles_ligne_a_corriger", role=role, preferences=roles[role]))
+        message = "\n".join(lignes)
+        raise ModeleIndisponible(message)
     return retenus
 
 
@@ -63,9 +59,7 @@ def resoudre_modeles(configuration_ollama):
     """Interroge Ollama puis rend {rôle: modèle retenu}."""
     roles = configuration_ollama.get("roles")
     if not roles:
-        raise ModeleIndisponible(
-            "Aucun rôle déclaré.\n        Ligne à corriger dans config.json : ollama.roles"
-        )
+        raise ModeleIndisponible(traduire("modeles_aucun_role_declare"))
     installes = lister_modeles_installes(
         configuration_ollama["url"], configuration_ollama.get("timeout_secondes", 120)
     )

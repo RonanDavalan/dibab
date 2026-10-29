@@ -4,6 +4,7 @@ import base64
 import json
 import urllib.error
 import urllib.request
+from modules.messages import texte_de, traduire
 
 
 class ErreurOllama(Exception):
@@ -38,7 +39,7 @@ def generer(url, modele, consigne, images, delai, keep_alive, ouvrir=urllib.requ
         with ouvrir(requete, timeout=delai) as reponse:
             donnees = json.load(reponse)
     except (urllib.error.URLError, OSError, ValueError) as erreur:
-        raise ErreurOllama(f"Ollama ne répond pas à {requete.full_url} : {erreur}") from erreur
+        raise ErreurOllama(traduire("ollama_ne_repond_pas", url=requete.full_url, erreur=texte_de(erreur))) from erreur
     if not isinstance(donnees, dict) or not isinstance(donnees.get("response"), str):
-        raise ErreurOllama(f"réponse d'Ollama sans champ `response` (modèle {modele})")
+        raise ErreurOllama(traduire("ollama_reponse_sans_champ", modele=modele))
     return donnees["response"]

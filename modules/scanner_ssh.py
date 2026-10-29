@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import PurePosixPath
 
 from modules import scanner_local
+from modules.messages import texte_de, traduire
 
 
 class ErreurSsh(Exception):
@@ -59,12 +60,12 @@ def executer_ssh(alias, commande, delai_connexion, delai_commande, stdout=None):
         retour = subprocess.run(ligne, stdin=subprocess.DEVNULL, stdout=stdout or subprocess.PIPE,
                                 stderr=subprocess.PIPE, timeout=delai_commande)
     except FileNotFoundError as erreur:
-        raise ErreurSsh("commande ssh introuvable") from erreur
+        raise ErreurSsh(traduire("ssh_introuvable")) from erreur
     except subprocess.TimeoutExpired as erreur:
-        raise DelaiDepasse(f"délai de {delai_commande} s dépassé") from erreur
+        raise DelaiDepasse(traduire("ssh_delai_depasse", delai=delai_commande)) from erreur
     if retour.returncode == 255:
         message = retour.stderr.decode("utf-8", "replace").strip().splitlines()
-        raise MachineInjoignable(message[-1] if message else "connexion refusée")
+        raise MachineInjoignable(message[-1] if message else traduire("ssh_connexion_refusee"))
     return retour
 
 
@@ -86,7 +87,7 @@ def lister_repertoire(source, repertoire, recursif, executer):
     retour = executer(source["alias_ssh"], commande)
     entrees = list(_analyser(retour.stdout))
     if retour.returncode != 0:
-        return entrees, f"répertoire distant partiellement lisible ou absent (code {retour.returncode})"
+        return entrees, traduire("ssh_repertoire_partiel", code=retour.returncode)
     return entrees, None
 
 
@@ -107,7 +108,7 @@ def scanner_machine(source, scan_global, extensions_cibles, derniere_date, secur
         try:
             entrees, erreur = lister_repertoire(source, repertoire, recursif, executer)
         except ErreurSsh as panne:
-            erreurs.append(str(panne))
+            erreurs.append(texte_de(panne))
             break
         if erreur:
             erreurs.append(erreur)

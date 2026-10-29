@@ -8,6 +8,7 @@ from functools import partial
 from pathlib import Path
 
 from modules import rapatriement, scanner_ssh
+from modules.messages import ecrire, texte_de, traduire
 
 CLES_SSH = ("delai_connexion_secondes", "delai_commande_secondes", "delai_copie_secondes")
 
@@ -22,7 +23,7 @@ def cles_absentes(configuration):
                      for cle in ("id", "alias_ssh", "vide_poches_destination", "repertoires") if cle not in source]
         nom = source.get("vide_poches_destination", "")
         if "/" in nom or nom in ("", ".", ".."):
-            absentes.append(f"sources_distantes[{source.get('id', '?')}].vide_poches_destination (un nom, sans séparateur)")
+            absentes.append(traduire("cle_nom_sans_separateur", cle=f"sources_distantes[{source.get('id', '?')}].vide_poches_destination"))
     return absentes
 
 
@@ -68,13 +69,14 @@ def lister(configuration, suivi, journal, maintenant, executer):
 
 def afficher(listages):
     for source, candidats, complet, erreurs in listages:
-        print(f"Source distante : {source['id']} (rien n'est rapatrié en dry-run)")
+        ecrire(traduire("distante_source", identifiant=source['id']))
         for candidat in candidats:
-            print(f"  - {candidat.nom:<50s} (distant, {candidat.taille_octets} o, mtime {candidat.mtime:%Y-%m-%d})")
+            ecrire(traduire("distante_candidat", nom=f"{candidat.nom:<50s}", taille=candidat.taille_octets, unite=traduire("unite_octet"),
+                            date=f"{candidat.mtime:%Y-%m-%d}"), 2)
         if not candidats and complet:
-            print("  (aucun fichier candidat)")
+            ecrire(traduire("aucun_fichier_candidat"), 2)
         for erreur in erreurs:
-            print(f"  [!] {erreur}")
+            ecrire(traduire("avertissement_ligne", detail=erreur), 2)
         print()
 
 
@@ -93,8 +95,8 @@ def rapatrier(configuration, listages, registre, journal, rapport, maintenant, e
                 action, empreinte = rapatriement.rapatrier_fichier(candidat, dossier, registre, suffixe, executeur_court, executeur_copie)
             except (scanner_ssh.ErreurSsh, OSError) as erreur:
                 reussi = False
-                journal.ajouter("rapatriement_echec", source_id=source["id"], raison=str(erreur))
-                print(f"  - {candidat.nom} : ÉCHEC du rapatriement, laissé sur la machine ({erreur})")
+                journal.ajouter("rapatriement_echec", source_id=source["id"], raison=texte_de(erreur))
+                ecrire(traduire("distante_echec_rapatriement", nom=candidat.nom, erreur=texte_de(erreur)), 2)
                 if isinstance(erreur, scanner_ssh.MachineInjoignable):
                     break
                 continue

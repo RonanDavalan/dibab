@@ -8,6 +8,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from modules.messages import pour_journal
+
 
 class JournalSession:
     """Journal d'une session unique. Ouvre le fichier en mode append."""
@@ -28,7 +30,7 @@ class JournalSession:
             "session": self.identifiant_session,
             "evenement": evenement,
         }
-        enregistrement.update(champs)
+        enregistrement.update(pour_journal(champs))
         with open(self.chemin, "a", encoding="utf-8") as f:
             f.write(json.dumps(enregistrement, ensure_ascii=False) + "\n")
 

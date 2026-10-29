@@ -79,7 +79,7 @@ def test_destination_modifiee_rien_n_est_retire(banc, monkeypatch):
     restant = etat(racine)
     assert restant["coffre-b"][str(classe.relative_to(racine / "coffre-b"))] == hashlib.sha256(b"retouche").hexdigest()
     assert len(journal_actions.actions_actives(lignes_journal(racine))) == 1
-    assert [ligne for ligne in lignes_journal(racine) if ligne["evenement"] == "echec_annulation"][0]["raison"].startswith("destination modifiée")
+    assert [ligne for ligne in lignes_journal(racine) if ligne["evenement"] == "echec_annulation"][0]["raison"].startswith("destination changed")
     assert restant["source"].keys() >= {k for k in apres_execute["source"]}
 
 

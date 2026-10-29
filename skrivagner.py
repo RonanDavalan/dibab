@@ -4,7 +4,6 @@
 # Modes : --dry-run (défaut, rien ne bouge), --execute, --inventaire, --rollback, --autoriser-google, --diagnose ; --version.
 # Sources : répertoires locaux, machines distantes par ssh, boîtes IMAP en lecture seule.
 
-import argparse
 import json
 import socket
 import sys
@@ -25,6 +24,7 @@ from modules import installation as mod_installation
 from modules import inventaire as mod_inventaire
 from modules import journal as mod_journal
 from modules import journal_actions as mod_journal_actions
+from modules import messages as mod_messages
 from modules import modeles as mod_modeles
 from modules import oauth2_google as mod_oauth2_google
 from modules import rapatriement as mod_rapatriement
@@ -36,9 +36,12 @@ from modules import sources_distantes as mod_sources_distantes
 from modules import sources_imap as mod_sources_imap
 from modules import suivi as mod_suivi
 from modules import verrou as mod_verrou
+from modules.messages import ParseurTraduit, ecrire, texte_de, traduire
 
 
 VERSION = "0.9.0-alpha"
+
+SUITE = "\n" + " " * 8
 
 # Un vide-poches se relit en entier : tout ce qui s'y trouve attend son classement.
 JOURS_SANS_FILTRE_DATE = 36500
@@ -48,13 +51,21 @@ CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
 DOSSIER_ETAT_PAR_DEFAUT = None
 
 
+def erreur_console(detail):
+    sys.stderr.write(traduire("erreur_prefixe", detail=detail) + "\n")
+
+
+def message_cles_absentes(absents):
+    return traduire("config_cles_absentes", cles=", ".join(absents)) + SUITE + traduire("suite_voir_exemple")
+
+
 def charger_configuration(option=None, environ=os.environ):
     """Rend (configuration, chemin lu, dossier d'état par défaut ou None) ; arrête avec le code 1 si la configuration manque ou est invalide."""
     try:
         chemin = mod_installation.rechercher_configuration(option, environ, CHEMIN_CONFIG)
         brute = mod_installation.lire_configuration(chemin)
     except mod_installation.ErreurConfiguration as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n")
+        erreur_console(texte_de(erreur))
         sys.exit(1)
     configuration, dossier_etat = mod_installation.appliquer_defauts_suivi(mod_chemins.developper_chemins(brute), environ)
     return configuration, chemin, dossier_etat
@@ -73,18 +84,15 @@ def verifier_coffres_ou_sortir(configuration, mode):
     destinations = configuration.get("destinations", {})
     manquants = [d for d in mod_domaines.COFFRES if "racine" not in destinations.get(d, {})]
     if manquants:
-        sys.stderr.write(
-            f"ERREUR : config.json : `destinations` sans racine pour : {', '.join(manquants)}\n"
-            f"        Voir config.exemple.json.\n"
-        )
+        erreur_console(traduire("config_destinations_sans_racine", domaines=", ".join(manquants)) + SUITE + traduire("suite_voir_exemple"))
         sys.exit(1)
 
     etats = mod_coffres.verifier_coffres(destinations)
     defaillants = [etat for etat in etats if not etat.monte]
     if defaillants and mode != "dry-run":
         for etat in defaillants:
-            sys.stderr.write(f"ERREUR : coffre {etat.domaine} : {etat.raison} ({etat.racine})\n")
-        sys.stderr.write("        Rien n'a été touché. Montez le répertoire de destination, puis relancez.\n")
+            erreur_console(traduire("coffre_defaillant", domaine=etat.domaine, raison=etat.raison, racine=etat.racine))
+        ecrire(traduire("suite_rien_touche") + " " + traduire("suite_coffre_non_monte"), 8, sys.stderr)
         sys.exit(2)
     return etats
 
@@ -94,7 +102,7 @@ def resoudre_modeles_ou_sortir(configuration):
     try:
         return mod_modeles.resoudre_modeles(configuration["ollama"])
     except mod_modeles.ModeleIndisponible as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n")
+        erreur_console(texte_de(erreur))
         sys.exit(3)
 
 
@@ -102,8 +110,7 @@ def verifier_machine_ou_sortir(configuration):
     """Refuse `--execute` hors des machines de `executer_sur` : la synchronisation des coffres vient après un seul Skrivagner."""
     machines = configuration.get("executer_sur", [])
     if machines and socket.gethostname() not in machines:
-        sys.stderr.write(f"ERREUR : --execute ne tourne que sur : {', '.join(machines)} (config.json : executer_sur).\n"
-                         f"        Rien n'a été touché.\n")
+        erreur_console(traduire("execute_machine_refusee", machines=", ".join(machines)) + SUITE + traduire("suite_rien_touche"))
         sys.exit(4)
 
 
@@ -135,8 +142,7 @@ def parametres_extraction_ou_sortir(configuration):
     parametres = configuration.get("extraction")
     absents = cles_absentes_extraction(configuration)
     if absents:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
-                         f"        Voir config.exemple.json.\n")
+        erreur_console(message_cles_absentes(absents))
         sys.exit(1)
     return parametres
 
@@ -157,8 +163,7 @@ def parametres_classification_ou_sortir(configuration):
     parametres = configuration.get("classification")
     absents = cles_absentes_classification(configuration)
     if absents:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
-                         f"        Voir config.exemple.json.\n")
+        erreur_console(message_cles_absentes(absents))
         sys.exit(1)
     return parametres
 
@@ -177,8 +182,7 @@ def parametres_classement_ou_sortir(configuration):
     """Arrête avec le code 1 si une clé du classement ou de l'inventaire manque."""
     absents = cles_absentes_classement(configuration)
     if absents:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
-                         f"        Voir config.exemple.json.\n")
+        erreur_console(message_cles_absentes(absents))
         sys.exit(1)
 
 
@@ -199,8 +203,7 @@ def parametres_journal_ou_sortir(configuration, mode):
     """Arrête avec le code 1 si une clé du journal des actions, de la rotation, des sources distantes ou IMAP manque."""
     absents = cles_absentes_journal(configuration, mode)
     if absents:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
-                         f"        Voir config.exemple.json.\n")
+        erreur_console(message_cles_absentes(absents))
         sys.exit(1)
 
 
@@ -219,35 +222,33 @@ def appliquer_rotation(configuration):
 
 
 def analyser_arguments():
-    parseur = argparse.ArgumentParser(
-        prog="skrivagner",
-        description="Tri automatisé de documents administratifs personnels.",
-    )
+    parseur = ParseurTraduit(prog="skrivagner", description=traduire("aide_description"))
     groupe = parseur.add_mutually_exclusive_group()
     groupe.add_argument("--dry-run", action="store_true",
-                        help="Mode simulation (défaut) — aucun déplacement réel")
+                        help=traduire("aide_dry_run"))
     groupe.add_argument("--execute", action="store_true",
-                        help="Mode réel — déplace effectivement les fichiers")
+                        help=traduire("aide_execute"))
     groupe.add_argument("--inventaire", action="store_true",
-                        help="Lit l'existant des coffres et écrit un plan de migration, sans rien déplacer")
+                        help=traduire("aide_inventaire"))
     groupe.add_argument("--rollback", action="store_true",
-                        help="Annule la dernière session de classement, ou celle de --session")
-    groupe.add_argument("--autoriser-google", type=str, default=None, metavar="ID",
-                        help="Consentement OAuth2 d'une source IMAP Google (écrit son fichier de jeton)")
+                        help=traduire("aide_rollback"))
+    groupe.add_argument("--autoriser-google", type=str, default=None, metavar=traduire("aide_meta_id"),
+                        help=traduire("aide_autoriser_google"))
     groupe.add_argument("--diagnose", action="store_true",
-                        help="Vérifie l'installation, la configuration, Ollama et les coffres, sans rien écrire")
+                        help=traduire("aide_diagnose"))
     parseur.add_argument("--version", action="version", version=f"skrivagner {VERSION}",
-                         help="Affiche la version et s'arrête")
-    parseur.add_argument("--config", type=Path, default=None, metavar="CHEMIN",
-                         help="Fichier de configuration à lire (sinon SKRIVAGNER_CONFIG, XDG, puis à côté du script)")
-    parseur.add_argument("--session", type=str, default=None,
-                         help="Identifiant de session à annuler (avec --rollback)")
-    parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar="FICHIER",
-                         help="Dry-run : JSON {nom de fichier: verdict} dont le routage s'affiche")
+                         help=traduire("aide_version"))
+    parseur.add_argument("--config", type=Path, default=None, metavar=traduire("aide_meta_chemin"),
+                         help=traduire("aide_config"))
+    parseur.add_argument("--session", type=str, default=None, metavar=traduire("aide_meta_session"),
+                         help=traduire("aide_session"))
+    parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar=traduire("aide_meta_fichier"),
+                         help=traduire("aide_verdicts_simules"))
     arguments = parseur.parse_args()
     if arguments.verdicts_simules and (arguments.execute or arguments.rollback or arguments.inventaire
                                     or arguments.autoriser_google or arguments.diagnose):
-        parseur.error("--verdicts-simules ne s'emploie qu'en dry-run")
+        erreur_console(traduire("erreur_verdicts_simules"))
+        sys.exit(2)
     return arguments
 
 
@@ -255,21 +256,21 @@ def autoriser_google(configuration, identifiant):
     """Consentement d'une source IMAP `oauth2` ; rend 0, ou 1 si la source est mal déclarée ou si le consentement échoue."""
     sources = [s for s in configuration.get("sources_imap", []) if s.get("id") == identifiant and s.get("authentification") == "oauth2"]
     if not sources:
-        sys.stderr.write(f"ERREUR : aucune source IMAP « {identifiant} » avec authentification oauth2 dans config.json\n")
+        erreur_console(traduire("autoriser_source_absente", identifiant=identifiant))
         return 1
     absents = mod_sources_imap.cles_absentes({**configuration, "sources_imap": sources})
     if absents:
-        sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n        Voir config.exemple.json.\n")
+        erreur_console(message_cles_absentes(absents))
         return 1
     source = sources[0]
     try:
         mod_oauth2_google.autoriser(
             source["client_fichier"], source["token_fichier"], source["utilisateur"], configuration["oauth2"],
-            lambda adresse: print(f"Ouvrir cette adresse dans un navigateur, puis accepter le consentement :\n\n{adresse}\n", flush=True))
+            lambda adresse: ecrire(traduire("autoriser_ouvrir_adresse", adresse=adresse)))
     except mod_oauth2_google.ErreurOAuth2 as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été écrit.\n")
+        erreur_console(texte_de(erreur) + SUITE + traduire("suite_rien_ecrit"))
         return 1
-    print(f"Jeton écrit pour la source {identifiant}.")
+    ecrire(traduire("autoriser_jeton_ecrit", identifiant=identifiant))
     return 0
 
 
@@ -284,15 +285,13 @@ def determiner_mode(arguments):
 
 
 def formater_taille(octets):
-    """Affiche une taille en octets dans une unité lisible (o, Ko, Mo, Go)."""
+    """Affiche une taille en octets dans l'unité lisible de la langue (unite_octet, unite_kilo, unite_mega, unite_giga)."""
     valeur = float(octets)
-    for unite in ("o", "Ko", "Mo", "Go"):
-        if valeur < 1024 or unite == "Go":
-            if unite == "o":
-                return f"{int(valeur)} {unite}"
-            return f"{valeur:.1f} {unite}"
+    unites = (traduire("unite_octet"), traduire("unite_kilo"), traduire("unite_mega"), traduire("unite_giga"))
+    for rang, unite in enumerate(unites):
+        if valeur < 1024 or rang == len(unites) - 1:
+            return f"{int(valeur)} {unite}" if rang == 0 else f"{valeur:.1f} {unite}"
         valeur /= 1024
-    return f"{valeur:.1f} Go"
 
 
 def afficher_scan(stats_par_source, total_candidats, total_octets):
@@ -304,9 +303,9 @@ def afficher_scan(stats_par_source, total_candidats, total_octets):
         candidats = entree["candidats"]
         accessible = stats["existe"]
 
-        print(f"Source : {source_id} ({chemin})")
+        ecrire(traduire("scan_source", identifiant=source_id, chemin=chemin))
         if not accessible:
-            print("  [!] Répertoire inaccessible, source ignorée.")
+            ecrire(traduire("scan_repertoire_inaccessible"), 2)
             print()
             continue
 
@@ -314,18 +313,16 @@ def afficher_scan(stats_par_source, total_candidats, total_octets):
             taille = formater_taille(candidat.taille_octets)
             mtime_str = candidat.mtime.strftime("%Y-%m-%d")
             nom_relatif = candidat.chemin.name
-            print(f"  - {nom_relatif:<50s} ({taille}, mtime {mtime_str})")
+            ecrire(traduire("scan_candidat", nom=f"{nom_relatif:<50s}", taille=taille, date=mtime_str), 2)
 
         if not candidats:
-            print("  (aucun fichier candidat)")
-        print(f"  Total source : {stats['candidats']} fichier(s), "
-              f"{formater_taille(stats['taille_octets'])}")
+            ecrire(traduire("aucun_fichier_candidat"), 2)
+        ecrire(traduire("scan_total_source", nombre=stats["candidats"], taille=formater_taille(stats["taille_octets"])), 2)
         print()
 
-    print("=" * 60)
-    print(f"Total scan : {total_candidats} fichier(s) candidat(s), "
-          f"{formater_taille(total_octets)}")
-    print("=" * 60)
+    ecrire("=" * 60)
+    ecrire(traduire("scan_total", nombre=total_candidats, taille=formater_taille(total_octets)))
+    ecrire("=" * 60)
 
 
 def dedoublonner_dossiers(sources_locales, sources_supplementaires):
@@ -428,25 +425,25 @@ def charger_verdicts_simules(chemin):
             bruts = json.load(f)
         return {nom: mod_domaines.verdict_depuis_dict(donnees) for nom, donnees in bruts.items()}
     except (OSError, ValueError, AttributeError) as erreur:
-        sys.stderr.write(f"ERREUR : verdicts simulés illisibles ({chemin}) : {erreur}\n")
+        erreur_console(traduire("verdicts_illisibles", chemin=chemin, erreur=texte_de(erreur)))
         sys.exit(1)
 
 
 def afficher_routage(configuration, candidats, verdicts, journal):
     """Affiche, pour chaque candidat à verdict simulé, la destination que la table de routage lui donne."""
-    print("Routage simulé (verdicts fournis, aucun déplacement)")
+    ecrire(traduire("routage_entete"))
     for candidat in candidats:
         verdict = verdicts.get(candidat.chemin.name)
         if verdict is None:
-            print(f"  - {candidat.chemin.name} : pas de verdict simulé")
+            ecrire(traduire("routage_pas_de_verdict", nom=candidat.chemin.name), 2)
             continue
         plan = mod_classement.planifier(candidat.chemin, verdict, configuration, candidat.mtime)
         if plan is None:
-            print(f"  - {candidat.chemin.name} : non administratif, ne bouge pas")
+            ecrire(traduire("non_administratif_ne_bouge_pas", nom=candidat.chemin.name), 2)
         else:
-            print(f"  - {candidat.chemin.name} : domaine {verdict.domaine}")
+            ecrire(traduire("routage_domaine", nom=candidat.chemin.name, domaine=verdict.domaine), 2)
             for cible, chemin in zip(plan.cibles, plan.chemins):
-                print(f"      -> coffre {cible.coffre}, {cible.zone} : {chemin}")
+                ecrire(traduire("routage_destination", coffre=cible.coffre, zone=cible.zone, chemin=chemin, suite=""), 6)
         journal.ajouter(
             "routage_simule",
             chemin=str(candidat.chemin),
@@ -459,19 +456,19 @@ def afficher_routage(configuration, candidats, verdicts, journal):
 
 def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal, dry_run=True):
     """Extrait le texte de chaque candidat ; affiche et journalise méthode, volume et modèle, jamais le texte."""
-    print("Extraction du texte (le texte n'est ni affiché ni écrit)")
+    ecrire(traduire("extraction_entete"))
     extractions = {}
     for candidat in candidats:
         extraction = mod_extraction.extraire(candidat.chemin, parametres, configuration["ollama"], modele_ocr)
         extractions[candidat.chemin] = extraction
-        libelles = {"couche_texte": "couche texte", "ocr": "OCR", "echec": "échec"}
-        detail = f"{extraction.caracteres} caractère(s), {extraction.pages} page(s)"
+        libelles = {"couche_texte": traduire("extraction_methode_couche_texte"), "ocr": "OCR", "echec": traduire("extraction_methode_echec")}
+        detail = traduire("extraction_detail", caracteres=extraction.caracteres, pages=extraction.pages)
         if extraction.modele:
-            detail += f", modèle {extraction.modele}"
-        detail += f", {extraction.duree_secondes:.2f} s"
+            detail += ", " + traduire("extraction_detail_modele", modele=extraction.modele)
+        detail += ", " + traduire("extraction_detail_duree", duree=f"{extraction.duree_secondes:.2f}")
         if extraction.raison:
-            detail += f" — {extraction.raison}"
-        print(f"  - {candidat.chemin.name} : {libelles[extraction.methode]}, {detail}")
+            detail += " — " + extraction.raison
+        ecrire(traduire("extraction_ligne", nom=candidat.chemin.name, methode=libelles[extraction.methode], detail=detail), 2)
         journal.ajouter(
             "extraction",
             chemin=str(candidat.chemin),
@@ -489,26 +486,28 @@ def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal
 
 def classer_candidats(configuration, candidats, extractions, modeles, journal):
     """Fait passer le texte des candidats par la cascade et affiche verdict, domaine et destination, sans rien déplacer."""
-    print("Classification (dry-run, aucun déplacement ; le texte n'est ni affiché ni écrit)")
+    ecrire(traduire("classification_entete"))
     documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
     resultats = mod_cascade.executer(documents, configuration, modeles)
     mtimes = {candidat.chemin: candidat.mtime for candidat in candidats}
     registre = mod_deplacement.Registre()
-    libelles_tri = {mod_classification.ADMINISTRATIF: "administratif", mod_classification.NON_ADMINISTRATIF: "non administratif",
-                    mod_classification.INCERTAIN: "incertain"}
+    libelles_tri = {mod_classification.ADMINISTRATIF: traduire("tri_administratif"),
+                    mod_classification.NON_ADMINISTRATIF: traduire("tri_non_administratif"),
+                    mod_classification.INCERTAIN: traduire("tri_incertain")}
     for resultat in resultats:
         verdict = resultat.verdict
-        libelle_tri = libelles_tri[resultat.tri.verdict] if resultat.tri else "aucun texte"
+        libelle_tri = libelles_tri[resultat.tri.verdict] if resultat.tri else traduire("tri_aucun_texte")
         plan = mod_classement.planifier(resultat.chemin, verdict, configuration, mtimes[resultat.chemin])
-        confiance = f", confiance {resultat.confiance:.2f}" if resultat.confiance is not None else ""
-        print(f"  - {resultat.chemin.name} : tri {libelle_tri}, domaine {verdict.domaine if verdict.administratif else 'sans objet'}{confiance}")
+        confiance = ", " + traduire("classification_confiance", valeur=f"{resultat.confiance:.2f}") if resultat.confiance is not None else ""
+        domaine = verdict.domaine if verdict.administratif else traduire("domaine_sans_objet")
+        ecrire(traduire("classification_ligne", nom=resultat.chemin.name, tri=libelle_tri, domaine=domaine, confiance=confiance), 2)
         if plan is None:
-            print("      -> ne bouge pas (non administratif)")
+            ecrire(traduire("classification_ne_bouge_pas"), 6)
         for cible, chemin in zip(plan.cibles if plan else (), plan.chemins if plan else ()):
-            suite = " (non déplacé)" if cible.zone == mod_domaines.A_VERIFIER else ""
+            suite = " " + traduire("suite_non_deplace") if cible.zone == mod_domaines.A_VERIFIER else ""
             if mod_deplacement.prevoir(resultat.chemin, plan, configuration, registre) == mod_deplacement.DOUBLON:
-                suite += " (doublon : irait dans doublon/)"
-            print(f"      -> coffre {cible.coffre}, {cible.zone} : {chemin}{suite}")
+                suite += " " + traduire("suite_doublon")
+            ecrire(traduire("routage_destination", coffre=cible.coffre, zone=cible.zone, chemin=chemin, suite=suite), 6)
         fine = resultat.classification
         journal.ajouter(
             "classification",
@@ -533,7 +532,7 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
 
 def classer_et_deplacer(configuration, candidats, extractions, modeles, journal, journal_actions=None, rapport=None):
     """Classe les candidats puis déplace chacun vers sa destination ; rend les sources dont un document a échoué."""
-    print("Classement (exécution : chaque document est copié, vérifié par SHA256, puis retiré de sa source)")
+    ecrire(traduire("classement_entete"))
     documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
     resultats = mod_cascade.executer(documents, configuration, modeles)
     par_chemin = {candidat.chemin: candidat for candidat in candidats}
@@ -543,8 +542,8 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal,
         candidat = par_chemin[resultat.chemin]
         plan = mod_classement.planifier(resultat.chemin, resultat.verdict, configuration, candidat.mtime)
         if plan is None:
-            print(f"  - {resultat.chemin.name} : non administratif, ne bouge pas")
-            journal.ajouter("non_deplace", chemin=str(resultat.chemin), raison="non administratif", dry_run=False)
+            ecrire(traduire("non_administratif_ne_bouge_pas", nom=resultat.chemin.name), 2)
+            journal.ajouter("non_deplace", chemin=str(resultat.chemin), raison=traduire("raison_non_administratif"), dry_run=False)
             if rapport:
                 rapport.compter("non_deplace")
             continue
@@ -555,11 +554,11 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal,
             journal_actions.enregistrer_deplacement(deplacement, resultat.verdict.domaine)
         if deplacement.action == mod_deplacement.ECHEC:
             sources_en_echec.add(candidat.source_id)
-            print(f"  - {resultat.chemin.name} : ÉCHEC, laissé en place ({deplacement.raison})")
+            ecrire(traduire("classement_echec", nom=resultat.chemin.name, raison=deplacement.raison), 2)
         else:
-            print(f"  - {resultat.chemin.name} : {deplacement.action}")
+            ecrire(traduire("classement_action", nom=resultat.chemin.name, action=deplacement.action), 2)
             for destination in deplacement.destinations:
-                print(f"      -> {destination}")
+                ecrire(traduire("fleche_destination", destination=destination), 6)
         journal.ajouter(
             "deplacement",
             chemin=str(resultat.chemin),
@@ -579,13 +578,13 @@ def executer_inventaire(configuration, journal):
     """Écrit le plan de migration de chaque coffre ; rend 0."""
     plans = mod_inventaire.construire_plans(configuration)
     ecrits = mod_inventaire.ecrire_plans(plans, configuration)
-    print("Inventaire de l'existant (lecture seule, rien n'est déplacé)")
+    ecrire(traduire("inventaire_entete"))
     for domaine, plan in plans.items():
         resume = plan["resume"]
-        print(f"  Coffre {domaine:<14s}: {resume['documents']} document(s), {resume['conserver']} dans la zone classée, "
-              f"{resume['a_classer']} à classer, {resume['doublons_internes']} doublon(s), "
-              f"{resume['presents_dans_autre_coffre']} présent(s) dans l'autre coffre")
-        print(f"      plan écrit : {ecrits[domaine]}")
+        ecrire(traduire("inventaire_coffre", domaine=f"{domaine:<14s}", documents=resume["documents"], conserver=resume["conserver"],
+                        a_classer=resume["a_classer"], doublons=resume["doublons_internes"],
+                        presents=resume["presents_dans_autre_coffre"]), 2)
+        ecrire(traduire("inventaire_plan_ecrit", chemin=ecrits[domaine]), 6)
         journal.ajouter("inventaire", coffre=domaine, **resume)
     print()
     return 0
@@ -596,7 +595,7 @@ def modeles_de_la_cascade(configuration, modeles_retenus):
     try:
         classeurs = mod_modeles.modeles_installes_du_role(configuration["ollama"], "classification")
     except mod_modeles.ModeleIndisponible as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n")
+        erreur_console(texte_de(erreur))
         sys.exit(3)
     return dict(modeles_retenus, classification=classeurs)
 
@@ -612,6 +611,7 @@ def main():
     """Lance la session, puis ramène les modes de l'état par défaut quelle qu'en soit l'issue."""
     global DOSSIER_ETAT_PAR_DEFAUT
     DOSSIER_ETAT_PAR_DEFAUT = None
+    mod_messages.initialiser()
     try:
         return principal()
     finally:
@@ -648,23 +648,23 @@ def principal():
         appliquer_rotation(configuration)
     journal, horodatage = initialiser_journal_session(configuration, mode, etats_coffres)
 
-    print(f"Skrivagner {VERSION} — session {horodatage}")
-    print(f"  Mode               : {mode}")
-    print(f"  Configuration      : {chemin_configuration}")
+    ecrire(traduire("session_entete", version=VERSION, horodatage=horodatage))
+    ecrire(traduire("session_mode", mode=mode), 2)
+    ecrire(traduire("session_configuration", chemin=chemin_configuration), 2)
     for etat in etats_coffres:
-        diagnostic = "monté" if etat.monte else f"[!] {etat.raison}"
-        print(f"  Coffre {etat.domaine:<14s}: {etat.racine} — {diagnostic}")
+        diagnostic = traduire("coffre_monte") if etat.monte else "[!] " + etat.raison
+        ecrire(traduire("session_coffre", domaine=f"{etat.domaine:<14s}", racine=etat.racine, diagnostic=diagnostic), 2)
     if journal.chemin:
-        print(f"  Journal de session : {journal.chemin}")
+        ecrire(traduire("session_journal", chemin=journal.chemin), 2)
     else:
-        print("  Journal de session : non écrit (coffre non monté, rien ne se dépose en clair)")
+        ecrire(traduire("session_journal_absent"), 2)
     modeles_cascade = None
     if modeles_retenus:
         modeles_cascade = modeles_de_la_cascade(configuration, modeles_retenus)
         for role, modele in modeles_retenus.items():
-            print(f"  Modèle {role:<14s}: {modele}")
-        print(f"  Consensus          : {len(modeles_cascade['classification'])} modèle(s) de classification, "
-              f"seuil {configuration['ollama'].get('seuil_confiance', 0)}")
+            ecrire(traduire("session_modele", role=f"{role:<14s}", modele=modele), 2)
+        ecrire(traduire("session_consensus", nombre=len(modeles_cascade["classification"]),
+                        seuil=configuration["ollama"].get("seuil_confiance", 0)), 2)
         journal.ajouter("modeles_retenus", **modeles_retenus, classification_consensus=modeles_cascade["classification"])
     print()
 
@@ -682,7 +682,7 @@ def principal():
             with mod_verrou.verrou(chemin_verrou):
                 return executer_session(configuration, parametres, modeles_cascade, journal, horodatage)
         except mod_verrou.VerrouPris as erreur:
-            sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été touché.\n")
+            erreur_console(texte_de(erreur) + SUITE + traduire("suite_rien_touche"))
             return 5
 
     derivees = []
@@ -715,11 +715,14 @@ def rapatrier_sources_distantes(configuration, suivi, journal, rapport):
     maintenant = datetime.now()
     court, copie = mod_sources_distantes.executeurs(configuration)
     listages = mod_sources_distantes.lister(configuration, suivi, journal, maintenant, court)
-    print("Rapatriement des sources distantes (copie vérifiée par empreinte, rien n'est retiré côté distant)")
+    ecrire(traduire("rapatriement_entete"))
     registre = mod_rapatriement.RegistreRapatries(Path(configuration["suivi"]["fichier_date"]).parent / "rapatries.json")
     dates, en_echec = mod_sources_distantes.rapatrier(configuration, listages, registre, journal, rapport, maintenant, court, copie)
     for source, candidats, complet, erreurs in listages:
-        print(f"  {source['id']} : {len(candidats)} candidat(s)" + ("" if complet else f", listage incomplet : {'; '.join(erreurs)}"))
+        ligne = traduire("rapatriement_source", identifiant=source["id"], nombre=len(candidats))
+        if not complet:
+            ligne += ", " + traduire("rapatriement_listage_incomplet", erreurs="; ".join(erreurs))
+        ecrire(ligne, 2)
     print()
     return mod_sources_distantes.sources_locales_derivees(configuration), dates, en_echec
 
@@ -728,7 +731,7 @@ def deposer_sources_imap(configuration, suivi, journal, rapport):
     """Dépose les pièces jointes de chaque source IMAP ; rend les sources locales à scanner, les dates à avancer et les sources en échec."""
     if not configuration.get("sources_imap"):
         return [], {}, set()
-    print("Sources IMAP (lecture seule : rien n'est modifié ni supprimé dans la boîte)")
+    ecrire(traduire("imap_entete"))
     resultats, dates, en_echec = mod_sources_imap.traiter(configuration, suivi, journal, datetime.now(), deposer_les_pieces=True)
     mod_sources_imap.afficher(resultats, deposer_les_pieces=True)
     rapport.deposes_imap += sum(resultat.deposees for resultat in resultats)
@@ -743,13 +746,13 @@ def executer_rollback(configuration, session, journal, horodatage):
             actions = mod_journal_actions.JournalActions(configuration["suivi"]["journal"], horodatage)
             session, resultats = mod_rollback.annuler_session(actions, session)
     except mod_verrou.VerrouPris as erreur:
-        sys.stderr.write(f"ERREUR : {erreur}\n        Rien n'a été touché.\n")
+        erreur_console(texte_de(erreur) + SUITE + traduire("suite_rien_touche"))
         return 5
     echecs = [resultat for resultat in resultats if not resultat.annulee]
-    print(f"Rollback de la session {session or '(aucune action à annuler)'} : "
-          f"{len(resultats) - len(echecs)} annulée(s), {len(echecs)} en échec")
+    ecrire(traduire("rollback_bilan", session=session or traduire("rollback_aucune_action"),
+                    annulees=len(resultats) - len(echecs), echecs=len(echecs)))
     for resultat in echecs:
-        print(f"  - action {resultat.id_action} : {resultat.raison} (rien n'a été retiré)")
+        ecrire(traduire("rollback_echec_action", identifiant=resultat.id_action, raison=resultat.raison), 2)
     journal.ajouter("rollback", session_annulee=session, annulees=len(resultats) - len(echecs), echecs=len(echecs))
     journal.ajouter("session_terminee", mode="rollback")
     return 1 if echecs else 0
@@ -776,7 +779,7 @@ def executer_session(configuration, parametres, modeles, journal, horodatage):
     journal.ajouter("suivi_sauvegarde", chemin=str(chemin_suivi), sources_non_avancees=sorted(sources_en_echec | distantes_en_echec))
     journal.ajouter("session_terminee", mode="execute")
     chemin_rapport = rapport.ecrire(configuration["suivi"]["sessions"])
-    print(f"Rapport de session : {chemin_rapport}")
+    ecrire(traduire("rapport_session", chemin=chemin_rapport))
     return 1 if sources_en_echec or distantes_en_echec else 0
 
 

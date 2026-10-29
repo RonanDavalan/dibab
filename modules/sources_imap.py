@@ -14,6 +14,7 @@ from modules import journal_actions, oauth2_google, scanner_imap, scanner_local
 from modules.deplacement import chemin_libre
 from modules.pieces_communes import empreinte_sha256
 from modules.rapatriement import RegistreRapatries
+from modules.messages import ecrire, texte_de, traduire
 
 CLES_IMAP = ("delai_secondes", "taille_max_piece_mo")
 CLES_SOURCE = ("id", "serveur", "port", "ssl", "authentification", "utilisateur", "dossiers", "vide_poches_destination")
@@ -48,7 +49,7 @@ def cles_absentes(configuration):
         absentes += [f"sources_imap[{source.get('id', '?')}].{cle}" for cle in attendues if cle not in source]
         nom = source.get("vide_poches_destination", "")
         if "/" in nom or nom in ("", ".", ".."):
-            absentes.append(f"sources_imap[{source.get('id', '?')}].vide_poches_destination (un nom, sans séparateur)")
+            absentes.append(traduire("cle_nom_sans_separateur", cle=f"sources_imap[{source.get('id', '?')}].vide_poches_destination"))
     return absentes
 
 
@@ -80,7 +81,7 @@ def deposer(octets, nom, dossier, date, suffixe_collision):
         with os.fdopen(descripteur, "wb") as f:
             f.write(octets)
         if empreinte_sha256(provisoire) != empreinte:
-            raise OSError("empreinte différente après écriture")
+            raise OSError(traduire("depot_empreinte_differente"))
         os.utime(provisoire, (date.timestamp(), date.timestamp()))
         os.rename(provisoire, final)
     except BaseException:
@@ -112,7 +113,7 @@ def _deposer_pieces(connexion, resultat, pieces, dossier, registre, connues, suf
                 action, empreinte = deposer(octets, piece.nom, dossier, piece.date, suffixe)
         except (scanner_imap.ErreurImap, OSError, ValueError) as erreur:
             resultat.complet = False
-            resultat.erreurs.append(f"dépôt impossible, pièce laissée dans la boîte ({type(erreur).__name__})")
+            resultat.erreurs.append(traduire("imap_depot_impossible", type=type(erreur).__name__))
             journal.ajouter("depot_imap_echec", source_id=source_id, raison=type(erreur).__name__)
             if isinstance(erreur, scanner_imap.ConnexionImpossible):
                 return
@@ -127,28 +128,28 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
     resultat = ResultatSource(source)
     if source["authentification"] not in ("login", "oauth2"):
         resultat.ignoree = True
-        resultat.erreurs.append(f"authentification « {source['authentification']} » non prise en charge, source ignorée")
+        resultat.erreurs.append(traduire("imap_authentification_non_prise_en_charge", mode=source['authentification']))
         return resultat
     if source["ssl"] is not True:
         resultat.ignoree = True
-        resultat.erreurs.append("la connexion doit être TLS (ssl: true), source ignorée")
+        resultat.erreurs.append(traduire("imap_tls_exige"))
         return resultat
     if source["authentification"] == "login":
         mot_de_passe = environ.get(source["mot_de_passe_env"])
         if not mot_de_passe:
             resultat.ignoree = True
-            resultat.erreurs.append(f"variable d'environnement {source['mot_de_passe_env']} non définie, source ignorée")
+            resultat.erreurs.append(traduire("imap_variable_non_definie", variable=source['mot_de_passe_env']))
             return resultat
         authentifier = lambda connexion: scanner_imap.authentifier(connexion, source["utilisateur"], mot_de_passe)  # noqa: E731
     else:
         if not os.path.exists(source["token_fichier"]):
             resultat.ignoree = True
-            resultat.erreurs.append("fichier de jeton absent, source ignorée : lancer --autoriser-google " + source["id"])
+            resultat.erreurs.append(traduire("imap_jeton_absent", identifiant=source['id']))
             return resultat
         try:
             jeton = oauth2_google.jeton_d_acces(source["client_fichier"], source["token_fichier"], configuration["oauth2"])
         except oauth2_google.ErreurOAuth2 as erreur:
-            resultat.erreurs.append(str(erreur))
+            resultat.erreurs.append(texte_de(erreur))
             journal.ajouter("scan_imap", source_id=source["id"], pieces=0, ecartees_taille=0, complet=False, erreurs=1,
                             dry_run=not deposer_les_pieces)
             return resultat
@@ -174,7 +175,7 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
                 raise
             except scanner_imap.ErreurImap as erreur:
                 resultat.complet = False
-                resultat.erreurs.append(f"dossier « {nom_dossier} » : {erreur}")
+                resultat.erreurs.append(traduire("imap_dossier_erreur", dossier=nom_dossier, erreur=texte_de(erreur)))
                 continue
             resultat.pieces += pieces
             resultat.ecartees_taille += ecartees
@@ -182,14 +183,13 @@ def traiter_source(configuration, source, suivi, maintenant, deposer_les_pieces,
                 _deposer_pieces(connexion, resultat, pieces, dossier, registre, connues, suffixe, journal)
     except scanner_imap.ErreurImap as erreur:
         resultat.complet = False
-        resultat.erreurs.append(str(erreur))
+        resultat.erreurs.append(texte_de(erreur))
     finally:
         if connexion is not None:
             scanner_imap.fermer(connexion)
     if resultat.ecartees_taille:
         resultat.complet = False
-        resultat.erreurs.append(f"{resultat.ecartees_taille} pièce(s) au-delà de imap.taille_max_piece_mo, laissée(s) dans la boîte : "
-                                "augmenter cette valeur pour les récupérer")
+        resultat.erreurs.append(traduire("imap_pieces_ecartees", nombre=resultat.ecartees_taille))
     journal.ajouter("scan_imap", source_id=source["id"], pieces=len(resultat.pieces), ecartees_taille=resultat.ecartees_taille,
                     complet=resultat.complet, erreurs=len(resultat.erreurs), dry_run=not deposer_les_pieces)
     return resultat
@@ -222,12 +222,12 @@ def traiter(configuration, suivi, journal, maintenant, deposer_les_pieces, envir
 
 def afficher(resultats, deposer_les_pieces):
     for resultat in resultats:
-        mention = "" if deposer_les_pieces else " (rien n'est téléchargé en dry-run)"
-        print(f"Source IMAP : {resultat.source['id']}{mention}")
+        mention = "" if deposer_les_pieces else " " + traduire("imap_mention_dry_run")
+        ecrire(traduire("imap_source", identifiant=resultat.source['id'], mention=mention))
         for piece in resultat.pieces:
-            print(f"  - {piece.nom:<50s} (imap, {piece.taille_octets} o, reçu {piece.date:%Y-%m-%d})")
+            ecrire(traduire("imap_piece", nom=f"{piece.nom:<50s}", taille=piece.taille_octets, unite=traduire("unite_octet"), date=f"{piece.date:%Y-%m-%d}"), 2)
         if not resultat.pieces and resultat.complet:
-            print("  (aucune pièce jointe candidate)")
+            ecrire(traduire("imap_aucune_piece"), 2)
         for erreur in resultat.erreurs:
-            print(f"  [!] {erreur}")
+            ecrire(traduire("avertissement_ligne", detail=erreur), 2)
         print()

@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from modules import domaines, nommage
+from modules.messages import texte_de, traduire
 
 
 class ErreurCopie(Exception):
@@ -58,7 +59,7 @@ def copier_verifier(source, plan):
     """
     existants = [str(chemin) for chemin in plan.chemins if chemin.exists()]
     if existants:
-        raise ErreurCopie(f"destination déjà occupée : {', '.join(existants)}")
+        raise ErreurCopie(traduire("pieces_destination_occupee", chemins=", ".join(existants)))
     attendue = plan.empreinte or empreinte_sha256(source)
     faites = []
     try:
@@ -67,11 +68,11 @@ def copier_verifier(source, plan):
             shutil.copy2(source, chemin)
             faites.append(chemin)
             if empreinte_sha256(chemin) != attendue:
-                raise ErreurCopie(f"empreinte différente après copie : {chemin}")
+                raise ErreurCopie(traduire("pieces_empreinte_differente", chemin=chemin))
     except (OSError, ErreurCopie) as erreur:
         for chemin in faites:
             chemin.unlink(missing_ok=True)
         if isinstance(erreur, ErreurCopie):
             raise
-        raise ErreurCopie(f"copie impossible : {erreur}") from erreur
+        raise ErreurCopie(traduire("pieces_copie_impossible", erreur=texte_de(erreur))) from erreur
     return attendue

@@ -19,6 +19,7 @@ from email.header import decode_header, make_header
 from email.utils import collapse_rfc2231_value, decode_params, unquote
 
 from modules.rapatriement import nom_local
+from modules.messages import traduire
 
 MOIS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 ENCODAGES_LISIBLES = ("7bit", "8bit", "binary", "base64", "quoted-printable")
@@ -89,13 +90,13 @@ def _jetons(texte):
 
 def _liste(jetons, profondeur=0):
     if profondeur > PROFONDEUR_MAX:
-        raise ErreurImap("structure de message trop imbriquée")
+        raise ErreurImap(traduire("imap_structure_imbriquee"))
     elements = []
     for jeton in jetons:
         if jeton is _FERME:
             return elements
         elements.append(_liste(jetons, profondeur + 1) if jeton is _OUVRE else jeton[1])
-    raise ErreurImap("réponse du serveur tronquée")
+    raise ErreurImap(traduire("imap_reponse_tronquee"))
 
 
 def _reconstituer(donnees):
@@ -119,7 +120,7 @@ def analyser_reponses_fetch(donnees):
         if jeton in (_OUVRE, _FERME):
             continue
         if next(jetons, None) is not _OUVRE:
-            raise ErreurImap("réponse FETCH illisible")
+            raise ErreurImap(traduire("imap_fetch_illisible"))
         elements = _liste(jetons)
         messages.append({str(cle).upper(): valeur for cle, valeur in zip(elements[0::2], elements[1::2])})
     return messages
@@ -132,7 +133,7 @@ def _est_multipart(structure):
 def parties(structure, numero="", profondeur=0):
     """Rend (numéro de partie, partie simple) pour chaque partie non composite, dans l'ordre du message."""
     if profondeur > PROFONDEUR_MAX:
-        raise ErreurImap("structure de message trop imbriquée")
+        raise ErreurImap(traduire("imap_structure_imbriquee"))
     if _est_multipart(structure):
         enfants = list(itertools.takewhile(lambda element: isinstance(element, list), structure))
         for rang, enfant in enumerate(enfants, 1):
@@ -214,7 +215,7 @@ def ouvrir_connexion(serveur, port, delai_secondes, contexte=None):
     try:
         return imaplib.IMAP4_SSL(serveur, port, ssl_context=contexte or ssl.create_default_context(), timeout=delai_secondes)
     except (OSError, imaplib.IMAP4.error) as erreur:
-        raise ConnexionImpossible(f"connexion impossible ({type(erreur).__name__})") from erreur
+        raise ConnexionImpossible(traduire("imap_connexion_impossible", type=type(erreur).__name__)) from erreur
 
 
 def authentifier(connexion, utilisateur, mot_de_passe):
@@ -229,26 +230,26 @@ def authentifier(connexion, utilisateur, mot_de_passe):
         else:
             etat, _ = connexion.authenticate("PLAIN", lambda _: f"\0{utilisateur}\0{mot_de_passe}".encode("utf-8"))
     except imaplib.IMAP4.error as erreur:
-        raise AuthentificationRefusee("authentification refusée par le serveur") from erreur
+        raise AuthentificationRefusee(traduire("imap_authentification_refusee")) from erreur
     except OSError as erreur:
-        raise ConnexionImpossible(f"connexion perdue ({type(erreur).__name__})") from erreur
+        raise ConnexionImpossible(traduire("imap_connexion_perdue", type=type(erreur).__name__)) from erreur
     if etat != "OK":
-        raise AuthentificationRefusee("authentification refusée par le serveur")
+        raise AuthentificationRefusee(traduire("imap_authentification_refusee"))
 
 
 def authentifier_xoauth2(connexion, utilisateur, jeton_acces):
     """XOAUTH2 : un refus arrête la source ; le défi d'échec du serveur reçoit la ligne vide que le protocole exige."""
     if re.search(r"[\x00-\x1f\x7f]", utilisateur + jeton_acces):
-        raise AuthentificationRefusee("identifiant ou jeton invalide")
+        raise AuthentificationRefusee(traduire("imap_identifiant_invalide"))
     reponses = iter([f"user={utilisateur}\x01auth=Bearer {jeton_acces}\x01\x01".encode("utf-8")])
     try:
         etat, _ = connexion.authenticate("XOAUTH2", lambda _: next(reponses, b""))
     except imaplib.IMAP4.error as erreur:
-        raise AuthentificationRefusee("authentification refusée par le serveur") from erreur
+        raise AuthentificationRefusee(traduire("imap_authentification_refusee")) from erreur
     except OSError as erreur:
-        raise ConnexionImpossible(f"connexion perdue ({type(erreur).__name__})") from erreur
+        raise ConnexionImpossible(traduire("imap_connexion_perdue", type=type(erreur).__name__)) from erreur
     if etat != "OK":
-        raise AuthentificationRefusee("authentification refusée par le serveur")
+        raise AuthentificationRefusee(traduire("imap_authentification_refusee"))
 
 
 def fermer(connexion):
@@ -260,7 +261,7 @@ def fermer(connexion):
 
 def _nom_de_boite(dossier):
     if re.search(r"[\x00-\x1f\x7f]", dossier) or not dossier:
-        raise ErreurImap("nom de dossier IMAP invalide")
+        raise ErreurImap(traduire("imap_dossier_invalide"))
     return '"' + dossier.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
@@ -268,9 +269,9 @@ def _commande(connexion, *arguments):
     try:
         etat, donnees = connexion.uid(*arguments)
     except (OSError, imaplib.IMAP4.error) as erreur:
-        raise ErreurImap(f"commande IMAP interrompue ({type(erreur).__name__})") from erreur
+        raise ErreurImap(traduire("imap_commande_interrompue", type=type(erreur).__name__)) from erreur
     if etat != "OK":
-        raise ErreurImap("le serveur a refusé une commande de lecture")
+        raise ErreurImap(traduire("imap_lecture_refusee"))
     return donnees
 
 
@@ -280,9 +281,9 @@ def lister_dossier(connexion, source_id, dossier, depuis, extensions, taille_max
         etat, _ = connexion.select(_nom_de_boite(dossier), readonly=True)
         _, validite = connexion.response("UIDVALIDITY")
     except (OSError, imaplib.IMAP4.error) as erreur:
-        raise ErreurImap(f"dossier illisible ({type(erreur).__name__})") from erreur
+        raise ErreurImap(traduire("imap_dossier_illisible", type=type(erreur).__name__)) from erreur
     if etat != "OK":
-        raise ErreurImap("dossier introuvable ou refusé")
+        raise ErreurImap(traduire("imap_dossier_introuvable"))
     uidvalidity = validite[0].decode("ascii", "replace") if validite and validite[0] else "0"
     identifiants = (_commande(connexion, "SEARCH", None, "SINCE", date_imap(depuis))[0] or b"").split()
     pieces, ecartees = [], 0
@@ -308,11 +309,11 @@ def telecharger(connexion, piece):
     donnees = _commande(connexion, "FETCH", piece.uid, f"(BODY.PEEK[{piece.partie}])")
     brut = next((element[1] for element in donnees if isinstance(element, tuple)), None)
     if brut is None:
-        raise ErreurImap("pièce jointe absente de la réponse")
+        raise ErreurImap(traduire("imap_piece_absente"))
     if piece.encodage == "base64":
         return base64.b64decode(brut)
     if piece.encodage == "quoted-printable":
         return quopri.decodestring(brut)
     if piece.encodage in ENCODAGES_LISIBLES:
         return brut
-    raise ErreurImap("encodage de pièce jointe non pris en charge")
+    raise ErreurImap(traduire("imap_encodage_non_pris_en_charge"))

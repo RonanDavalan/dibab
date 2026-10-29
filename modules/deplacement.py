@@ -12,6 +12,7 @@ from pathlib import Path
 
 from modules import domaines
 from modules.pieces_communes import empreinte_sha256
+from modules.messages import texte_de, traduire
 
 CLASSE = "classe"
 A_VERIFIER = "a_verifier"
@@ -97,9 +98,9 @@ def copier_verifie(source, destination, empreinte, copier=shutil.copy2):
     try:
         copier(source, provisoire)
         if empreinte_sha256(provisoire) != empreinte:
-            raise OSError(f"empreinte différente après copie : {destination.name}")
+            raise OSError(traduire("copie_empreinte_differente", cible=destination.name))
         if destination.exists():
-            raise OSError(f"destination déjà occupée : {destination.name}")
+            raise OSError(traduire("copie_destination_occupee", cible=destination.name))
         os.rename(provisoire, destination)
     except BaseException:
         provisoire.unlink(missing_ok=True)
@@ -146,7 +147,7 @@ def deplacer(source, plan, configuration, registre, copier=shutil.copy2):
                 faites.append(doublon)
                 action = DOUBLON
             if empreinte_sha256(source) != empreinte:
-                raise OSError("la source a changé pendant la copie")
+                raise OSError(traduire("copie_source_changee"))
             source.unlink()
         except BaseException:
             for chemin in faites:
@@ -154,4 +155,4 @@ def deplacer(source, plan, configuration, registre, copier=shutil.copy2):
             raise
         return Deplacement(action, source, tuple(faites), empreinte)
     except OSError as erreur:
-        return Deplacement(ECHEC, source, raison=str(erreur))
+        return Deplacement(ECHEC, source, raison=texte_de(erreur))

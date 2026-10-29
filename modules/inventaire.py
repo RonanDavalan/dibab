@@ -13,14 +13,11 @@ from pathlib import Path
 
 from modules import domaines
 from modules.pieces_communes import empreinte_sha256
+from modules.messages import traduire
 
 SCHEMA_VERSION = 1
 CONSERVER = "conserver"
 A_CLASSER = "a_classer"
-PROPOSITIONS = {
-    CONSERVER: "rien à faire : le document est dans la zone classée",
-    A_CLASSER: "document hors de la zone classée : le déposer dans un vide-poches, puis lire le dry-run",
-}
 
 
 def empreinte_arbre(racine, ignorer=()):
@@ -98,8 +95,13 @@ def construire_plans(configuration, maintenant=None):
                 action["doublon_de"] = premiers[empreinte]
             elif empreinte:
                 premiers[empreinte] = str(relatif)
-            action["proposition"] = (f"identique à {action['doublon_de']} : à ranger dans doublon/ après vérification"
-                                     if action["doublon_de"] else PROPOSITIONS[action["action"]])
+            if action["doublon_de"]:
+                proposition = traduire("inventaire_proposition_doublon", doublon_de=action["doublon_de"])
+            elif classe:
+                proposition = traduire("inventaire_proposition_conserver")
+            else:
+                proposition = traduire("inventaire_proposition_a_classer")
+            action["proposition"] = proposition.en()
             actions.append(action)
             dossier = dossiers.setdefault(relatif.parts[0] if len(relatif.parts) > 1 else ".", {"fichiers": 0, "octets": 0})
             dossier["fichiers"] += 1

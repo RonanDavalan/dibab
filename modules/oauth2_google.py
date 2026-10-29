@@ -16,6 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from modules.messages import traduire
 
 CLES_OAUTH2 = ("url_autorisation", "url_jeton", "portee", "marge_renouvellement_secondes", "delai_secondes",
                "delai_consentement_secondes", "chemins_interdits")
@@ -37,7 +38,7 @@ class AutorisationRevoquee(ErreurOAuth2):
 def verifier_point_d_extremite(url):
     analyse = urllib.parse.urlparse(url)
     if analyse.scheme != "https" and not (analyse.scheme == "http" and analyse.hostname in HOTES_BOUCLE_LOCALE):
-        raise ErreurOAuth2("point d'extrémité OAuth2 refusé : https exigé")
+        raise ErreurOAuth2(traduire("oauth2_https_exige"))
 
 
 def verifier_emplacement(chemin, chemins_interdits):
@@ -46,10 +47,10 @@ def verifier_emplacement(chemin, chemins_interdits):
     for interdit in chemins_interdits:
         racine = Path(os.path.realpath(os.path.expanduser(interdit)))
         if reel == racine or racine in reel.parents:
-            raise ErreurOAuth2("le fichier de jeton est dans un chemin interdit (oauth2.chemins_interdits)")
+            raise ErreurOAuth2(traduire("oauth2_chemin_interdit"))
     for parent in (reel.parent, *reel.parent.parents):
         if (parent / ".git").exists():
-            raise ErreurOAuth2("le fichier de jeton est dans un dépôt git")
+            raise ErreurOAuth2(traduire("oauth2_depot_git"))
 
 
 def _lire_json_protege(chemin, nom):
@@ -57,33 +58,33 @@ def _lire_json_protege(chemin, nom):
     try:
         etat = chemin.stat()
     except FileNotFoundError as erreur:
-        raise JetonAbsent(f"{nom} absent") from erreur
+        raise JetonAbsent(traduire("oauth2_nom_absent", nom=nom)) from erreur
     except OSError as erreur:
-        raise ErreurOAuth2(f"{nom} illisible ({type(erreur).__name__})") from erreur
+        raise ErreurOAuth2(traduire("oauth2_nom_illisible", nom=nom, type=type(erreur).__name__)) from erreur
     if etat.st_mode & 0o077:
-        raise ErreurOAuth2(f"{nom} lisible par d'autres que son propriétaire : chmod 600")
+        raise ErreurOAuth2(traduire("oauth2_nom_trop_ouvert", nom=nom))
     try:
         donnees = json.loads(chemin.read_text(encoding="utf-8"))
     except (OSError, ValueError) as erreur:
-        raise ErreurOAuth2(f"{nom} illisible ({type(erreur).__name__})") from erreur
+        raise ErreurOAuth2(traduire("oauth2_nom_illisible", nom=nom, type=type(erreur).__name__)) from erreur
     if not isinstance(donnees, dict):
-        raise ErreurOAuth2(f"{nom} mal formé")
+        raise ErreurOAuth2(traduire("oauth2_nom_mal_forme", nom=nom))
     return donnees
 
 
 def lire_client(chemin):
     """Rend (client_id, client_secret ou None) du JSON téléchargé de la console Google."""
-    installe = _lire_json_protege(chemin, "fichier du client").get("installed")
+    installe = _lire_json_protege(chemin, traduire("oauth2_nom_fichier_client")).get("installed")
     if not isinstance(installe, dict) or not isinstance(installe.get("client_id"), str) or not installe["client_id"]:
-        raise ErreurOAuth2("fichier du client mal formé : clé « installed » avec client_id attendue")
+        raise ErreurOAuth2(traduire("oauth2_client_mal_forme"))
     secret = installe.get("client_secret")
     return installe["client_id"], secret if isinstance(secret, str) and secret else None
 
 
 def lire_jeton(chemin):
-    donnees = _lire_json_protege(chemin, "fichier de jeton")
+    donnees = _lire_json_protege(chemin, traduire("oauth2_nom_fichier_jeton"))
     if not isinstance(donnees.get("refresh_token"), str) or not donnees["refresh_token"]:
-        raise ErreurOAuth2("fichier de jeton sans refresh_token")
+        raise ErreurOAuth2(traduire("oauth2_jeton_sans_refresh"))
     return donnees
 
 
@@ -114,7 +115,7 @@ def _demander(url, champs, delai):
     except urllib.error.HTTPError as erreur:
         statut, corps = erreur.code, erreur.read()
     except (OSError, ValueError) as erreur:
-        raise ErreurOAuth2(f"serveur d'autorisation injoignable ({type(erreur).__name__})") from erreur
+        raise ErreurOAuth2(traduire("oauth2_serveur_injoignable", type=type(erreur).__name__)) from erreur
     try:
         objet = json.loads(corps)
     except ValueError:
@@ -131,10 +132,10 @@ def _champs_client(client_id, client_secret):
 
 def _echec(statut, reponse):
     if reponse.get("error") == "invalid_grant":
-        return AutorisationRevoquee("autorisation révoquée ou expirée : refaire --autoriser-google")
+        return AutorisationRevoquee(traduire("oauth2_revoquee"))
     code = reponse.get("error")
     code = code if isinstance(code, str) and code.replace("_", "").isalnum() else "inconnue"
-    return ErreurOAuth2(f"serveur d'autorisation : refus (HTTP {statut}, erreur {code})")
+    return ErreurOAuth2(traduire("oauth2_serveur_refus", statut=statut, code=code))
 
 
 def jeton_d_acces(client_fichier, token_fichier, parametres, maintenant=None):
@@ -157,7 +158,7 @@ def jeton_d_acces(client_fichier, token_fichier, parametres, maintenant=None):
         raise _echec(statut, reponse)
     acces, duree = reponse.get("access_token"), reponse.get("expires_in")
     if not isinstance(acces, str) or not acces or not isinstance(duree, (int, float)) or duree <= 0:
-        raise ErreurOAuth2("réponse du serveur d'autorisation invalide")
+        raise ErreurOAuth2(traduire("oauth2_reponse_invalide"))
     renouvele = reponse.get("refresh_token")
     ecrire_jeton(token_fichier, {"refresh_token": renouvele if isinstance(renouvele, str) and renouvele else jeton["refresh_token"],
                                  "access_token": acces, "expiration": maintenant + duree})
@@ -174,7 +175,7 @@ class _Recepteur(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
         self.end_headers()
-        self.wfile.write("Skrivagner a reçu la réponse de Google. Cette page peut être fermée.".encode("utf-8"))
+        self.wfile.write(traduire("oauth2_page_recue").encode("utf-8"))
 
     def log_message(self, *arguments):
         pass
@@ -205,11 +206,11 @@ def autoriser(client_fichier, token_fichier, utilisateur, parametres, afficher_a
             recepteur.handle_request()
         reponse = recepteur.reponse
     if reponse is None:
-        raise ErreurOAuth2("aucune réponse de Google dans le délai du consentement")
+        raise ErreurOAuth2(traduire("oauth2_aucune_reponse"))
     if not secrets.compare_digest(reponse.get("state", ""), etat):
-        raise ErreurOAuth2("réponse de consentement refusée : state différent")
+        raise ErreurOAuth2(traduire("oauth2_state_different"))
     if reponse.get("error") or not reponse.get("code"):
-        raise ErreurOAuth2("consentement refusé" if reponse.get("error") == "access_denied" else "consentement sans code d'autorisation")
+        raise ErreurOAuth2(traduire("oauth2_consentement_refuse") if reponse.get("error") == "access_denied" else traduire("oauth2_consentement_sans_code"))
     statut, resultat = _demander(parametres["url_jeton"], {**_champs_client(client_id, client_secret), "grant_type": "authorization_code",
                                                            "code": reponse["code"], "code_verifier": verificateur,
                                                            "redirect_uri": redirection}, parametres["delai_secondes"])
@@ -217,7 +218,7 @@ def autoriser(client_fichier, token_fichier, utilisateur, parametres, afficher_a
         raise _echec(statut, resultat)
     acces, duree, renouvellement = resultat.get("access_token"), resultat.get("expires_in"), resultat.get("refresh_token")
     if not isinstance(renouvellement, str) or not renouvellement:
-        raise ErreurOAuth2("Google n'a pas rendu de jeton de renouvellement : rien n'est écrit")
+        raise ErreurOAuth2(traduire("oauth2_pas_de_renouvellement"))
     if not isinstance(acces, str) or not acces or not isinstance(duree, (int, float)) or duree <= 0:
-        raise ErreurOAuth2("réponse du serveur d'autorisation invalide")
+        raise ErreurOAuth2(traduire("oauth2_reponse_invalide"))
     ecrire_jeton(token_fichier, {"refresh_token": renouvellement, "access_token": acces, "expiration": maintenant + duree})

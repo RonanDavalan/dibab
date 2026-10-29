@@ -10,6 +10,7 @@ import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from modules.messages import traduire
 
 TYPE_COFFRE = "fuse.gocryptfs"
 
@@ -37,13 +38,13 @@ def type_systeme_fichiers(racine, executer=subprocess.run):
 def verifier_coffre(domaine, racine, executer=subprocess.run, acceptes=(TYPE_COFFRE,)):
     racine = Path(racine)
     if not racine.is_dir():
-        return EtatCoffre(domaine, racine, False, "répertoire introuvable")
+        return EtatCoffre(domaine, racine, False, traduire("coffre_repertoire_introuvable"))
     type_trouve = type_systeme_fichiers(racine, executer)
     if type_trouve not in acceptes:
-        return EtatCoffre(domaine, racine, False,
-                          f"coffre non monté (type {type_trouve or 'inconnu'}, attendu {' ou '.join(acceptes)})")
+        return EtatCoffre(domaine, racine, False, traduire(
+            "coffre_non_monte", type=type_trouve or traduire("coffre_type_inconnu"), attendu=f" {traduire('coffre_separateur_ou')} ".join(acceptes)))
     if not os.access(racine, os.W_OK):
-        return EtatCoffre(domaine, racine, False, "non accessible en écriture")
+        return EtatCoffre(domaine, racine, False, traduire("coffre_non_accessible_ecriture"))
     return EtatCoffre(domaine, racine, True)
 
 

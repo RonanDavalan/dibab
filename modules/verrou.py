@@ -7,6 +7,7 @@ et la synchronisation des coffres propagerait le résultat de l'une et de l'autr
 import os
 from contextlib import contextmanager
 from pathlib import Path
+from modules.messages import traduire
 
 
 class VerrouPris(Exception):
@@ -37,14 +38,14 @@ def verrou(chemin):
             except (OSError, ValueError):
                 pid = None
             if pid is not None and _processus_vivant(pid):
-                raise VerrouPris(f"une autre exécution (processus {pid}) tient {chemin}")
+                raise VerrouPris(traduire("verrou_pris", pid=pid, chemin=chemin))
             chemin.unlink(missing_ok=True)
             continue
         with os.fdopen(descripteur, "w", encoding="utf-8") as f:
             f.write(str(os.getpid()))
         break
     else:
-        raise VerrouPris(f"verrou illisible : {chemin}")
+        raise VerrouPris(traduire("verrou_illisible", chemin=chemin))
     try:
         yield
     finally:

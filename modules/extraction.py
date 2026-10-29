@@ -13,6 +13,7 @@ from pathlib import Path
 
 from modules import appel_ollama
 from modules import coffres
+from modules.messages import texte_de, traduire
 
 EXTENSIONS_IMAGE = {".png", ".jpg", ".jpeg"}
 SAUT_DE_PAGE = "\f"
@@ -41,9 +42,9 @@ def _lancer(commande, delai, executer):
     try:
         resultat = executer(commande, capture_output=True, timeout=delai)
     except (OSError, subprocess.TimeoutExpired) as erreur:
-        raise ErreurExtraction(f"{commande[0]} : {erreur}") from erreur
+        raise ErreurExtraction(traduire("extraction_commande_echec", commande=commande[0], erreur=texte_de(erreur))) from erreur
     if resultat.returncode != 0:
-        raise ErreurExtraction(f"{commande[0]} : code {resultat.returncode}")
+        raise ErreurExtraction(traduire("extraction_commande_code", commande=commande[0], code=resultat.returncode))
     return resultat.stdout
 
 
@@ -98,13 +99,13 @@ def extraire(chemin, parametres, configuration_ollama, modele_ocr,
 
         repertoire = Path(parametres["repertoire_temporaire"])
         if coffres.type_systeme_fichiers(repertoire) != "tmpfs":
-            raise ErreurExtraction(f"{repertoire} n'est pas en mémoire (tmpfs) : pages non rendues")
+            raise ErreurExtraction(traduire("extraction_pas_tmpfs", repertoire=repertoire))
         with tempfile.TemporaryDirectory(dir=repertoire, prefix="skrivagner-") as temporaire:
             pages = _pages_png(chemin, parametres, temporaire, executer)
             if not pages:
-                raise ErreurExtraction("pdftoppm n'a rendu aucune page")
+                raise ErreurExtraction(traduire("extraction_aucune_page"))
             texte = _ocr([page.read_bytes() for page in pages], configuration_ollama, parametres,
                          modele_ocr, generer)
         return _resultat(texte, "ocr", len(pages), modele_ocr, debut, parametres)
     except (ErreurExtraction, appel_ollama.ErreurOllama, OSError) as erreur:
-        return Extraction("", "echec", 0, 0, None, time.perf_counter() - debut, str(erreur))
+        return Extraction("", "echec", 0, 0, None, time.perf_counter() - debut, texte_de(erreur))
