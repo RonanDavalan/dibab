@@ -55,6 +55,33 @@ ollama pull mistral-nemo:12b-instruct-2407-q6_K
 
 These models are those of the reference instance; any others will do, you only have to name them in `ollama.roles` (below). The models of the `classification` role vote: a document is filed only if their agreement reaches `ollama.seuil_confiance`. Ollama is not part of Skrivagner and is never installed by it.
 
+## Installation from the Debian package
+
+On Debian 12 and 13 and on Ubuntu 22.04 and 24.04, one file installs the program and its dependencies (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). It contains neither Ollama, nor a model, nor a configuration. Download `skrivagner_*_all.deb` from the download page of [skrivagner.davalan.fr](https://skrivagner.davalan.fr/), then, from the folder that holds it:
+
+```bash
+sudo apt install ./skrivagner_*_all.deb
+```
+
+Create the configuration from the example that the package installs, with mode `600`, then follow steps 4 and 5 of the installation from the sources below (the vault of each domain, the keys of the configuration):
+
+```bash
+mkdir -p ~/.config/skrivagner
+cp /usr/share/doc/skrivagner/examples/config.exemple.json ~/.config/skrivagner/config.json
+chmod 600 ~/.config/skrivagner/config.json
+```
+
+Check the installation, without writing anything:
+
+```bash
+skrivagner --version
+skrivagner --diagnose
+```
+
+The package puts the command in `/usr/bin/skrivagner`, the program in `/usr/lib/skrivagner/`, and the README files, the example configuration and the manual page (`man skrivagner`, in four languages) under `/usr/share/`. Removing it keeps your data: `sudo apt remove skrivagner` and `sudo apt purge skrivagner` delete the files of the package and never touch your configuration, your state, your journal or your documents; the purge names what it leaves.
+
+Level: installation and diagnostic validated in a container on Debian 12 and 13 and on Ubuntu 22.04 and 24.04 (installation, `--version`, `--diagnose`, the refusal to write without a configuration and the refusal to write into a vault that is not mounted, a simulated filing, removal and purge). A container shows neither the mounting of an encrypted vault nor a run with your own Ollama and your own documents.
+
 ## Installation from the sources
 
 Final tree (`~` is your home directory; adapt the paths to your installation):

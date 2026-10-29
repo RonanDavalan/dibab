@@ -55,6 +55,33 @@ ollama pull mistral-nemo:12b-instruct-2407-q6_K
 
 Diese Modelle sind die der Referenzinstanz; beliebige andere genügen, man muss sie nur in `ollama.roles` nennen (weiter unten). Die Modelle der Rolle `classification` stimmen ab: Ein Dokument wird nur eingeordnet, wenn ihre Übereinstimmung `ollama.seuil_confiance` erreicht. Ollama gehört nicht zu Skrivagner und wird von diesem nie installiert.
 
+## Installation aus dem Debian-Paket
+
+Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert eine einzige Datei das Programm und seine Abhängigkeiten (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). Sie enthält weder Ollama noch ein Modell noch eine Konfiguration. Laden Sie `skrivagner_*_all.deb` von der Download-Seite von [skrivagner.davalan.fr](https://skrivagner.davalan.fr/) herunter und führen Sie dann in dem Ordner, der die Datei enthält, Folgendes aus:
+
+```bash
+sudo apt install ./skrivagner_*_all.deb
+```
+
+Legen Sie die Konfiguration aus dem Beispiel an, das das Paket installiert, mit dem Modus `600`, und folgen Sie dann den Schritten 4 und 5 der Installation aus den Quellen weiter unten (der Tresor jeder Domäne, die Schlüssel der Konfiguration):
+
+```bash
+mkdir -p ~/.config/skrivagner
+cp /usr/share/doc/skrivagner/examples/config.exemple.json ~/.config/skrivagner/config.json
+chmod 600 ~/.config/skrivagner/config.json
+```
+
+Prüfen Sie die Installation, ohne etwas zu schreiben:
+
+```bash
+skrivagner --version
+skrivagner --diagnose
+```
+
+Das Paket legt den Befehl unter `/usr/bin/skrivagner`, das Programm unter `/usr/lib/skrivagner/` sowie die README-Dateien, die Beispielkonfiguration und die Handbuchseite (`man skrivagner`, in vier Sprachen) unter `/usr/share/` ab. Das Entfernen schont Ihre Daten: `sudo apt remove skrivagner` und `sudo apt purge skrivagner` löschen die Dateien des Pakets und rühren Ihre Konfiguration, Ihren Zustand, Ihr Journal und Ihre Dokumente nie an; das Purge nennt, was es zurücklässt.
+
+Stufe: Installation und Diagnose im Container validiert unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 (Installation, `--version`, `--diagnose`, die Weigerung, ohne Konfiguration zu schreiben, und die Weigerung, in einen nicht eingehängten Tresor zu schreiben, eine simulierte Ablage, Entfernen und Purge). Ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama und Ihren eigenen Dokumenten.
+
 ## Installation aus den Quellen
 
 Endgültige Ordnerstruktur (`~` ist Ihr Home-Verzeichnis; passen Sie die Pfade an Ihre Installation an):

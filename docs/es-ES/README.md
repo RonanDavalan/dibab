@@ -55,6 +55,33 @@ ollama pull mistral-nemo:12b-instruct-2407-q6_K
 
 Estos modelos son los de la instancia de referencia; sirven otros cualesquiera, basta con nombrarlos en `ollama.roles` (más abajo). Los modelos del rol `classification` votan: un documento solo se clasifica si su acuerdo alcanza `ollama.seuil_confiance`. Ollama no forma parte de Skrivagner y este nunca lo instala.
 
+## Instalación desde el paquete Debian
+
+En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, un solo archivo instala el programa y sus dependencias (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). No contiene ni Ollama, ni un modelo, ni una configuración. Descargue `skrivagner_*_all.deb` desde la página de descarga de [skrivagner.davalan.fr](https://skrivagner.davalan.fr/) y, desde la carpeta que lo contiene, ejecute:
+
+```bash
+sudo apt install ./skrivagner_*_all.deb
+```
+
+Cree la configuración a partir del ejemplo que instala el paquete, con el modo `600`, y siga luego los pasos 4 y 5 de la instalación desde las fuentes que figura más abajo (la bóveda de cada dominio, las claves de la configuración):
+
+```bash
+mkdir -p ~/.config/skrivagner
+cp /usr/share/doc/skrivagner/examples/config.exemple.json ~/.config/skrivagner/config.json
+chmod 600 ~/.config/skrivagner/config.json
+```
+
+Compruebe la instalación, sin escribir nada:
+
+```bash
+skrivagner --version
+skrivagner --diagnose
+```
+
+El paquete coloca el comando en `/usr/bin/skrivagner`, el programa en `/usr/lib/skrivagner/`, y los README, la configuración de ejemplo y la página de manual (`man skrivagner`, en cuatro idiomas) en `/usr/share/`. La desinstalación conserva sus datos: `sudo apt remove skrivagner` y `sudo apt purge skrivagner` eliminan los archivos del paquete y nunca tocan su configuración, su estado, su diario ni sus documentos; la purga nombra lo que deja.
+
+Nivel: instalación y diagnóstico validados en contenedor en Debian 12 y 13 y en Ubuntu 22.04 y 24.04 (instalación, `--version`, `--diagnose`, la negativa a escribir sin configuración y la de escribir en una bóveda no montada, una clasificación simulada, desinstalación y purga). Un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama y sus propios documentos.
+
 ## Instalación desde las fuentes
 
 Árbol final (`~` es su directorio personal; adapte las rutas a su instalación):

@@ -82,6 +82,14 @@ von **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, 
 Zeile von **\--version** ändern sich nie. Was auf die Platte geschrieben wird (Journale, Pläne, Berichte), ist Englisch, in welcher Sprache
 die Sitzung auch läuft.
 
+# INSTALLATION
+
+Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert das Debian-Paket das Programm, seine Abhängigkeiten, die vier Handbuchseiten und die Beispielkonfiguration *config.exemple.json* in */usr/share/doc/skrivagner/examples/*:
+
+    sudo apt install ./skrivagner_*_all.deb
+
+**sudo apt remove skrivagner** und **sudo apt purge skrivagner** löschen die Dateien des Pakets und rühren Konfiguration, Zustand, Journal und Dokumente nie an; das Purge nennt, was es zurücklässt. Stufe: Installation und Diagnose im Container validiert auf diesen vier Versionen; ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama.
+
 # DATEIEN
 
 Die Konfiguration ist die erste vorhandene Datei aus der folgenden Reihenfolge, und nur diese wird gelesen:
@@ -154,7 +162,7 @@ Dieselbe Prüfung auf Englisch lesen, dann die letzte Sitzung rückgängig mache
 
 **ollama**(1), **ssh**(1), **findmnt**(8), **pdftotext**(1), **pdftoppm**(1)
 
-Die README des Projekts beschreibt die Installation aus den Quellen, die Konfiguration, die Quellen über **ssh**, IMAP und OAuth2 für
+Die README des Projekts beschreibt die Installation aus dem Debian-Paket und aus den Quellen, die Konfiguration, die Quellen über **ssh**, IMAP und OAuth2 für
 Google sowie die Grenzen.
 
 # LIZENZ

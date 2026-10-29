@@ -82,6 +82,14 @@ cualquier otro valor, **C**, **POSIX** o ninguna variable da inglés. Los nombre
 línea de **\--version** nunca cambian. Lo que se escribe en el disco (diarios, planes, informes) está en inglés, sea cual sea el idioma
 de la sesión.
 
+# INSTALACIÓN
+
+En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el programa, sus dependencias, las cuatro páginas de manual y la configuración de ejemplo *config.exemple.json* en */usr/share/doc/skrivagner/examples/*:
+
+    sudo apt install ./skrivagner_*_all.deb
+
+**sudo apt remove skrivagner** y **sudo apt purge skrivagner** eliminan los archivos del paquete y nunca tocan la configuración, el estado, el diario ni los documentos; la purga nombra lo que deja. Nivel: instalación y diagnóstico validados en contenedor en estas cuatro versiones; un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama.
+
 # ARCHIVOS
 
 La configuración es el primer archivo existente de la lista siguiente, por este orden, y es el único que se lee:
@@ -154,7 +162,7 @@ Leer la misma comprobación en inglés y deshacer la última sesión:
 
 **ollama**(1), **ssh**(1), **findmnt**(8), **pdftotext**(1), **pdftoppm**(1)
 
-El README del proyecto describe la instalación desde las fuentes, la configuración, los orígenes por **ssh**, IMAP y OAuth2 para
+El README del proyecto describe la instalación desde el paquete Debian y desde las fuentes, la configuración, los orígenes por **ssh**, IMAP y OAuth2 para
 Google, y los límites.
 
 # LICENCIA

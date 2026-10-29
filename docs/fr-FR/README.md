@@ -55,6 +55,33 @@ ollama pull mistral-nemo:12b-instruct-2407-q6_K
 
 Ces modèles sont ceux de l'instance de référence ; n'importe quels autres conviennent, il suffit de les nommer dans `ollama.roles` (plus bas). Les modèles du rôle `classification` votent : un document n'est classé que si leur accord atteint `ollama.seuil_confiance`. Ollama ne fait pas partie de Skrivagner et celui-ci ne l'installe jamais.
 
+## Installation depuis le paquet Debian
+
+Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, un seul fichier installe le programme et ses dépendances (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). Il ne contient ni Ollama, ni modèle, ni configuration. Téléchargez `skrivagner_*_all.deb` depuis la page de téléchargement de [skrivagner.davalan.fr](https://skrivagner.davalan.fr/), puis, depuis le dossier qui le contient :
+
+```bash
+sudo apt install ./skrivagner_*_all.deb
+```
+
+Créez la configuration à partir de l'exemple que le paquet installe, avec le mode `600`, puis suivez les étapes 4 et 5 de l'installation depuis les sources ci-dessous (le coffre de chaque domaine, les clés de la configuration) :
+
+```bash
+mkdir -p ~/.config/skrivagner
+cp /usr/share/doc/skrivagner/examples/config.exemple.json ~/.config/skrivagner/config.json
+chmod 600 ~/.config/skrivagner/config.json
+```
+
+Vérifiez l'installation, sans rien écrire :
+
+```bash
+skrivagner --version
+skrivagner --diagnose
+```
+
+Le paquet place la commande dans `/usr/bin/skrivagner`, le programme dans `/usr/lib/skrivagner/`, et les README, la configuration d'exemple et la page de manuel (`man skrivagner`, en quatre langues) sous `/usr/share/`. Le retrait garde vos données : `sudo apt remove skrivagner` et `sudo apt purge skrivagner` suppriment les fichiers du paquet et ne touchent jamais à votre configuration, à votre état, à votre journal ni à vos documents ; la purge nomme ce qu'elle laisse.
+
+Niveau : installation et diagnostic validés en conteneur sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04 (installation, `--version`, `--diagnose`, le refus d'écrire sans configuration et celui d'écrire dans un coffre non monté, un classement simulé, retrait et purge). Un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama et vos propres documents.
+
 ## Installation depuis les sources
 
 Arborescence finale (`~` est votre répertoire personnel ; adaptez les chemins à votre installation) :
