@@ -5,7 +5,7 @@ Skrivagner would not exist without the people and the models that worked on it. 
 ## Design and development
 
 *   **Ronan Davalan**: architect and arbiter. Vision, scope, validation; every architecture decision goes through him. Sole git author.
-*   **Claude Code (Anthropic)**: implementation engineer. Author of the Python code (entry point, configuration, local, ssh and IMAP scanners, Google OAuth2, extraction and OCR, classification cascade, safe move, journal, rollback, rotation, installation and diagnosis, messages in four languages) and of its tests, and of the public documents (the README and its translations, the manual page, CONTRIBUTING.md, SECURITY.md, the English user manual). Models: Opus 4.7, then Sonnet 5.5.
+*   **Claude Code (Anthropic)**: implementation engineer. Author of the Python code (entry point, configuration, local, ssh and IMAP scanners, Google OAuth2, extraction and OCR, classification cascade, safe move, journal, rollback, rotation, installation and diagnosis, messages in four languages) and of its tests, and of the public documents (the README and its translations, the manual page, CONTRIBUTING.md, SECURITY.md, the user manual in English, French, German and Spanish). Models: Opus 4.7, then Sonnet 5.5.
 *   **Gemini (Google)**: design adviser. Proposed the original name "Le Greffier" and validated the final name with Ronan.
 *   **Copilot (Microsoft)**: translated "Greffier" into Breton, hence "Skrivagner".
 
