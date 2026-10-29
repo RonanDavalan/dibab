@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # skrivagner.py — Point d'entrée
 #
-# Modes : --dry-run (défaut, rien ne bouge), --execute, --inventaire, --rollback, --autoriser-google.
+# Modes : --dry-run (défaut, rien ne bouge), --execute, --inventaire, --rollback, --autoriser-google, --diagnose ; --version.
 # Sources : répertoires locaux, machines distantes par ssh, boîtes IMAP en lecture seule.
 
 import argparse
@@ -17,9 +17,11 @@ from modules import classement as mod_classement
 from modules import chemins as mod_chemins
 from modules import classification as mod_classification
 from modules import coffres as mod_coffres
+from modules import diagnostic as mod_diagnostic
 from modules import deplacement as mod_deplacement
 from modules import domaines as mod_domaines
 from modules import extraction as mod_extraction
+from modules import installation as mod_installation
 from modules import inventaire as mod_inventaire
 from modules import journal as mod_journal
 from modules import journal_actions as mod_journal_actions
@@ -36,28 +38,34 @@ from modules import suivi as mod_suivi
 from modules import verrou as mod_verrou
 
 
-VERSION = "0.8.0"
+VERSION = "0.9.0-alpha"
 
 # Un vide-poches se relit en entier : tout ce qui s'y trouve attend son classement.
 JOURS_SANS_FILTRE_DATE = 36500
 
 CHEMIN_RACINE = Path(__file__).resolve().parent
 CHEMIN_CONFIG = CHEMIN_RACINE / "config.json"
+DOSSIER_ETAT_PAR_DEFAUT = None
 
 
-def charger_configuration():
-    if not CHEMIN_CONFIG.exists():
-        sys.stderr.write(
-            f"ERREUR : configuration introuvable : {CHEMIN_CONFIG}\n"
-            f"        Copier config.exemple.json en config.json et l'adapter.\n"
-        )
-        sys.exit(1)
+def charger_configuration(option=None, environ=os.environ):
+    """Rend (configuration, chemin lu, dossier d'état par défaut ou None) ; arrête avec le code 1 si la configuration manque ou est invalide."""
     try:
-        with open(CHEMIN_CONFIG, "r", encoding="utf-8") as f:
-            return mod_chemins.developper_chemins(json.load(f))
-    except json.JSONDecodeError as erreur:
-        sys.stderr.write(f"ERREUR : config.json invalide : {erreur}\n")
+        chemin = mod_installation.rechercher_configuration(option, environ, CHEMIN_CONFIG)
+        brute = mod_installation.lire_configuration(chemin)
+    except mod_installation.ErreurConfiguration as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n")
         sys.exit(1)
+    configuration, dossier_etat = mod_installation.appliquer_defauts_suivi(mod_chemins.developper_chemins(brute), environ)
+    return configuration, chemin, dossier_etat
+
+
+def preparer_etat(dossier_etat, configuration):
+    """Crée le dossier d'état par défaut en 700 ; `main` ramène ses fichiers à 600 en fin de session."""
+    global DOSSIER_ETAT_PAR_DEFAUT
+    DOSSIER_ETAT_PAR_DEFAUT = dossier_etat
+    if dossier_etat:
+        mod_installation.preparer_dossier_etat(dossier_etat, configuration)
 
 
 def verifier_coffres_ou_sortir(configuration, mode):
@@ -110,16 +118,22 @@ def initialiser_journal_session(configuration, mode, etats_coffres):
     return journal, horodatage
 
 
-def parametres_extraction_ou_sortir(configuration):
-    """Rend le bloc `extraction`, ou arrête avec le code 1 si une clé de l'extraction manque."""
+def cles_absentes_extraction(configuration):
     parametres = configuration.get("extraction")
     requis = ("seuil_caracteres_alphanumeriques", "pages_ocr", "resolution_ocr", "taille_max_texte",
               "repertoire_temporaire", "timeout_outils_secondes", "consigne_ocr")
     absents = [f"extraction.{cle}" for cle in requis if not parametres or cle not in parametres]
-    if "keep_alive_entre_pages" not in configuration["ollama"]:
+    if "keep_alive_entre_pages" not in configuration.get("ollama", {}):
         absents.append("ollama.keep_alive_entre_pages")
-    if "ocr" not in configuration["ollama"].get("roles", {}):
+    if "ocr" not in configuration.get("ollama", {}).get("roles", {}):
         absents.append("ollama.roles.ocr")
+    return absents
+
+
+def parametres_extraction_ou_sortir(configuration):
+    """Rend le bloc `extraction`, ou arrête avec le code 1 si une clé de l'extraction manque."""
+    parametres = configuration.get("extraction")
+    absents = cles_absentes_extraction(configuration)
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
@@ -127,15 +141,21 @@ def parametres_extraction_ou_sortir(configuration):
     return parametres
 
 
-def parametres_classification_ou_sortir(configuration):
-    """Rend le bloc `classification`, ou arrête avec le code 1 si une clé de la cascade manque."""
+def cles_absentes_classification(configuration):
     parametres = configuration.get("classification")
     requis = ("temperature", "num_ctx", "caracteres_max_prompt", "keep_alive_entre_documents",
               "longueur_max_champ", "longueur_max_citation", "marqueurs_mentions")
     absents = [f"classification.{cle}" for cle in requis if not parametres or cle not in parametres]
     absents += [f"ollama.roles.{role}" for role in ("tri_rapide", "classification")
-                if role not in configuration["ollama"].get("roles", {})]
+                if role not in configuration.get("ollama", {}).get("roles", {})]
     absents += [cle for cle in ("categories", "personnes", "nommage") if cle not in configuration]
+    return absents
+
+
+def parametres_classification_ou_sortir(configuration):
+    """Rend le bloc `classification`, ou arrête avec le code 1 si une clé de la cascade manque."""
+    parametres = configuration.get("classification")
+    absents = cles_absentes_classification(configuration)
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
@@ -143,22 +163,26 @@ def parametres_classification_ou_sortir(configuration):
     return parametres
 
 
-def parametres_classement_ou_sortir(configuration):
-    """Arrête avec le code 1 si une clé du classement ou de l'inventaire manque."""
+def cles_absentes_classement(configuration):
     requis = [("destination", "repertoire_doublon"), ("destination", "sous_repertoire_logs"),
               ("destination", "vide_poches_prefixe"), ("nommage", "suffixe_collision"),
               ("arborescence", "personne_inconnue"), ("inventaire", "exclusions")]
     absents = [".".join(cle) for cle in requis if cle[1] not in configuration.get(cle[0], {})]
     absents += [f"arborescence.{domaine}" for domaine in mod_domaines.COFFRES
                 if domaine not in configuration.get("arborescence", {})]
+    return absents
+
+
+def parametres_classement_ou_sortir(configuration):
+    """Arrête avec le code 1 si une clé du classement ou de l'inventaire manque."""
+    absents = cles_absentes_classement(configuration)
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
         sys.exit(1)
 
 
-def parametres_journal_ou_sortir(configuration, mode):
-    """Arrête avec le code 1 si une clé du journal des actions, de la rotation, des sources distantes ou IMAP manque."""
+def cles_absentes_journal(configuration, mode):
     suivi = configuration.get("suivi", {})
     absents = []
     if mode in ("execute", "rollback"):
@@ -168,10 +192,24 @@ def parametres_journal_ou_sortir(configuration, mode):
     if mode in ("dry-run", "execute"):
         absents += mod_sources_distantes.cles_absentes(configuration)
         absents += mod_sources_imap.cles_absentes(configuration)
+    return absents
+
+
+def parametres_journal_ou_sortir(configuration, mode):
+    """Arrête avec le code 1 si une clé du journal des actions, de la rotation, des sources distantes ou IMAP manque."""
+    absents = cles_absentes_journal(configuration, mode)
     if absents:
         sys.stderr.write(f"ERREUR : config.json : clés absentes : {', '.join(absents)}\n"
                          f"        Voir config.exemple.json.\n")
         sys.exit(1)
+
+
+def cles_configuration_absentes(configuration):
+    """Les clés qu'un mode, `--execute` compris, exige et que la configuration ne porte pas."""
+    absents = [f"destinations.{domaine}.racine" for domaine in mod_domaines.COFFRES
+               if "racine" not in configuration.get("destinations", {}).get(domaine, {})]
+    return (absents + cles_absentes_extraction(configuration) + cles_absentes_classification(configuration)
+            + cles_absentes_classement(configuration) + cles_absentes_journal(configuration, "execute"))
 
 
 def appliquer_rotation(configuration):
@@ -196,13 +234,19 @@ def analyser_arguments():
                         help="Annule la dernière session de classement, ou celle de --session")
     groupe.add_argument("--autoriser-google", type=str, default=None, metavar="ID",
                         help="Consentement OAuth2 d'une source IMAP Google (écrit son fichier de jeton)")
+    groupe.add_argument("--diagnose", action="store_true",
+                        help="Vérifie l'installation, la configuration, Ollama et les coffres, sans rien écrire")
+    parseur.add_argument("--version", action="version", version=f"skrivagner {VERSION}",
+                         help="Affiche la version et s'arrête")
+    parseur.add_argument("--config", type=Path, default=None, metavar="CHEMIN",
+                         help="Fichier de configuration à lire (sinon SKRIVAGNER_CONFIG, XDG, puis à côté du script)")
     parseur.add_argument("--session", type=str, default=None,
                          help="Identifiant de session à annuler (avec --rollback)")
     parseur.add_argument("--verdicts-simules", type=Path, default=None, metavar="FICHIER",
                          help="Dry-run : JSON {nom de fichier: verdict} dont le routage s'affiche")
     arguments = parseur.parse_args()
     if arguments.verdicts_simules and (arguments.execute or arguments.rollback or arguments.inventaire
-                                    or arguments.autoriser_google):
+                                    or arguments.autoriser_google or arguments.diagnose):
         parseur.error("--verdicts-simules ne s'emploie qu'en dry-run")
     return arguments
 
@@ -557,15 +601,36 @@ def modeles_de_la_cascade(configuration, modeles_retenus):
     return dict(modeles_retenus, classification=classeurs)
 
 
+def diagnostiquer_installation(option):
+    """`--diagnose` : écrit le bilan des vérifications ; rend 1 au moindre échec, sinon 0."""
+    verifications = mod_diagnostic.diagnostiquer(option, os.environ, CHEMIN_CONFIG, cles_configuration_absentes)
+    mod_diagnostic.afficher(verifications)
+    return mod_diagnostic.code_de_retour(verifications)
+
+
 def main():
+    """Lance la session, puis ramène les modes de l'état par défaut quelle qu'en soit l'issue."""
+    global DOSSIER_ETAT_PAR_DEFAUT
+    DOSSIER_ETAT_PAR_DEFAUT = None
+    try:
+        return principal()
+    finally:
+        if DOSSIER_ETAT_PAR_DEFAUT:
+            mod_installation.durcir_dossier_etat(DOSSIER_ETAT_PAR_DEFAUT)
+
+
+def principal():
     arguments = analyser_arguments()
+    if arguments.diagnose:
+        return diagnostiquer_installation(arguments.config)
     if arguments.autoriser_google:
-        configuration = charger_configuration()
+        configuration, _, _ = charger_configuration(arguments.config)
         verifier_coffres_ou_sortir(configuration, "execute")
         return autoriser_google(configuration, arguments.autoriser_google)
     mode = determiner_mode(arguments)
 
-    configuration = charger_configuration()
+    configuration, chemin_configuration, dossier_etat = charger_configuration(arguments.config)
+    preparer_etat(dossier_etat, configuration)
     etats_coffres = verifier_coffres_ou_sortir(configuration, mode)
     if mode == "execute":
         verifier_machine_ou_sortir(configuration)
@@ -585,6 +650,7 @@ def main():
 
     print(f"Skrivagner {VERSION} — session {horodatage}")
     print(f"  Mode               : {mode}")
+    print(f"  Configuration      : {chemin_configuration}")
     for etat in etats_coffres:
         diagnostic = "monté" if etat.monte else f"[!] {etat.raison}"
         print(f"  Coffre {etat.domaine:<14s}: {etat.racine} — {diagnostic}")

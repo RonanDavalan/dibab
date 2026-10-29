@@ -16,7 +16,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from modules import appel_ollama, cascade, chemins, classification, coffres, domaines, extraction, modeles
+from modules import appel_ollama, cascade, chemins, classification, coffres, domaines, extraction, installation, modeles
 
 NON_ADMINISTRATIF = "non_administratif"
 ECHEC_EXTRACTION = "echec_extraction"
@@ -369,7 +369,8 @@ def _liste(texte):
 
 def analyser_arguments(argv=None):
     parseur = argparse.ArgumentParser(description="Mesure du domaine sur les documents réels des coffres (agrégats seuls).")
-    parseur.add_argument("--configuration", type=Path, default=CHEMIN_CONFIG, help="config.json à lire")
+    parseur.add_argument("--configuration", "--config", type=Path, default=None,
+                         help="config.json à lire (sinon SKRIVAGNER_CONFIG, XDG, puis à côté du script)")
     parseur.add_argument("--tri", help="modèles de tri à mesurer, séparés par des virgules (défaut : ollama.roles.tri_rapide)")
     parseur.add_argument("--classification",
                          help="modèles de classification à mesurer (défaut : ollama.roles.classification)")
@@ -381,9 +382,10 @@ def analyser_arguments(argv=None):
 def main(argv=None, generer=appel_ollama.generer, executer=None, sortie=sys.stdout):
     arguments = analyser_arguments(argv)
     try:
-        configuration = chemins.developper_chemins(json.loads(arguments.configuration.read_text(encoding="utf-8")))
-    except (OSError, ValueError):
-        sys.stderr.write("ERREUR : configuration illisible ou invalide.\n")
+        chemin = installation.rechercher_configuration(arguments.configuration, os.environ, CHEMIN_CONFIG)
+        configuration = chemins.developper_chemins(installation.lire_configuration(chemin))
+    except installation.ErreurConfiguration as erreur:
+        sys.stderr.write(f"ERREUR : {erreur}\n")
         return 1
     absentes = cles_absentes(configuration)
     if absentes:

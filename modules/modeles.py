@@ -79,3 +79,8 @@ def modeles_installes_du_role(configuration_ollama, role):
     )
     preferences = configuration_ollama.get("roles", {}).get(role, [])
     return [p if p in installes else f"{p}:latest" for p in preferences if _est_installe(p, installes)]
+
+
+def preferences_installees(preferences, installes):
+    """Rend, dans l'ordre des préférences, celles qui sont installées (un nom sans étiquette vaut `:latest`)."""
+    return [p if p in installes else f"{p}:latest" for p in preferences if _est_installe(p, installes)]

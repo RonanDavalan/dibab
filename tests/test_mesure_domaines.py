@@ -225,3 +225,33 @@ def test_les_sous_ensembles_rendent_verdicts_retenus_et_duree(banc):
     assert par_modeles[("bon",)]["erreurs_retenues"] == 0 and par_modeles[("bon",)]["verdicts_retenus"] == 5
     assert agregats["accord_categorie"]["taux_unanimite"] == 1.0
     assert agregats["sous_ensemble_retenu"] is None or len(agregats["sous_ensemble_retenu"]["modeles"]) >= 2
+
+
+def lancer_sans_option(banc, *arguments):
+    sortie = io.StringIO()
+    code = mesure_domaines.main(list(arguments), generer=banc.modele, executer=banc.pdftotext, sortie=sortie)
+    return code, sortie.getvalue()
+
+
+def test_la_mesure_suit_la_recherche_de_la_configuration_variable_puis_xdg_puis_le_module(banc, monkeypatch, tmp_path_factory):
+    monkeypatch.setattr(mesure_domaines, "CHEMIN_CONFIG", banc.racine / "absente.json")
+    code, _ = lancer_sans_option(banc, "--a-blanc")
+    assert code == 1
+    xdg = tmp_path_factory.mktemp("xdg-mesure")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
+    (xdg / "skrivagner").mkdir()
+    (xdg / "skrivagner" / "config.json").write_text(banc.fichier.read_text(encoding="utf-8"), encoding="utf-8")
+    assert lancer_sans_option(banc, "--a-blanc")[0] == 0
+    (xdg / "skrivagner" / "config.json").unlink()
+    monkeypatch.setenv("SKRIVAGNER_CONFIG", str(banc.fichier))
+    assert lancer_sans_option(banc, "--a-blanc")[0] == 0
+    monkeypatch.delenv("SKRIVAGNER_CONFIG")
+    monkeypatch.setattr(mesure_domaines, "CHEMIN_CONFIG", banc.fichier)
+    assert lancer_sans_option(banc, "--a-blanc")[0] == 0
+
+
+def test_la_mesure_n_essaie_pas_les_autres_emplacements_quand_la_variable_designe_un_fichier_absent(banc, monkeypatch, capsys):
+    monkeypatch.setattr(mesure_domaines, "CHEMIN_CONFIG", banc.fichier)
+    monkeypatch.setenv("SKRIVAGNER_CONFIG", str(banc.racine / "absent.json"))
+    assert lancer_sans_option(banc, "--a-blanc")[0] == 1
+    assert "SKRIVAGNER_CONFIG" in capsys.readouterr().err

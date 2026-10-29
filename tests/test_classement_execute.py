@@ -202,3 +202,62 @@ def test_un_echec_de_deplacement_laisse_le_document_et_n_avance_pas_la_date_du_s
     assert lancer(monkeypatch, "--execute") == 1
     assert len(arbre(racine / "source")) == len(LOT)
     assert "source" not in json.loads((racine / "coffre-a" / "logs" / "dernier_scan.json").read_text())
+
+
+def sans_cles_de_chemin(chemin_config):
+    configuration = json.loads(chemin_config.read_text())
+    for cle in ("fichier_date", "journal", "sessions", "logs_systeme"):
+        configuration["suivi"].pop(cle, None)
+    chemin_config.write_text(json.dumps(configuration))
+
+
+def test_execute_sans_cles_de_chemin_ecrit_l_etat_sous_xdg_state_home_en_700_et_600(banc, monkeypatch, tmp_path_factory):
+    racine, chemin_config = banc
+    etat = tmp_path_factory.mktemp("etat") / "xdg"
+    monkeypatch.setenv("XDG_STATE_HOME", str(etat))
+    sans_cles_de_chemin(chemin_config)
+    assert lancer(monkeypatch, "--execute") == 0
+    dossier = etat / "skrivagner"
+    assert not (racine / "coffre-a" / "logs").exists()
+    assert sorted(p.name for p in dossier.iterdir() if p.is_file()) == ["dernier_scan.json", "journal.jsonl"]
+    sessions = [p for p in (dossier / "sessions").iterdir()]
+    assert any(p.name.startswith("session_") for p in sessions)
+    assert oct(dossier.stat().st_mode & 0o777) == oct(0o700) and oct((dossier / "sessions").stat().st_mode & 0o777) == oct(0o700)
+    assert {oct(p.stat().st_mode & 0o777) for p in dossier.rglob("*") if p.is_file()} == {oct(0o600)}
+
+
+def test_une_cle_de_chemin_donnee_l_emporte_sur_le_defaut(banc, monkeypatch, tmp_path_factory):
+    racine, _ = banc
+    etat = tmp_path_factory.mktemp("etat") / "xdg"
+    monkeypatch.setenv("XDG_STATE_HOME", str(etat))
+    assert lancer(monkeypatch, "--execute") == 0
+    assert (racine / "coffre-a" / "logs" / "journal.jsonl").exists() and not etat.exists()
+
+
+def test_execute_sans_modele_installe_rend_3(banc, monkeypatch):
+    racine, _ = banc
+
+    def aucun_modele(_):
+        raise skrivagner.mod_modeles.ModeleIndisponible("Aucun modèle installé pour le rôle : ocr.")
+
+    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", aucun_modele)
+    with pytest.raises(SystemExit) as sortie:
+        lancer(monkeypatch, "--execute")
+    assert sortie.value.code == 3 and arbre(racine / "source") != []
+
+
+def test_l_en_tete_de_session_nomme_la_configuration_lue(banc, monkeypatch, capsys):
+    _, chemin_config = banc
+    assert lancer(monkeypatch, "--dry-run") == 0
+    assert f"Configuration      : {chemin_config}" in capsys.readouterr().out
+
+
+def test_la_configuration_xdg_est_trouvee_avant_celle_du_script(banc, monkeypatch, capsys, tmp_path_factory):
+    _, chemin_config = banc
+    xdg = tmp_path_factory.mktemp("xdg-config-essai")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
+    (xdg / "skrivagner").mkdir()
+    copie = xdg / "skrivagner" / "config.json"
+    copie.write_text(chemin_config.read_text())
+    assert lancer(monkeypatch, "--dry-run") == 0
+    assert f"Configuration      : {copie}" in capsys.readouterr().out

@@ -33,10 +33,6 @@
   },
 
   "suivi": {
-    "fichier_date": "~/Documents/skrivagner/personnel/logs/dernier_scan.json",
-    "journal": "~/Documents/skrivagner/personnel/logs/journal.jsonl",
-    "sessions": "~/Documents/skrivagner/personnel/logs/sessions",
-    "logs_systeme": "~/.local/share/skrivagner/logs/skrivagner.log",
     "securite_jours": 1,
     "premier_scan_jours": 90,
     "rotation": {
@@ -179,8 +175,8 @@
       "ssl": true,
       "authentification": "oauth2",
       "utilisateur": "utilisateur@exemple.fr",
-      "client_fichier": "~/Documents/skrivagner/personnel/logs/client-google.json",
-      "token_fichier": "~/Documents/skrivagner/personnel/logs/jeton-google.json",
+      "client_fichier": "~/.config/skrivagner/client-google.json",
+      "token_fichier": "~/.config/skrivagner/jeton-google.json",
       "dossiers": ["INBOX"],
       "vide_poches_destination": "vide-poches-google",
       "date_reference": "reception"
