@@ -58,7 +58,7 @@ def _verifier_configuration(option, environ, chemin_du_script, cles_absentes):
         brute = installation.lire_configuration(chemin)
     except installation.ConfigurationIntrouvable:
         emplacements = installation.emplacements_de_configuration(option, environ, chemin_du_script)
-        essayes = " ; ".join(traduire("diagnostic_emplacement_essaye", source=source, chemin=chemin or traduire("config_non_donnee"))
+        essayes = "; ".join(traduire("diagnostic_emplacement_essaye", source=source, chemin=chemin or traduire("config_non_donnee"))
                              for source, chemin in emplacements)
         return None, _verification(NON_CONFIGURE, "configuration", essayes=essayes)
     except installation.ErreurConfiguration as erreur:
