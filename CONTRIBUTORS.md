@@ -5,7 +5,7 @@ Skrivagner n'existerait pas sans les personnes et les modèles qui y ont travail
 ## Conception et développement
 
 *   **Ronan Davalan** : architecte et arbitre. Vision, périmètre, validation ; toutes les décisions d'architecture passent par lui. Seul auteur git.
-*   **Claude Code (Anthropic)** : ingénieur de réalisation. Auteur du code Python (point d'entrée, configuration, scanners local, ssh et IMAP, OAuth2 Google, extraction et OCR, cascade de classification, déplacement sûr, journal, rollback, rotation) et de ses tests. Modèles : Opus 4.7 puis Sonnet 5.5.
+*   **Claude Code (Anthropic)** : ingénieur de réalisation. Auteur du code Python (point d'entrée, configuration, scanners local, ssh et IMAP, OAuth2 Google, extraction et OCR, cascade de classification, déplacement sûr, journal, rollback, rotation, installation et diagnostic) et de ses tests. Modèles : Opus 4.7 puis Sonnet 5.5.
 *   **Gemini (Google)** : conseiller de conception. A proposé le nom d'origine « Le Greffier » et validé le nom définitif avec Ronan.
 *   **Copilot (Microsoft)** : a traduit « Greffier » en breton, d'où « Skrivagner ».
 
