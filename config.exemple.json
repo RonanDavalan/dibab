@@ -47,7 +47,9 @@
     "roles": {
       "ocr": [],
       "tri_rapide": [],
-      "classification": []
+      "classification": [],
+      "tri_decision": [],
+      "objet": []
     },
     "seuil_confiance": 0.4,
     "timeout_secondes": 120,
@@ -69,6 +71,7 @@
     "num_ctx": 8192,
     "caracteres_max_prompt": 12000,
     "caracteres_max_tri": 3000,
+    "seuils_tri_decision": {},
     "keep_alive_entre_documents": "2m",
     "longueur_max_champ": 80,
     "longueur_max_citation": 120,

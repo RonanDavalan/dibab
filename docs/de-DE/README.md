@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `466 passed, 8 skipped`; die 8 übersprungenen sind die Versuche gegen ein laufendes Ollama):
+2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `531 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
 
 ```bash
 python3 -m venv venv
@@ -172,18 +172,19 @@ NON_VÉRIFIÉ ollama : hängt von der Konfiguration ab
 NON_VÉRIFIÉ modele_ocr : hängt von der Konfiguration ab
 NON_VÉRIFIÉ modele_tri_rapide : hängt von der Konfiguration ab
 NON_VÉRIFIÉ modele_classification : hängt von der Konfiguration ab
+NON_VÉRIFIÉ modele_tri_decision : hängt von der Konfiguration ab
 NON_VÉRIFIÉ destination_personnel : hängt von der Konfiguration ab
 NON_VÉRIFIÉ destination_professionnel : hängt von der Konfiguration ab
-Diagnose: 5 OK, 0 Warnung(en), 0 Fehler, 1 nicht konfiguriert, 7 nicht geprüft
+Diagnose: 5 OK, 0 Warnung(en), 0 Fehler, 1 nicht konfiguriert, 8 nicht geprüft
 ```
 
 Die Zustandskürzel (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) und die Kennungen sind in allen Sprachen gleich, damit ein Skript sie vergleichen kann. Sobald die Konfiguration geschrieben ist, ist alles, was sie deklariert und die Maschine nicht erfüllt (Ollama aus, Modell fehlt, Tresor nicht eingehängt), ein `ÉCHEC`, und der Exit-Code ist `1`. Mit der ausgefüllten Konfiguration aus Schritt 5 und eingehängten Tresoren endet die Ausgabe mit einer Zusammenfassung wie dieser:
 
 ```
-Diagnose: 12 OK, 1 Warnung(en), 0 Fehler, 0 nicht konfiguriert, 0 nicht geprüft
+Diagnose: 12 OK, 1 Warnung(en), 0 Fehler, 1 nicht konfiguriert, 0 nicht geprüft
 ```
 
-Die einzige Warnung betrifft Zustand und Journal, die unverschlüsselt unter `~/.local/state/skrivagner/` liegen, bis Sie sie in einen Tresor verlegen.
+Die einzige Warnung betrifft Zustand und Journal, die unverschlüsselt unter `~/.local/state/skrivagner/` liegen, bis Sie sie in einen Tresor verlegen. Die Sortierung per Entscheidung (`ollama.roles.tri_decision`) bleibt `NON_CONFIGURÉ`, solange Sie sie nicht deklarieren: die Sortierung läuft dann über `tri_rapide`.
 
 ## Sprache der Meldungen
 

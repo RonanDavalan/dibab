@@ -1,4 +1,4 @@
-"""Diagnostic de l'installation (`--diagnose`) : treize vérifications, cinq états, aucune écriture.
+"""Diagnostic de l'installation (`--diagnose`) : quatorze vérifications, cinq états, aucune écriture.
 
 Les jetons d'état ne se traduisent jamais, pour qu'un script les compare d'une langue à l'autre. Le diagnostic
 joue toutes ses vérifications jusqu'au bout. Il n'ouvre qu'une connexion, vers Ollama ; aucune vers une source
@@ -11,7 +11,7 @@ import sys
 from collections import namedtuple
 from pathlib import Path
 
-from modules import chemins, coffres, domaines, installation, modeles
+from modules import chemins, coffres, domaines, installation, modeles, tri_decision
 from modules.messages import texte_de, traduire, traduire_compose
 
 OK = "OK"
@@ -38,6 +38,7 @@ def etats_permis():
     tableau["emplacement_etat"] = (OK, AVERTISSEMENT, NON_VERIFIE)
     tableau["ollama"] = (OK, ECHEC, NON_VERIFIE)
     tableau.update({f"modele_{role}": (OK, ECHEC, NON_VERIFIE) for role in ROLES})
+    tableau["modele_tri_decision"] = (OK, AVERTISSEMENT, NON_CONFIGURE, NON_VERIFIE)
     tableau.update({f"destination_{domaine}": (OK, ECHEC, NON_VERIFIE) for domaine in domaines.COFFRES})
     return tableau
 
@@ -120,6 +121,25 @@ def _verifier_modele(role, configuration, installes):
     return _verification(OK, identifiant, modele=retenus[0], complement=complement)
 
 
+def _verifier_tri_decision(configuration, installes):
+    """Le rôle facultatif `tri_decision` : son choix utilisable, ou le motif du retour au tri par génération."""
+    identifiant = "modele_tri_decision"
+    if configuration is None:
+        return _verification(NON_VERIFIE, identifiant)
+    if installes is None:
+        return _verification(NON_VERIFIE, identifiant, "_ollama")
+    if not tri_decision.declare(configuration):
+        return _verification(NON_CONFIGURE, identifiant)
+    # Une liste de noms (Ollama qui ne publie pas les capacités) laisse la capacité inconnue.
+    capacites = installes if isinstance(installes, dict) else dict.fromkeys(installes)
+    resolution = tri_decision.resoudre(configuration, capacites)
+    choix = resolution.choix
+    if choix is None:
+        return _verification(AVERTISSEMENT, identifiant, cause=tri_decision.libelle_repli(resolution.motif, resolution.modele))
+    return _verification(OK, identifiant, modele=choix.modele, seuil_non=choix.non_administratif, seuil_admin=choix.administratif,
+                         minimum=choix.caracteres_min, objet=choix.objet)
+
+
 def _verifier_destination(domaine, configuration, verifier_coffre):
     identifiant = f"destination_{domaine}"
     if configuration is None:
@@ -135,8 +155,8 @@ def _verifier_destination(domaine, configuration, verifier_coffre):
 
 
 def diagnostiquer(option, environ, chemin_du_script, cles_absentes, which=shutil.which, version_python=None,
-                  lister=modeles.lister_modeles_installes, verifier_coffre=coffres.verifier_coffre):
-    """Rend les treize vérifications dans l'ordre de la spécification."""
+                  lister=modeles.lister_capacites, verifier_coffre=coffres.verifier_coffre):
+    """Rend les quatorze vérifications dans l'ordre de la spécification."""
     version = tuple(version_python or sys.version_info[:3])
     configuration, verification_configuration = _verifier_configuration(option, environ, chemin_du_script, cles_absentes)
     verifications = [_verification(OK if version >= PYTHON_MINIMUM else ECHEC, "python", version=".".join(str(partie) for partie in version))]
@@ -151,6 +171,7 @@ def diagnostiquer(option, environ, chemin_du_script, cles_absentes, which=shutil
     installes, verification_ollama = _verifier_ollama(configuration, lister)
     verifications.append(verification_ollama)
     verifications += [_verifier_modele(role, configuration, installes) for role in ROLES]
+    verifications.append(_verifier_tri_decision(configuration, installes))
     verifications += [_verifier_destination(domaine, configuration, verifier_coffre) for domaine in domaines.COFFRES]
     return verifications
 

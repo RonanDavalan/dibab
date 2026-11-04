@@ -80,7 +80,7 @@ def test_le_code_n_appelle_que_des_cles_de_l_anglais_et_chaque_cle_est_appelee()
 
 def test_le_diagnostic_porte_les_cles_de_chaque_couple_identifiant_etat():
     permis = diagnostic.etats_permis()
-    assert len(permis) == 13
+    assert len(permis) == 14
     for langue in LANGUES:
         dictionnaire = lire(langue)
         for identifiant, etats in permis.items():

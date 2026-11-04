@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Create the Python environment and check the tests (expected: `466 passed, 8 skipped`; the 8 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `531 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -172,18 +172,19 @@ NON_VÉRIFIÉ ollama : depends on the configuration
 NON_VÉRIFIÉ modele_ocr : depends on the configuration
 NON_VÉRIFIÉ modele_tri_rapide : depends on the configuration
 NON_VÉRIFIÉ modele_classification : depends on the configuration
+NON_VÉRIFIÉ modele_tri_decision : depends on the configuration
 NON_VÉRIFIÉ destination_personnel : depends on the configuration
 NON_VÉRIFIÉ destination_professionnel : depends on the configuration
-Diagnostic: 5 OK, 0 warning(s), 0 failure(s), 1 not configured, 7 not checked
+Diagnostic: 5 OK, 0 warning(s), 0 failure(s), 1 not configured, 8 not checked
 ```
 
 The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) and the identifiers are the same in every language, so that a script can compare them. Once the configuration is written, everything it declares and the machine does not hold (Ollama off, a model missing, a vault not mounted) is an `ÉCHEC` and the exit code is `1`. With the configuration of step 5 filled in and each vault mounted, the output ends on a summary like this one:
 
 ```
-Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 0 not configured, 0 not checked
+Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 1 not configured, 0 not checked
 ```
 
-The one warning is the state and the journal in clear text under `~/.local/state/skrivagner/`, until you move them into a vault.
+The one warning is the state and the journal in clear text under `~/.local/state/skrivagner/`, until you move them into a vault. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it: the triage then goes through `tri_rapide`.
 
 ## Language of the messages
 

@@ -14,8 +14,9 @@ from modules import coffres, diagnostic, modeles
 RACINE = Path(__file__).resolve().parent.parent
 IDENTIFIANTS = ["python", "outil_pdftotext", "outil_pdftoppm", "outil_findmnt", "outil_ssh", "configuration",
                 "emplacement_etat", "ollama", "modele_ocr", "modele_tri_rapide", "modele_classification",
-                "destination_personnel", "destination_professionnel"]
-INSTALLES = ["m-ocr:latest", "m-tri:latest", "m-classe-a:latest", "m-classe-b:latest"]
+                "modele_tri_decision", "destination_personnel", "destination_professionnel"]
+INSTALLES = ["m-ocr:latest", "m-tri:latest", "m-classe-a:latest", "m-classe-b:latest", "m-decision:latest", "m-objet:latest"]
+SEUILS = {"m-decision": {"non_administratif": 0.97, "administratif": 0.42, "caracteres_min": 120}}
 
 
 def tous_les_outils(nom):
@@ -56,7 +57,9 @@ def aire(tmp_path):
                   "journal": str(tmp_path / "coffre-a" / "logs" / "journal.jsonl"),
                   "sessions": str(tmp_path / "coffre-a" / "logs" / "sessions")},
         "ollama": {"url": "http://ollama.exemple:11434", "timeout_secondes": 5,
-                   "roles": {"ocr": ["m-ocr"], "tri_rapide": ["absent", "m-tri"], "classification": ["m-classe-a", "m-classe-b", "absent"]}},
+                   "roles": {"ocr": ["m-ocr"], "tri_rapide": ["absent", "m-tri"], "classification": ["m-classe-a", "m-classe-b", "absent"],
+                             "tri_decision": ["absent", "m-decision"], "objet": ["m-objet"]}},
+        "classification": {"seuils_tri_decision": SEUILS},
     }
     chemin = tmp_path / "config.json"
     chemin.write_text(json.dumps(configuration), encoding="utf-8")
@@ -114,8 +117,8 @@ def test_sans_configuration_ni_ollama_le_bilan_est_celui_de_la_specification(air
                                              version_python=(3, 12, 11), lister=jamais_appele, verifier_coffre=coffre_monte)
     diagnostic.afficher(verifications, sortie)
     lignes = sortie.getvalue().splitlines()
-    assert [ligne.split()[0] for ligne in lignes[:-1]] == ["OK"] * 5 + ["NON_CONFIGURÉ"] + ["NON_VÉRIFIÉ"] * 7
-    assert lignes[-1] == "Diagnostic : 5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 7 non vérifié(s)"
+    assert [ligne.split()[0] for ligne in lignes[:-1]] == ["OK"] * 5 + ["NON_CONFIGURÉ"] + ["NON_VÉRIFIÉ"] * 8
+    assert lignes[-1] == "Diagnostic : 5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 8 non vérifié(s)"
     assert diagnostic.code_de_retour(verifications) == 0
 
 
@@ -246,8 +249,8 @@ def test_main_diagnose_sans_configuration_rend_0_et_ne_cree_aucun_fichier(tmp_pa
     avant = sorted(tmp_path.rglob("*"))
     code = skrivagner.main()
     lignes = capsys.readouterr().out.splitlines()
-    assert [ligne.split()[0] for ligne in lignes[5:-1]] == ["NON_CONFIGURÉ"] + ["NON_VÉRIFIÉ"] * 7
-    assert lignes[-1].endswith("1 non configuré(s), 7 non vérifié(s)")
+    assert [ligne.split()[0] for ligne in lignes[5:-1]] == ["NON_CONFIGURÉ"] + ["NON_VÉRIFIÉ"] * 8
+    assert lignes[-1].endswith("1 non configuré(s), 8 non vérifié(s)")
     assert code == (1 if any(ligne.startswith("ÉCHEC ") for ligne in lignes) else 0)
     assert sorted(tmp_path.rglob("*")) == avant
 
@@ -275,3 +278,62 @@ def test_diagnose_par_la_ligne_de_commande_dans_un_domicile_vide(tmp_path):
     assert lignes[-1].startswith("Diagnostic : ")
     assert resultat.returncode == (1 if any(ligne.startswith("ÉCHEC ") for ligne in lignes) else 0)
     assert list(tmp_path.iterdir()) == []
+
+
+def _avec(aire, **modifications):
+    configuration = json.loads(json.dumps(aire["configuration"]))
+    for chemin, valeur in modifications.items():
+        bloc, cle = chemin.split("__")
+        cible = configuration["ollama"]["roles"] if bloc == "roles" else configuration["classification"]
+        if valeur is None:
+            cible.pop(cle, None)
+        else:
+            cible[cle] = valeur
+    aire["chemin"].write_text(json.dumps(configuration), encoding="utf-8")
+
+
+def test_le_diagnostic_nomme_le_tri_par_decision_ses_seuils_et_son_objet(aire):
+    verification = jouer(aire)["modele_tri_decision"]
+    assert verification.etat == "OK"
+    assert verification.message.startswith("m-decision:latest, non administratif à partir de 0.97, administratif sous 0.42")
+    assert verification.message.endswith("objet : m-objet:latest")
+
+
+@pytest.mark.parametrize("role", [None, []])
+def test_sans_role_tri_decision_le_diagnostic_dit_non_configure_sans_changer_le_code(aire, role):
+    _avec(aire, roles__tri_decision=role)
+    resultats = jouer(aire)
+    assert resultats["modele_tri_decision"].etat == "NON_CONFIGURÉ"
+    assert "ollama.roles.tri_rapide" in resultats["modele_tri_decision"].message
+    assert diagnostic.code_de_retour(list(resultats.values())) == 0
+
+
+@pytest.mark.parametrize("modifications, attendu", [
+    ({"roles__tri_decision": ["absent"]}, "ollama.roles.tri_decision"),
+    ({"classification__seuils_tri_decision": {}}, "classification.seuils_tri_decision"),
+    ({"classification__seuils_tri_decision": {"m-decision": {"non_administratif": 0.3, "administratif": 0.5, "caracteres_min": 1}}},
+     "classification.seuils_tri_decision"),
+    ({"roles__objet": ["absent"]}, "ollama.roles.objet"),
+])
+def test_un_tri_par_decision_inutilisable_est_un_avertissement_qui_nomme_la_cle(aire, modifications, attendu):
+    _avec(aire, **modifications)
+    resultats = jouer(aire)
+    verification = resultats["modele_tri_decision"]
+    assert verification.etat == "AVERTISSEMENT"
+    assert attendu in verification.message and "ollama.roles.tri_rapide" in verification.message
+    assert diagnostic.code_de_retour(list(resultats.values())) == 0
+
+
+def test_un_modele_sans_capacite_decision_est_un_avertissement(aire):
+    capacites = {nom: ("completion",) for nom in INSTALLES}
+    verification = jouer(aire, lister=lambda url, delai: capacites)["modele_tri_decision"]
+    assert verification.etat == "AVERTISSEMENT" and "m-decision:latest" in verification.message
+
+
+def test_avec_la_capacite_decision_publiee_le_tri_par_decision_est_ok(aire):
+    capacites = {nom: ("decision",) if nom == "m-decision:latest" else ("completion",) for nom in INSTALLES}
+    assert jouer(aire, lister=lambda url, delai: capacites)["modele_tri_decision"].etat == "OK"
+
+
+def test_ollama_muet_ne_verifie_pas_le_tri_par_decision(aire):
+    assert jouer(aire, lister=ollama_muet)["modele_tri_decision"].etat == "NON_VÉRIFIÉ"

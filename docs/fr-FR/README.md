@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `466 passed, 8 skipped` ; les 8 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `531 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -172,18 +172,19 @@ NON_VÉRIFIÉ ollama : dépend de la configuration
 NON_VÉRIFIÉ modele_ocr : dépend de la configuration
 NON_VÉRIFIÉ modele_tri_rapide : dépend de la configuration
 NON_VÉRIFIÉ modele_classification : dépend de la configuration
+NON_VÉRIFIÉ modele_tri_decision : dépend de la configuration
 NON_VÉRIFIÉ destination_personnel : dépend de la configuration
 NON_VÉRIFIÉ destination_professionnel : dépend de la configuration
-Diagnostic : 5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 7 non vérifié(s)
+Diagnostic : 5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 8 non vérifié(s)
 ```
 
 Les jetons d'état (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) et les identifiants sont les mêmes dans toutes les langues, pour qu'un script puisse les comparer. Une fois la configuration écrite, tout ce qu'elle déclare et que la machine ne tient pas (Ollama éteint, modèle absent, coffre non monté) est un `ÉCHEC` et le code de sortie vaut `1`. Avec la configuration de l'étape 5 remplie et les coffres montés, la sortie se termine par un bilan comme celui-ci :
 
 ```
-Diagnostic : 12 OK, 1 avertissement(s), 0 échec(s), 0 non configuré(s), 0 non vérifié(s)
+Diagnostic : 12 OK, 1 avertissement(s), 0 échec(s), 1 non configuré(s), 0 non vérifié(s)
 ```
 
-Le seul avertissement est l'état et le journal en clair sous `~/.local/state/skrivagner/`, tant que vous ne les déplacez pas dans un coffre.
+Le seul avertissement est l'état et le journal en clair sous `~/.local/state/skrivagner/`, tant que vous ne les déplacez pas dans un coffre. Le tri par décision (`ollama.roles.tri_decision`) reste `NON_CONFIGURÉ` tant que vous ne le déclarez pas : le tri passe alors par `tri_rapide`.
 
 ## Langue des messages
 

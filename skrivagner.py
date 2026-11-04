@@ -35,6 +35,7 @@ from modules import scanner_local
 from modules import sources_distantes as mod_sources_distantes
 from modules import sources_imap as mod_sources_imap
 from modules import suivi as mod_suivi
+from modules import tri_decision as mod_tri_decision
 from modules import verrou as mod_verrou
 from modules.messages import ParseurTraduit, ecrire, texte_de, traduire
 
@@ -543,6 +544,9 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
             tri=resultat.tri.verdict if resultat.tri else None,
             objet=verdict.objet,
             modele_tri=resultat.tri.modele if resultat.tri else None,
+            modele_objet=resultat.tri.modele_objet if resultat.tri else None,
+            p_non_administratif=resultat.tri.p_non_administratif if resultat.tri else None,
+            repli_tri=resultat.tri.repli if resultat.tri else None,
             modele_classification=fine.modele if fine else None,
             domaine=verdict.domaine if verdict.administratif else None,
             categorie=verdict.categorie,
@@ -623,13 +627,35 @@ def executer_inventaire(configuration, journal):
 
 
 def modeles_de_la_cascade(configuration, modeles_retenus):
-    """Les modèles retenus, avec tous ceux du rôle `classification` : le consensus les interroge ensemble."""
+    """Les modèles retenus, avec tous ceux du rôle `classification` (le consensus les interroge ensemble) et le tri par décision.
+
+    Rend (modèles de la cascade, `tri_decision.Resolution`).
+    """
     try:
         classeurs = mod_modeles.modeles_installes_du_role(configuration["ollama"], "classification")
+        resolution = mod_tri_decision.Resolution()
+        if mod_tri_decision.declare(configuration):
+            resolution = mod_tri_decision.resoudre(configuration, mod_modeles.lister_capacites(
+                configuration["ollama"]["url"], configuration["ollama"].get("timeout_secondes", 120)))
     except mod_modeles.ModeleIndisponible as erreur:
         erreur_console(texte_de(erreur))
         sys.exit(3)
-    return dict(modeles_retenus, classification=classeurs)
+    return dict(modeles_retenus, classification=classeurs, tri_decision=resolution.choix, repli_tri=resolution.motif), resolution
+
+
+def annoncer_tri_decision(resolution, modele_tri):
+    """Une ligne d'en-tête quand le rôle `tri_decision` est déclaré : le choix utilisé, ou le motif du repli."""
+    if not resolution.declare:
+        return
+    choix = resolution.choix
+    if choix:
+        ecrire(traduire("session_modele", role=f"{mod_tri_decision.ROLE:<14s}", modele=choix.modele), 2)
+        ecrire(traduire("session_modele", role=f"{mod_tri_decision.ROLE_OBJET:<14s}", modele=choix.objet), 2)
+        ecrire(traduire("session_tri_decision_seuils", seuil_non=choix.non_administratif, seuil_admin=choix.administratif,
+                        minimum=choix.caracteres_min), 2)
+    else:
+        ecrire(traduire("session_tri_decision_repli", motif=mod_tri_decision.libelle_repli(resolution.motif, resolution.modele),
+                        modele=modele_tri), 2)
 
 
 def diagnostiquer_installation(option):
@@ -692,12 +718,15 @@ def principal():
         ecrire(traduire("session_journal_absent"), 2)
     modeles_cascade = None
     if modeles_retenus:
-        modeles_cascade = modeles_de_la_cascade(configuration, modeles_retenus)
+        modeles_cascade, resolution = modeles_de_la_cascade(configuration, modeles_retenus)
         for role, modele in modeles_retenus.items():
             ecrire(traduire("session_modele", role=f"{role:<14s}", modele=modele), 2)
+        annoncer_tri_decision(resolution, modeles_retenus["tri_rapide"])
         ecrire(traduire("session_consensus", nombre=len(modeles_cascade["classification"]),
                         seuil=configuration["ollama"].get("seuil_confiance", 0)), 2)
-        journal.ajouter("modeles_retenus", **modeles_retenus, classification_consensus=modeles_cascade["classification"])
+        journal.ajouter("modeles_retenus", **modeles_retenus, classification_consensus=modeles_cascade["classification"],
+                        tri_decision=resolution.choix.modele if resolution.choix else resolution.modele,
+                        objet=resolution.choix.objet if resolution.choix else None, repli_tri=resolution.motif)
     print()
 
     if mode == "rollback":

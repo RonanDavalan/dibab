@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Crear el entorno de Python y comprobar las pruebas (esperado: `466 passed, 8 skipped`; los 8 omitidos son los ensayos contra un Ollama que responde):
+2. Crear el entorno de Python y comprobar las pruebas (esperado: `531 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
 
 ```bash
 python3 -m venv venv
@@ -172,18 +172,19 @@ NON_VÉRIFIÉ ollama : depende de la configuración
 NON_VÉRIFIÉ modele_ocr : depende de la configuración
 NON_VÉRIFIÉ modele_tri_rapide : depende de la configuración
 NON_VÉRIFIÉ modele_classification : depende de la configuración
+NON_VÉRIFIÉ modele_tri_decision : depende de la configuración
 NON_VÉRIFIÉ destination_personnel : depende de la configuración
 NON_VÉRIFIÉ destination_professionnel : depende de la configuración
-Diagnóstico: 5 OK, 0 advertencia(s), 0 fallo(s), 1 sin configurar, 7 sin comprobar
+Diagnóstico: 5 OK, 0 advertencia(s), 0 fallo(s), 1 sin configurar, 8 sin comprobar
 ```
 
 Los símbolos de estado (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) y los identificadores son los mismos en todos los idiomas, para que un script pueda compararlos. Una vez escrita la configuración, todo lo que declara y la máquina no cumple (Ollama apagado, modelo ausente, bóveda sin montar) es un `ÉCHEC` y el código de salida vale `1`. Con la configuración del paso 5 rellenada y las bóvedas montadas, la salida termina con un resumen como este:
 
 ```
-Diagnóstico: 12 OK, 1 advertencia(s), 0 fallo(s), 0 sin configurar, 0 sin comprobar
+Diagnóstico: 12 OK, 1 advertencia(s), 0 fallo(s), 1 sin configurar, 0 sin comprobar
 ```
 
-La única advertencia es el estado y el diario sin cifrar en `~/.local/state/skrivagner/`, mientras no los traslade a una bóveda.
+La única advertencia es el estado y el diario sin cifrar en `~/.local/state/skrivagner/`, mientras no los traslade a una bóveda. La clasificación por decisión (`ollama.roles.tri_decision`) queda `NON_CONFIGURÉ` mientras no la declare: la clasificación pasa entonces por `tri_rapide`.
 
 ## Idioma de los mensajes
 

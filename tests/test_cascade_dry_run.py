@@ -83,3 +83,68 @@ def test_la_ligne_montre_l_objet_l_accord_et_le_motif(banc, monkeypatch, capsys)
     sortie = capsys.readouterr().out
     assert sortie.count("tri incertain, domaine incertain, accord 1/1") == 3
     assert sortie.count("objet : courrier factice") == 3 and sortie.count("motif : tri incertain") == 3
+
+
+def _brancher_tri_decision(banc, monkeypatch, seuils):
+    racine, chemin_config = banc
+    configuration = json.loads(chemin_config.read_text(encoding="utf-8"))
+    configuration["ollama"]["roles"].update(tri_decision=["m-decision"], objet=["m-objet"])
+    configuration["classification"]["seuils_tri_decision"] = seuils
+    chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
+    monkeypatch.setattr(skrivagner.mod_modeles, "lister_capacites",
+                        lambda url, delai: {"modele-factice": ("completion",), "m-decision:latest": ("decision",), "m-objet:latest": ("completion",)})
+
+    def generer(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
+        if "verdict" in format["properties"]:
+            return json.dumps({"verdict": "administratif", "objet": "objet du tri par génération"})
+        if set(format["properties"]) == {"objet"}:
+            return json.dumps({"objet": "objet du modèle d'objet"})
+        return json.dumps(TEXTES[0]["reponse"])
+
+    def decider(url, modele, etat, questions, delai, keep_alive):
+        return {"nature": {"probabilities": {"administratif": 0.99, "non_administratif": 0.01}}}
+    monkeypatch.setattr(skrivagner.mod_cascade, "executer", partial(skrivagner.mod_cascade.executer, generer=generer, decider=decider))
+    return racine
+
+
+def _evenements(racine, nom):
+    brut = next((racine / "coffre-a" / "logs" / "sessions").glob("session_*.jsonl")).read_text(encoding="utf-8")
+    return [e for e in map(json.loads, brut.splitlines()) if e["evenement"] == nom]
+
+
+def test_le_dry_run_annonce_le_tri_par_decision_ou_son_repli(banc, monkeypatch, capsys):  # noqa: F811
+    seuils = {"m-decision": {"non_administratif": 0.97, "administratif": 0.42, "caracteres_min": 100}}
+    racine = _brancher_tri_decision(banc, monkeypatch, seuils)
+    brancher_faux_modele(monkeypatch, TEXTES[0]["texte"])
+    assert lancer(monkeypatch, "--dry-run") == 0
+    sortie = capsys.readouterr().out
+    assert "Modèle tri_decision  : m-decision:latest" in sortie and "Modèle objet         : m-objet:latest" in sortie
+    assert "Tri par décision   : non administratif à partir de 0.97, administratif sous 0.42, 100 caractères" in sortie
+    assert sortie.count("objet : objet du modèle d'objet") == 3
+    (retenus,) = _evenements(racine, "modeles_retenus")
+    assert (retenus["tri_decision"], retenus["objet"], retenus["repli_tri"]) == ("m-decision:latest", "m-objet:latest", None)
+    for evenement in _evenements(racine, "classification"):
+        assert (evenement["modele_tri"], evenement["modele_objet"], evenement["p_non_administratif"], evenement["repli_tri"]) == (
+            "m-decision:latest", "m-objet:latest", 0.01, None)
+
+
+def test_le_dry_run_dit_pourquoi_le_tri_par_decision_n_est_pas_utilise(banc, monkeypatch, capsys):  # noqa: F811
+    racine = _brancher_tri_decision(banc, monkeypatch, {})
+    brancher_faux_modele(monkeypatch, TEXTES[0]["texte"])
+    assert lancer(monkeypatch, "--dry-run") == 0
+    sortie = capsys.readouterr().out
+    assert ("Tri par décision   : non utilisé, pas de seuils valides pour m-decision:latest dans classification.seuils_tri_decision ; "
+            "le tri passe par modele-factice") in sortie
+    (retenus,) = _evenements(racine, "modeles_retenus")
+    assert (retenus["tri_decision"], retenus["objet"], retenus["repli_tri"]) == ("m-decision:latest", None, "seuils_absents")
+    for evenement in _evenements(racine, "classification"):
+        assert (evenement["modele_tri"], evenement["p_non_administratif"], evenement["repli_tri"]) == ("modele-factice", None, "seuils_absents")
+
+
+def test_sans_tri_par_decision_l_en_tete_reste_celui_d_avant(banc, monkeypatch, capsys):  # noqa: F811
+    brancher_faux_modele(monkeypatch, TEXTES[0]["texte"])
+    brancher_cascade(monkeypatch, "administratif", TEXTES[0]["reponse"])
+    monkeypatch.setattr(skrivagner.mod_modeles, "lister_capacites", lambda *_: (_ for _ in ()).throw(AssertionError("non déclaré")))
+    assert lancer(monkeypatch, "--dry-run") == 0
+    sortie = capsys.readouterr().out
+    assert "tri_decision" not in sortie and "Tri par décision" not in sortie

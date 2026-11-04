@@ -1,13 +1,14 @@
 """Cascade tri rapide puis classification fine, étape par étape.
 
 Un seul modèle est chargé à la fois : toutes les requêtes d'une étape se suivent, la dernière
-décharge le modèle (`keep_alive` à 0) avant l'étape suivante.
+décharge le modèle (`keep_alive` à 0) avant l'étape suivante. Le tri passe par un modèle decision
+puis par le modèle d'objet quand `modeles["tri_decision"]` est un choix utilisable, sinon par la génération.
 """
 
 import sys
 from dataclasses import dataclass, replace
 
-from modules import appel_ollama, classification, domaines
+from modules import appel_ollama, classification, domaines, tri_decision
 from modules.messages import traduire
 
 
@@ -93,21 +94,50 @@ def _choisir_classification(fines, seuil):
     return replace(premier, verdict=replace(premier.verdict, domaine=domaines.INCERTAIN)), confiance
 
 
-def executer(documents, configuration, modeles, generer=appel_ollama.generer):
+def _trier(avec_texte, configuration, modeles, generer, decider):
+    """Rend {chemin: Tri} : par décision puis objet si un choix est utilisable, la génération pour le reste, puis le garde-fou.
+
+    Un 404 de `/v1/systemone` fait trier par la génération toutes les pièces que le modèle decision n'a pas triées.
+    """
+    parametres = configuration["classification"]
+    keep_alive = parametres["keep_alive_entre_documents"]
+    choix, repli = modeles.get("tri_decision"), modeles.get("repli_tri")
+    tris = {}
+    if choix is not None:
+        for rang, (chemin, texte) in enumerate(avec_texte):
+            derniere = rang == len(avec_texte) - 1
+            try:
+                tris[chemin] = tri_decision.trier(texte, parametres, configuration["ollama"], choix, 0 if derniere else keep_alive, decider)
+            except appel_ollama.PointAccesAbsent:
+                repli = tri_decision.MOTIF_OLLAMA_SANS_SYSTEMONE
+                _signaler(traduire("tri_decision_repli_en_cours", modele=choix.modele))
+                break
+        decides = [(chemin, texte) for chemin, texte in avec_texte if chemin in tris]
+        objets = _etape(decides, lambda doc, ka: classification.rendre_objet(
+            doc[1], parametres, configuration["ollama"], choix.objet, ka, generer), keep_alive)
+        for (chemin, _), objet in zip(decides, objets):
+            tris[chemin] = replace(tris[chemin], objet=objet, modele_objet=choix.objet)
+    restants = [(chemin, texte) for chemin, texte in avec_texte if chemin not in tris]
+    generes = _etape(restants, lambda doc, ka: classification.tri_rapide(
+        doc[1], parametres, configuration["ollama"], modeles["tri_rapide"], ka, generer), keep_alive)
+    for (chemin, _), tri in zip(restants, generes):
+        tris[chemin] = replace(tri, repli=repli)
+    # Le garde-fou lit le texte entier, pas seulement le début que le modèle a lu.
+    return {chemin: classification.garder_les_pieces_administratives(tris[chemin], texte, configuration) for chemin, texte in avec_texte}
+
+
+def executer(documents, configuration, modeles, generer=appel_ollama.generer, decider=appel_ollama.decider):
     """Rend un `Resultat` par document `(chemin, texte)` ; un texte vide (extraction en échec) vaut incertain.
 
     `modeles["classification"]` est un nom ou une liste de noms : chaque modèle classe tous les
     documents à son tour, puis le consensus décide au `seuil_confiance` de la configuration.
+    `modeles["tri_decision"]` (facultatif) est un `tri_decision.Choix`, `modeles["repli_tri"]` le motif d'un repli.
     """
     parametres = configuration["classification"]
     keep_alive = parametres["keep_alive_entre_documents"]
     avec_texte = [(chemin, texte) for chemin, texte in documents if texte.strip()]
 
-    tris = dict(zip(
-        [chemin for chemin, _ in avec_texte],
-        _etape(avec_texte, lambda doc, ka: classification.garder_les_pieces_administratives(
-            classification.tri_rapide(doc[1], parametres, configuration["ollama"], modeles["tri_rapide"], ka, generer),
-            doc[1], configuration), keep_alive)))
+    tris = _trier(avec_texte, configuration, modeles, generer, decider)
 
     a_classer = [(chemin, texte) for chemin, texte in avec_texte if tris[chemin].verdict != classification.NON_ADMINISTRATIF]
     classeurs = [modeles["classification"]] if isinstance(modeles["classification"], str) else list(modeles["classification"])

@@ -6,7 +6,7 @@ import urllib.request
 
 import pytest
 
-from modules import appel_ollama, cascade, classification, domaines
+from modules import appel_ollama, cascade, classification, domaines, tri_decision
 from tests.textes_factices import CATEGORIES, EMETTEURS_CONNUS, PERSONNES, PIEGE, PIEGE_CATEGORIE, TEXTES, TEXTES_LIMITES
 
 PARAMETRES = {"temperature": 0, "num_ctx": 8192, "caracteres_max_prompt": 12000,
@@ -400,7 +400,20 @@ def _modeles_essai():
         pytest.skip("Ollama ne répond pas")
     if any(m not in installes and f"{m}:latest" not in installes for m in (tri, fin)):
         pytest.skip("modèle absent de `ollama list`")
-    return {"tri_rapide": tri, "classification": fin}, {**CONFIGURATION, "ollama": {**OLLAMA, "url": "http://localhost:11434", "timeout_secondes": 300}}
+    configuration = {**CONFIGURATION, "ollama": {**OLLAMA, "url": "http://localhost:11434", "timeout_secondes": 300}}
+    return {"tri_rapide": tri, "classification": fin, "tri_decision": _choix_essai(installes)}, configuration
+
+
+def _choix_essai(installes):
+    """Le tri par décision de l'environnement (modèle, modèle d'objet, seuils « haut,bas,minimum »), ou None : tri par génération."""
+    decision, objet = os.environ.get("SKRIVAGNER_MODELE_DECISION_ESSAI"), os.environ.get("SKRIVAGNER_MODELE_OBJET_ESSAI")
+    seuils = os.environ.get("SKRIVAGNER_SEUILS_DECISION_ESSAI")
+    if not (decision and objet and seuils):
+        return None
+    if any(m not in installes and f"{m}:latest" not in installes for m in (decision, objet)):
+        pytest.skip("modèle decision ou d'objet absent de `ollama list`")
+    haut, bas, minimum = seuils.split(",")
+    return tri_decision.Choix(decision, float(haut), float(bas), int(minimum), objet)
 
 
 def test_les_textes_aux_limites_recoivent_le_tri_attendu_d_un_modele_exact():
@@ -449,6 +462,20 @@ def test_reel_les_documentations_techniques_sont_non_administratives_et_les_piec
     assert resultats["conditions-generales"].tri.verdict != "non_administratif"
     assert resultats["confirmation-courte"].tri.verdict != "non_administratif"
     assert all(r.tri.objet for r in resultats.values())
+
+
+@pytest.mark.ollama_reel
+def test_reel_le_tri_par_decision_trouve_les_documentations_et_garde_les_pieces_administratives():
+    modeles, configuration = _modeles_essai()
+    if modeles["tri_decision"] is None:
+        pytest.skip("SKRIVAGNER_MODELE_DECISION_ESSAI, SKRIVAGNER_MODELE_OBJET_ESSAI ou SKRIVAGNER_SEUILS_DECISION_ESSAI absent")
+    documents = TEXTES + TEXTES_LIMITES
+    resultats = {r.chemin: r for r in cascade.executer([(t["id"], t["texte"]) for t in documents], configuration, modeles)}
+    assert all(r.tri.modele == modeles["tri_decision"].modele and r.tri.repli is None for r in resultats.values())
+    assert all(r.tri.p_non_administratif is not None and r.tri.objet for r in resultats.values())
+    # Une pièce administrative triée non administrative resterait en clair dans la source : l'erreur la plus grave.
+    assert [t["id"] for t in documents if t["tri"] == "administratif" and resultats[t["id"]].tri.verdict == "non_administratif"] == []
+    assert resultats["manuel-fr"].tri.verdict == "non_administratif" and resultats["manual-en"].tri.verdict == "non_administratif"
 
 
 @pytest.mark.ollama_reel

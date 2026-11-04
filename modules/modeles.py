@@ -10,19 +10,29 @@ import urllib.request
 from modules.messages import texte_de, traduire
 
 
+# Rôles dont l'absence ne bloque rien : sans eux, le tri passe par le rôle `tri_rapide`.
+ROLES_FACULTATIFS = ("tri_decision", "objet")
+
+
 class ModeleIndisponible(Exception):
     """Un rôle n'a aucun modèle installé, ou Ollama ne répond pas."""
 
 
-def lister_modeles_installes(url, timeout):
-    """Rend les noms des modèles installés d'après `GET <url>/api/tags`."""
+def lister_capacites(url, timeout):
+    """Rend {nom: capacités} d'après `GET <url>/api/tags` ; les capacités valent None quand Ollama ne les publie pas."""
     requete = f"{url.rstrip('/')}/api/tags"
     try:
         with urllib.request.urlopen(requete, timeout=timeout) as reponse:
             donnees = json.load(reponse)
     except (urllib.error.URLError, OSError, ValueError) as erreur:
         raise ModeleIndisponible(traduire("modeles_ollama_muet", requete=requete, erreur=texte_de(erreur))) from erreur
-    return [entree["name"] for entree in donnees.get("models", []) if "name" in entree]
+    return {entree["name"]: (tuple(entree["capabilities"]) if isinstance(entree.get("capabilities"), list) else None)
+            for entree in donnees.get("models", []) if "name" in entree}
+
+
+def lister_modeles_installes(url, timeout):
+    """Rend les noms des modèles installés d'après `GET <url>/api/tags`."""
+    return list(lister_capacites(url, timeout))
 
 
 def _est_installe(preference, installes):
@@ -34,11 +44,14 @@ def choisir_modeles(roles, installes):
     """Rend {rôle: premier modèle préféré installé}.
 
     Lève ModeleIndisponible en listant les modèles présents et la ligne de
-    config.json à corriger pour chaque rôle sans modèle.
+    config.json à corriger pour chaque rôle sans modèle. Les rôles facultatifs
+    se résolvent à part (`tri_decision.resoudre`) et n'arrêtent rien.
     """
     retenus = {}
     manquants = []
     for role, preferences in roles.items():
+        if role in ROLES_FACULTATIFS:
+            continue
         choix = next((p for p in preferences if _est_installe(p, installes)), None)
         if choix is None:
             manquants.append(role)
