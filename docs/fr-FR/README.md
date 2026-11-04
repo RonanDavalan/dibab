@@ -45,12 +45,11 @@ Les modèles, par rôle (`ocr` lit les pages numérisées, `tri_rapide` écarte 
 
 ```bash
 ollama pull glm-ocr
+ollama pull mistral-nemo:12b-instruct-2407-q6_K
+ollama pull gemma4
 ollama pull gemma3:4b
-ollama pull qwen2.5:3b
-ollama pull gemma4:e2b
 ollama pull qwen2.5
 ollama pull granite4.2:8b-Q5_K_M
-ollama pull mistral-nemo:12b-instruct-2407-q6_K
 ```
 
 Ces modèles sont ceux de l'instance de référence ; n'importe quels autres conviennent, il suffit de les nommer dans `ollama.roles` (plus bas). Les modèles du rôle `classification` votent : un document n'est classé que si leur accord atteint `ollama.seuil_confiance`. Ollama ne fait pas partie de Skrivagner et celui-ci ne l'installe jamais.
@@ -108,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `459 passed, 8 skipped` ; les 8 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `465 passed, 8 skipped` ; les 8 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
