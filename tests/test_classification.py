@@ -133,6 +133,17 @@ def test_le_garde_fou_est_appele_par_la_cascade():
     assert resultat.tri.verdict == "incertain" and resultat.verdict.administratif
 
 
+def test_le_tri_ne_lit_que_le_debut_du_texte_et_la_classification_garde_sa_limite():
+    parametres = {**PARAMETRES, "caracteres_max_tri": 50}
+    texte = "A" * 50 + "FIN_INATTENDUE"
+    faux = FauxModele()
+    classification.tri_rapide(texte, parametres, OLLAMA, "m", 0, faux)
+    assert "FIN_INATTENDUE" not in faux.appels[0]["consigne"]
+    faux = FauxModele()
+    classification.tri_rapide(texte, PARAMETRES, OLLAMA, "m", 0, faux)
+    assert "FIN_INATTENDUE" in faux.appels[0]["consigne"]
+
+
 def test_tri_panne_ollama_vaut_incertain():
     def en_panne(*args, **kwargs):
         raise appel_ollama.ErreurOllama("arrêté")

@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.
 cd ~/applications/skrivagner
 ```
 
-2. Create the Python environment and check the tests (expected: `465 passed, 8 skipped`; the 8 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `466 passed, 8 skipped`; the 8 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv

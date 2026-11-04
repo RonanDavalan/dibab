@@ -162,7 +162,7 @@ def tri_rapide(texte, parametres, configuration_ollama, modele, keep_alive, gene
     schema = {"type": "object", "properties": {"verdict": {"type": "string", "enum": list(VERDICTS_TRI)},
                                                "objet": {"type": "string"}},
               "required": ["verdict", "objet"], "additionalProperties": False}
-    consigne = _consigne_tri(_encadrer(texte, parametres["caracteres_max_prompt"], marqueur))
+    consigne = _consigne_tri(_encadrer(texte, parametres.get("caracteres_max_tri", parametres["caracteres_max_prompt"]), marqueur))
     try:
         donnees = _objet_json(_appeler(consigne, schema, modele, parametres, configuration_ollama, keep_alive, generer))
         if set(donnees) != {"verdict", "objet"} or donnees["verdict"] not in VERDICTS_TRI or not isinstance(donnees["objet"], str):

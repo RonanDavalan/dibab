@@ -68,6 +68,7 @@
     "temperature": 0,
     "num_ctx": 8192,
     "caracteres_max_prompt": 12000,
+    "caracteres_max_tri": 3000,
     "keep_alive_entre_documents": "2m",
     "longueur_max_champ": 80,
     "longueur_max_citation": 120,
