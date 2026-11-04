@@ -84,9 +84,12 @@ def test_verdict_depuis_dict():
                                     "date": "2026-05-15", "signaux": [SIGNAL_PERSO]})
     assert resultat.date.isoformat() == "2026-05-15"
     assert resultat.signaux == (SIGNAL_PERSO,)
+    assert resultat.objet is None
+    assert verdict_depuis_dict({"administratif": True, "categorie": "CAF", "objet": "avis"}).objet == "avis"
 
 
 @pytest.mark.parametrize("donnees", [
+    {"administratif": True, "categorie": "CAF", "objet": 3},
     {"categorie": "CAF"},
     {"administratif": "oui", "categorie": "CAF"},
     {"administratif": True, "categorie": "CAF", "date": "15/05/2026"},

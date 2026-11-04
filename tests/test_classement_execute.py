@@ -29,9 +29,9 @@ LOT = {
 
 def faux_modeles(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
     if TEXTE_IDENTITE in consigne:
-        return json.dumps({"verdict": "administratif"} if "verdict" in format["properties"] else REPONSE_IDENTITE)
+        return json.dumps({"verdict": "administratif", "objet": "courrier factice"} if "verdict" in format["properties"] else REPONSE_IDENTITE)
     document = next(t for t in reversed(TEXTES) if t["texte"] in consigne)
-    return json.dumps({"verdict": document["tri"]} if "verdict" in format["properties"] else document["reponse"])
+    return json.dumps({"verdict": document["tri"], "objet": document["objet"]} if "verdict" in format["properties"] else document["reponse"])
 
 
 @pytest.fixture
@@ -92,7 +92,8 @@ def test_dry_run_puis_execute_sur_un_lot_mixte(banc, monkeypatch, capsys):
     assert lancer(monkeypatch, "--dry-run") == 0
     sortie = capsys.readouterr().out
     assert arbre(racine / "source") == avant and arbre(racine / "coffre-a") == arbre(racine / "coffre-b") == []
-    assert "confiance 1.00" in sortie and sortie.count("(non déplacé)") == 3
+    assert "accord 2/2" in sortie and "confiance" not in sortie and sortie.count("(non déplacé)") == 3
+    assert sortie.count("motif : ") == 3 and sortie.count("      objet : ") == len(LOT)
 
     assert lancer(monkeypatch, "--execute") == 0
     capsys.readouterr()
@@ -261,3 +262,18 @@ def test_la_configuration_xdg_est_trouvee_avant_celle_du_script(banc, monkeypatc
     copie.write_text(chemin_config.read_text())
     assert lancer(monkeypatch, "--dry-run") == 0
     assert f"Configuration      : {copie}" in capsys.readouterr().out
+
+
+def test_avec_format_a_verifier_le_nom_porte_l_objet_et_le_nom_d_origine(banc, monkeypatch, capsys):
+    racine, chemin_config = banc
+    configuration = json.loads(chemin_config.read_text(encoding="utf-8"))
+    configuration["nommage"]["format_a_verifier"] = "{date}_{emetteur}_{objet}_{origine}{ext}"
+    chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
+    assert lancer(monkeypatch, "--dry-run") == 0
+    sortie = capsys.readouterr().out
+    assert "Tri/[AV]accusé-de-réception-d'un-courrier_incertain.pdf (non déplacé)" in sortie
+    assert "Tri/[AV]2026-03-15_DGFiP_avis-d'impôt-sur-le-revenu_mixte.pdf (non déplacé)" in sortie
+    assert "Inconnu" not in "".join(ligne for ligne in sortie.splitlines() if "[AV]" in ligne)
+    assert lancer(monkeypatch, "--execute") == 0
+    assert "Tri/[AV]accusé-de-réception-d'un-courrier_incertain.pdf" in arbre(racine / "coffre-a")
+    assert "Tri/[AV]conditions-générales-de-vente_incertain-pro.pdf" in arbre(racine / "coffre-b")

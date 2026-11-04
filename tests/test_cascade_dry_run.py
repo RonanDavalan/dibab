@@ -57,3 +57,29 @@ def test_le_journal_garde_le_verdict_sans_citation_ni_texte(banc, monkeypatch): 
     assert len(evenements) == 3 and sorted(e["domaine"] for e in evenements) == ["incertain", "professionnel", "professionnel"]
     assert all(set(s) == {"domaine", "nature"} for e in evenements for s in e["signaux"])
     assert "SIRET 123" not in brut and MOT_SECRET not in brut
+
+
+def test_le_journal_garde_objet_motif_et_ce_que_chaque_modele_a_rendu_sans_destinataire(banc, monkeypatch):  # noqa: F811
+    racine, _ = banc
+    brancher_faux_modele(monkeypatch, TEXTES[8]["texte"])
+    brancher_cascade(monkeypatch, "administratif", {**TEXTES[0]["reponse"], "emetteur": "", "destinataire": "Madame Personne1"})
+    lancer(monkeypatch, "--dry-run")
+    brut = next((racine / "coffre-a" / "logs" / "sessions").glob("session_*.jsonl")).read_text(encoding="utf-8")
+    evenements = [e for e in map(json.loads, brut.splitlines()) if e["evenement"] == "classification"]
+    assert {e["objet"] for e in evenements} == {"courrier factice"}
+    assert {e["motif"] for e in evenements} == {"sans_destinataire_ni_emetteur_connu"}
+    for evenement in evenements:
+        (rendu,) = evenement["par_modele"]
+        assert set(rendu) == {"modele", "valide", "domaine", "categorie", "emetteur", "emetteur_cite", "destinataire_cite",
+                              "nature_destinataire"}
+        assert rendu["destinataire_cite"] is False and rendu["emetteur"] is None and rendu["domaine"] == "incertain"
+    assert "Madame Personne1" not in brut and MOT_SECRET not in brut
+
+
+def test_la_ligne_montre_l_objet_l_accord_et_le_motif(banc, monkeypatch, capsys):  # noqa: F811
+    brancher_faux_modele(monkeypatch, "texte")
+    brancher_cascade(monkeypatch, "incertain", TEXTES[8]["reponse"])
+    lancer(monkeypatch, "--dry-run")
+    sortie = capsys.readouterr().out
+    assert sortie.count("tri incertain, domaine incertain, accord 1/1") == 3
+    assert sortie.count("objet : courrier factice") == 3 and sortie.count("motif : tri incertain") == 3

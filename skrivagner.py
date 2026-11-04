@@ -484,8 +484,29 @@ def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal
     return extractions
 
 
+def libelles_motifs():
+    """Le libellé de chaque motif d'`À_VÉRIFIER/`, liste fermée de la cascade."""
+    return {mod_cascade.MOTIF_AUCUN_TEXTE: traduire("motif_aucun_texte"),
+            mod_cascade.MOTIF_TRI_INCERTAIN: traduire("motif_tri_incertain"),
+            mod_cascade.MOTIF_PIECE_COMMUNE: traduire("motif_piece_commune"),
+            mod_cascade.MOTIF_DOMAINES_DIFFERENTS: traduire("motif_domaines_differents"),
+            mod_cascade.MOTIF_DESACCORD: traduire("motif_desaccord"),
+            mod_cascade.MOTIF_SANS_SIGNAL: traduire("motif_sans_signal")}
+
+
+def releves_par_modele(resultat):
+    """Ce que chaque modèle de classification a rendu, en champs fermés : ni destinataire ni texte."""
+    return [{"modele": fine.modele, "valide": fine.valide,
+             "domaine": fine.verdict.domaine if fine.valide else None,
+             "categorie": fine.verdict.categorie if fine.valide else None,
+             "emetteur": fine.releve.emetteur_rendu, "emetteur_cite": fine.releve.emetteur_cite,
+             "destinataire_cite": fine.releve.destinataire_cite,
+             "nature_destinataire": fine.releve.nature_destinataire}
+            for fine in resultat.classifications]
+
+
 def classer_candidats(configuration, candidats, extractions, modeles, journal):
-    """Fait passer le texte des candidats par la cascade et affiche verdict, domaine et destination, sans rien déplacer."""
+    """Fait passer le texte des candidats par la cascade et affiche objet, verdict, accord, motif et destination, sans rien déplacer."""
     ecrire(traduire("classification_entete"))
     documents = [(candidat.chemin, extractions[candidat.chemin].texte) for candidat in candidats]
     resultats = mod_cascade.executer(documents, configuration, modeles)
@@ -494,13 +515,20 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
     libelles_tri = {mod_classification.ADMINISTRATIF: traduire("tri_administratif"),
                     mod_classification.NON_ADMINISTRATIF: traduire("tri_non_administratif"),
                     mod_classification.INCERTAIN: traduire("tri_incertain")}
+    motifs = libelles_motifs()
     for resultat in resultats:
         verdict = resultat.verdict
         libelle_tri = libelles_tri[resultat.tri.verdict] if resultat.tri else traduire("tri_aucun_texte")
         plan = mod_classement.planifier(resultat.chemin, verdict, configuration, mtimes[resultat.chemin])
-        confiance = ", " + traduire("classification_confiance", valeur=f"{resultat.confiance:.2f}") if resultat.confiance is not None else ""
+        accord = ", " + traduire("classification_accord", accord=f"{resultat.accord[0]}/{resultat.accord[1]}") if resultat.accord else ""
         domaine = verdict.domaine if verdict.administratif else traduire("domaine_sans_objet")
-        ecrire(traduire("classification_ligne", nom=resultat.chemin.name, tri=libelle_tri, domaine=domaine, confiance=confiance), 2)
+        ecrire(traduire("classification_ligne_accord", nom=resultat.chemin.name, tri=libelle_tri, domaine=domaine, accord=accord), 2)
+        if resultat.tri is not None:
+            ecrire(traduire("classification_objet", objet=verdict.objet) if verdict.objet else traduire("classification_objet_absent"), 6)
+        a_verifier = bool(plan) and any(cible.zone == mod_domaines.A_VERIFIER for cible in plan.cibles)
+        motif = mod_cascade.motif_a_verifier(resultat, configuration.get("pieces_communes", ())) if a_verifier else None
+        if motif:
+            ecrire(traduire("classification_motif", motif=motifs[motif]), 6)
         if plan is None:
             ecrire(traduire("classification_ne_bouge_pas"), 6)
         for cible, chemin in zip(plan.cibles if plan else (), plan.chemins if plan else ()):
@@ -513,17 +541,21 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
             "classification",
             chemin=str(resultat.chemin),
             tri=resultat.tri.verdict if resultat.tri else None,
+            objet=verdict.objet,
             modele_tri=resultat.tri.modele if resultat.tri else None,
             modele_classification=fine.modele if fine else None,
             domaine=verdict.domaine if verdict.administratif else None,
             categorie=verdict.categorie,
             emetteur=verdict.emetteur,
+            origine_emetteur=fine.releve.origine_emetteur if fine and verdict.emetteur else None,
             date=verdict.date.isoformat() if verdict.date else None,
             personne=verdict.personne,
             signaux=[{"domaine": s["domaine"], "nature": s["nature"]} for s in verdict.signaux],
             valide=(fine.valide if fine else None),
             raison=(fine.raison if fine and not fine.valide else resultat.tri.raison if resultat.tri else ""),
             confiance=resultat.confiance,
+            motif=motif,
+            par_modele=releves_par_modele(resultat),
             destinations=[str(chemin) for chemin in plan.chemins] if plan else [],
             dry_run=True,
         )

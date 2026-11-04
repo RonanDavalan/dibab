@@ -25,7 +25,7 @@ def faux(reponses):
     """`reponses` : {modèle: texte factice dont il rend la réponse} ; un modèle absent donne le texte personnel."""
     def generer(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
         if "verdict" in format["properties"]:
-            return json.dumps({"verdict": "administratif"})
+            return json.dumps({"verdict": "administratif", "objet": "courrier factice"})
         return json.dumps(reponses.get(modele, PERSONNEL)["reponse"])
     return generer
 

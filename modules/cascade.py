@@ -11,6 +11,16 @@ from modules import appel_ollama, classification, domaines
 from modules.messages import traduire
 
 
+MOTIF_AUCUN_TEXTE = "aucun_texte"
+MOTIF_TRI_INCERTAIN = "tri_incertain"
+MOTIF_PIECE_COMMUNE = "piece_commune_sans_categorie_unanime"
+MOTIF_DOMAINES_DIFFERENTS = "domaines_differents"
+MOTIF_DESACCORD = "desaccord_ou_sous_le_seuil"
+MOTIF_SANS_SIGNAL = "sans_destinataire_ni_emetteur_connu"
+MOTIFS = (MOTIF_AUCUN_TEXTE, MOTIF_TRI_INCERTAIN, MOTIF_PIECE_COMMUNE, MOTIF_DOMAINES_DIFFERENTS, MOTIF_DESACCORD,
+          MOTIF_SANS_SIGNAL)
+
+
 @dataclass(frozen=True)
 class Resultat:
     chemin: object
@@ -19,6 +29,35 @@ class Resultat:
     verdict: domaines.Verdict
     confiance: float = None  # part des modèles de classification d'accord avec le domaine retenu
     categorie_unanime: bool = False  # tous les modèles de classification rendent la même catégorie valide
+    classifications: tuple = ()  # une classification.Classification par modèle, dans l'ordre du rôle
+    accord: tuple = None  # (modèles qui rendent le domaine affiché, modèles interrogés)
+
+
+def _domaine_rendu(fine):
+    # Une sortie invalide compte comme `incertain`, comme dans le consensus.
+    return fine.verdict.domaine if fine.valide else domaines.INCERTAIN
+
+
+def motif_a_verifier(resultat, pieces_communes=()):
+    """Rend, dans la liste fermée `MOTIFS`, la raison pour laquelle un document va en `À_VÉRIFIER/`.
+
+    Le motif ne cite rien du document : la liste est fermée pour que l'écran et le journal ne puissent
+    porter ni destinataire ni extrait.
+    """
+    verdict = resultat.verdict
+    if resultat.tri is None:
+        return MOTIF_AUCUN_TEXTE
+    if resultat.tri.verdict == classification.INCERTAIN:
+        return MOTIF_TRI_INCERTAIN
+    if verdict.categorie in pieces_communes and not verdict.categorie_unanime:
+        return MOTIF_PIECE_COMMUNE
+    rendus = [_domaine_rendu(fine) for fine in resultat.classifications]
+    if not rendus or len(set(rendus)) > 1 or not all(fine.valide for fine in resultat.classifications) \
+            or rendus[0] != verdict.domaine:
+        return MOTIF_DESACCORD
+    if verdict.domaine == domaines.MIXTE:
+        return MOTIF_DOMAINES_DIFFERENTS
+    return MOTIF_SANS_SIGNAL
 
 
 def _verdict_incertain(signaux=()):
@@ -99,5 +138,11 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
             verdict = _verdict_incertain(fine.verdict.signaux)
         else:
             verdict = replace(fine.verdict, categorie_unanime=unanimes[chemin])
-        resultats.append(Resultat(chemin, tri, fine, verdict, confiances.get(chemin), unanimes.get(chemin, False)))
+        if tri is not None:
+            verdict = replace(verdict, objet=tri.objet)
+        accords = tuple(accord[chemin] for accord in par_modele) if chemin in fines else ()
+        # L'accord porte sur le domaine affiché : une confiance de 1 sur `incertain` se lisait comme une certitude.
+        accord = (sum(_domaine_rendu(f) == verdict.domaine for f in accords), len(accords)) if accords else None
+        resultats.append(Resultat(chemin, tri, fine, verdict, confiances.get(chemin), unanimes.get(chemin, False),
+                                  accords, accord))
     return resultats

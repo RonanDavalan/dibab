@@ -16,6 +16,8 @@ TEXTE_PROFESSIONNEL = TEXTES[2]["texte"]
 REPONSE_PERSONNELLE = TEXTES[0]["reponse"]
 REPONSE_PROFESSIONNELLE = TEXTES[2]["reponse"]
 REPONSE_FAUSSE = {**REPONSE_PERSONNELLE, "emetteur": "", "nature_destinataire": "entreprise"}
+# Sans CAF dans la liste : la liste retrouverait l'émetteur que le faux modèle tait, et il ne se tromperait plus.
+EMETTEURS_SANS_CAF = {groupe: entrees for groupe, entrees in EMETTEURS_CONNUS.items() if groupe != "CAF"}
 
 
 def configuration(racine_a, racine_b):
@@ -28,7 +30,7 @@ def configuration(racine_a, racine_b):
         "ollama": {"url": "http://x", "timeout_secondes": 7, "keep_alive_entre_pages": "2m",
                    "roles": {"ocr": ["ocr"], "tri_rapide": ["tri"], "classification": ["bon", "faux"]}},
         "classification": CLASSIFICATION, "extraction": EXTRACTION, "extensions_cibles": [".pdf", ".png"],
-        "categories": CATEGORIES, "personnes": PERSONNES, "emetteurs_connus": EMETTEURS_CONNUS,
+        "categories": CATEGORIES, "personnes": PERSONNES, "emetteurs_connus": EMETTEURS_SANS_CAF,
         "mesure": {"graine": 7, "documents_par_coffre": 3, "exclusions": ["Archive", "rebut", "doublon"], "taux_erreur_max": 0.02},
     }
 
@@ -118,7 +120,7 @@ def banc(tmp_path, monkeypatch):
 
     def modele(url, nom, consigne, images, delai, keep_alive, format=None, options=None):
         if "verdict" in format["properties"]:
-            return json.dumps({"verdict": "administratif"})
+            return json.dumps({"verdict": "administratif", "objet": "courrier factice"})
         personnel = "CAF de l'Exemple" in consigne
         if nom == "faux":
             return json.dumps(REPONSE_FAUSSE if personnel else REPONSE_PROFESSIONNELLE)

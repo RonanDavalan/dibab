@@ -153,6 +153,22 @@ def test_la_variable_du_mot_de_passe_imap_absente_est_un_avertissement_sans_jama
     assert "valeur-secrete-factice" not in " ".join(v.message for v in presente.values())
 
 
+@pytest.mark.parametrize("nommage, etat", [({"prefixe_a_verifier": "[AV]"}, "AVERTISSEMENT"),
+                                            ({"prefixe_a_verifier": "[AV]", "format_a_verifier": "{origine}{ext}"}, "OK")])
+def test_sans_format_a_verifier_le_diagnostic_avertit(aire, nommage, etat):
+    aire["chemin"].write_text(json.dumps({**aire["configuration"], "nommage": nommage}), encoding="utf-8")
+    resultat = jouer(aire)["configuration"]
+    assert resultat.etat == etat
+    assert ("nommage.format_a_verifier" in resultat.message) is (etat == "AVERTISSEMENT")
+
+
+def test_les_deux_avertissements_de_configuration_se_cumulent(aire):
+    source = {"id": "i", "authentification": "login", "mot_de_passe_env": "SKRIVAGNER_IMAP_EXEMPLE"}
+    aire["chemin"].write_text(json.dumps({**aire["configuration"], "sources_imap": [source], "nommage": {}}), encoding="utf-8")
+    message = jouer(aire)["configuration"].message
+    assert "SKRIVAGNER_IMAP_EXEMPLE" in message and "nommage.format_a_verifier" in message
+
+
 def test_l_etat_hors_de_tout_coffre_est_un_avertissement(aire):
     configuration = json.loads(aire["chemin"].read_text(encoding="utf-8"))
     del configuration["suivi"]

@@ -69,8 +69,14 @@ def _verifier_configuration(option, environ, chemin_du_script, cles_absentes):
         return configuration, _verification(ECHEC, "configuration", "_cles", chemin=chemin, cles=", ".join(absentes))
     sans_variable = [source["mot_de_passe_env"] for source in configuration.get("sources_imap", [])
                      if source.get("authentification") == "login" and not environ.get(source.get("mot_de_passe_env", ""))]
+    # Sans gabarit, une pièce à vérifier garde son seul nom d'origine : le produit marche, la simulation se lit moins bien.
+    sans_format = isinstance(configuration.get("nommage"), dict) and not configuration["nommage"].get("format_a_verifier")
+    if sans_variable and sans_format:
+        return configuration, _verification(AVERTISSEMENT, "configuration", "_imap_format", chemin=chemin, variables=", ".join(sans_variable))
     if sans_variable:
         return configuration, _verification(AVERTISSEMENT, "configuration", chemin=chemin, variables=", ".join(sans_variable))
+    if sans_format:
+        return configuration, _verification(AVERTISSEMENT, "configuration", "_format", chemin=chemin)
     return configuration, _verification(OK, "configuration", chemin=chemin)
 
 

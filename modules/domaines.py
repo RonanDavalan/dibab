@@ -36,6 +36,8 @@ class Verdict:
     destinataire: str = None
     # Faux tant que la cascade n'a pas prouvé l'accord : une pièce commune non prouvée n'est pas copiée.
     categorie_unanime: bool = False
+    # Rendu par le tri ; n'entre que dans l'affichage et le nom, jamais dans le routage.
+    objet: str = None
 
 
 @dataclass(frozen=True)
@@ -121,6 +123,8 @@ def verdict_depuis_dict(donnees):
         raise ValueError(traduire("verdict_signal_objet"))
     if not isinstance(donnees.get("categorie_unanime", False), bool):
         raise ValueError(traduire("verdict_unanime_booleen"))
+    if not isinstance(donnees.get("objet", ""), str):
+        raise ValueError(traduire("verdict_objet_texte"))
     date = donnees.get("date")
     if date is not None:
         date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -133,6 +137,7 @@ def verdict_depuis_dict(donnees):
         emetteur=donnees.get("emetteur"),
         personne=donnees.get("personne"),
         categorie_unanime=donnees.get("categorie_unanime", False),
+        objet=donnees.get("objet") or None,
     )
 
 

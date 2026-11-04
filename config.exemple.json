@@ -91,6 +91,7 @@
     "emetteur_inconnu": "Inconnu",
     "espaces_vers": "-",
     "prefixe_a_verifier": "[À_VÉRIFIER]",
+    "format_a_verifier": "{date}_{emetteur}_{objet}_{origine}{ext}",
     "suffixe_collision": "_{n}"
   },
 

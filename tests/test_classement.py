@@ -94,5 +94,81 @@ def test_une_categorie_ne_sort_pas_de_la_destination(source, config, tmp_path, c
 
 
 def test_un_document_a_verifier_garde_son_nom_d_origine(source, config):
-    plan = planifier(source, config, domaine="incertain", categorie="Inconnue")
+    # Sans `nommage.format_a_verifier`, même avec un objet, le nom d'origine seul suit le préfixe.
+    plan = planifier(source, config, domaine="incertain", categorie="Inconnue", objet="attestation", emetteur="CAF")
     assert plan.nom == "[AV]scan.PDF"
+
+
+FORMAT_A_VERIFIER = "{date}_{emetteur}_{objet}_{origine}{ext}"
+
+
+@pytest.fixture
+def config_a_verifier(config):
+    return {**config, "nommage": {**config["nommage"], "separateur": "_", "format_a_verifier": FORMAT_A_VERIFIER}}
+
+
+def test_un_document_a_verifier_prend_date_emetteur_objet_et_nom_d_origine(source, config_a_verifier):
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="CAF", date=date(2026, 3, 15),
+                     emetteur="Caisse Exemple", objet="attestation de paiement")
+    assert plan.nom == "[AV]2026-03-15_Caisse-Exemple_attestation-de-paiement_scan.pdf"
+
+
+@pytest.mark.parametrize("champs, attendu", [
+    ({}, "[AV]scan.pdf"),
+    ({"objet": "relevé de compte"}, "[AV]relevé-de-compte_scan.pdf"),
+    ({"emetteur": "Banque Exemple"}, "[AV]Banque-Exemple_scan.pdf"),
+    ({"date": date(2026, 1, 2)}, "[AV]2026-01-02_scan.pdf"),
+])
+def test_un_segment_vide_ou_inconnu_est_retire_avec_son_separateur(source, config_a_verifier, champs, attendu):
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", **champs)
+    assert plan.nom == attendu and "Inconnu" not in plan.nom and "__" not in plan.nom
+
+
+def test_une_categorie_inconnue_ne_s_ecrit_pas_dans_un_nom_a_verifier(source, config_a_verifier):
+    config_a_verifier["nommage"]["format_a_verifier"] = "{categorie}_{objet}_{origine}{ext}"
+    assert planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", objet="avis").nom == "[AV]avis_scan.pdf"
+
+
+def test_le_nom_a_verifier_tient_en_180_caracteres_en_raccourcissant_l_origine_puis_l_objet(tmp_path, config_a_verifier):
+    source = tmp_path / ("origine-" + "o" * 150 + ".pdf")
+    source.write_bytes(b"x")
+    objet = "objet " * 12
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", date=date(2026, 3, 15),
+                     emetteur="E" * 80, objet=objet)
+    assert len(plan.nom) <= 180 and plan.nom.endswith(".pdf")
+    debut_origine = plan.nom.rindex("_") + 1
+    assert plan.nom[debut_origine:-4] == "origine-" + "o" * 12
+    assert "E" * 80 in plan.nom and "objet" in plan.nom
+
+
+def test_une_origine_seule_trop_longue_est_raccourcie_sans_toucher_l_objet(tmp_path, config_a_verifier):
+    source = tmp_path / ("x" * 200 + ".pdf")
+    source.write_bytes(b"x")
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", objet="facture")
+    assert len(plan.nom) == 180 and plan.nom.startswith("[AV]facture_xxx")
+
+
+def test_le_nom_a_verifier_reste_sous_255_octets(tmp_path, config_a_verifier):
+    source = tmp_path / ("é" * 120 + ".pdf")
+    source.write_bytes(b"x")
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", objet="à" * 80)
+    assert len(plan.nom.encode("utf-8")) <= 255
+
+
+def test_l_objet_ne_fabrique_ni_chemin_ni_caractere_de_controle(source, config_a_verifier):
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Inconnue", objet="../a\\b\x07c")
+    assert "/" not in plan.nom and "\\" not in plan.nom and "\x07" not in plan.nom
+
+
+def test_objet_est_permis_dans_le_format_d_un_document_classe(source, config):
+    config["nommage"]["format"] = "{date}_{emetteur}_{objet}_{categorie}{ext}"
+    avec = planifier(source, config, domaine="personnel", categorie="CAF", personne="Personne1", date=date(2026, 3, 15),
+                     emetteur="CAF", objet="notification")
+    sans = planifier(source, config, domaine="personnel", categorie="CAF", personne="Personne1", date=date(2026, 3, 15), emetteur="CAF")
+    assert (avec.nom, sans.nom) == ("2026-03-15_CAF_notification_CAF.pdf", "2026-03-15_CAF_CAF.pdf")
+
+
+def test_le_format_par_defaut_d_un_document_classe_ne_change_pas(source, config_a_verifier):
+    plan = planifier(source, config_a_verifier, domaine="personnel", categorie="CAF", personne="Personne1",
+                     date=date(2026, 3, 15), emetteur="CAF", objet="notification")
+    assert plan.nom == "2026-03-15_CAF_CAF.pdf"

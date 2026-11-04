@@ -24,7 +24,7 @@ def generer_par_modele(categories):
     """`categories` : {modèle: catégorie rendue} ; le domaine reste celui du texte, personnel."""
     def generer(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
         if "verdict" in format["properties"]:
-            return json.dumps({"verdict": "administratif"})
+            return json.dumps({"verdict": "administratif", "objet": "courrier factice"})
         return json.dumps(dict(TEXTES[0]["reponse"], categorie=categories[modele]))
     return generer
 
@@ -56,7 +56,7 @@ def test_piece_commune_unanime_copiee_dans_les_deux_coffres():
 def test_une_sortie_invalide_empeche_l_accord_sur_la_categorie():
     def generer(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
         if "verdict" in format["properties"]:
-            return json.dumps({"verdict": "administratif"})
+            return json.dumps({"verdict": "administratif", "objet": "courrier factice"})
         if modele == "m2":
             return "pas du json"
         return json.dumps(dict(TEXTES[0]["reponse"], categorie="Identité"))
