@@ -18,6 +18,7 @@ ssh_repertoire_partiel=répertoire distant partiellement lisible ou absent (code
 json_invalide=JSON invalide : {erreur}
 json_pas_un_objet=la réponse n'est pas un objet JSON
 champs_hors_schema=champs hors du schéma fermé
+tri_garde_indice=un émetteur connu ou une mention professionnelle figure dans le texte
 champ_texte_attendu=champ texte attendu
 categorie_hors_liste=catégorie hors liste
 personne_hors_liste=personne hors liste

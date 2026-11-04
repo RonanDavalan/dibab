@@ -101,6 +101,38 @@ def test_la_consigne_du_tri_nomme_les_documentations_et_garde_le_doute():
     assert faux.appels[0]["format"]["required"] == ["verdict", "objet"]
 
 
+def _tri_garde(texte, tri="non_administratif"):
+    faux = FauxModele(tri=tri)
+    brut = classification.tri_rapide(texte, PARAMETRES, OLLAMA, "m", 0, faux)
+    return classification.garder_les_pieces_administratives(brut, texte, CONFIGURATION)
+
+
+def test_un_non_administratif_avec_une_mention_professionnelle_devient_incertain():
+    garde = _tri_garde("Facture, TVA non applicable. Merci de votre confiance.")
+    assert garde.verdict == "incertain" and garde.raison and garde.objet == "courrier factice"
+
+
+def test_un_non_administratif_avec_un_emetteur_connu_devient_incertain():
+    emetteur = next(entree["nom"] for entrees in EMETTEURS_CONNUS.values() for entree in entrees)
+    assert _tri_garde(f"Notice de remplacement envoyée par {emetteur}.").verdict == "incertain"
+
+
+def test_un_non_administratif_sans_indice_reste_non_administratif():
+    assert _tri_garde("Manuel d'utilisation du four. Chapitre 1 : installation.").verdict == "non_administratif"
+
+
+@pytest.mark.parametrize("tri", ["administratif", "incertain"])
+def test_le_garde_fou_ne_touche_que_le_non_administratif(tri):
+    assert _tri_garde("Facture, TVA non applicable.", tri=tri).verdict == tri
+
+
+def test_le_garde_fou_est_appele_par_la_cascade():
+    faux = FauxModele(tri="non_administratif", fine={"date": "", "emetteur": "", "destinataire": "",
+                                                     "nature_destinataire": "inconnue", "categorie": "aucune", "personne": "aucune"})
+    resultat = cascade.executer([("a", "Devis. Numéro de SIRET 123.")], CONFIGURATION, MODELES, faux)[0]
+    assert resultat.tri.verdict == "incertain" and resultat.verdict.administratif
+
+
 def test_tri_panne_ollama_vaut_incertain():
     def en_panne(*args, **kwargs):
         raise appel_ollama.ErreurOllama("arrêté")

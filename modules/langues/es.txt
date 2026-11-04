@@ -18,6 +18,7 @@ ssh_repertoire_partiel=directorio remoto legible solo en parte o ausente (códig
 json_invalide=JSON no válido: {erreur}
 json_pas_un_objet=la respuesta no es un objeto JSON
 champs_hors_schema=campos fuera del esquema cerrado
+tri_garde_indice=un emisor conocido o una mención profesional figura en el texto
 champ_texte_attendu=se esperaba un campo de texto
 categorie_hors_liste=categoría fuera de la lista
 personne_hors_liste=persona fuera de la lista

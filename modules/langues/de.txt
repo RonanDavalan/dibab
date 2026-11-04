@@ -18,6 +18,7 @@ ssh_repertoire_partiel=Verzeichnis auf der Gegenseite nur teilweise lesbar oder 
 json_invalide=Ungültiges JSON: {erreur}
 json_pas_un_objet=die Antwort ist kein JSON-Objekt
 champs_hors_schema=Felder außerhalb des geschlossenen Schemas
+tri_garde_indice=ein bekannter Aussteller oder ein beruflicher Hinweis steht im Text
 champ_texte_attendu=Textfeld erwartet
 categorie_hors_liste=Kategorie nicht in der Liste
 personne_hors_liste=Person nicht in der Liste

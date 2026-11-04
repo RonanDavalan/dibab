@@ -18,6 +18,7 @@ ssh_repertoire_partiel=remote directory partly readable or missing (code {code})
 json_invalide=invalid JSON: {erreur}
 json_pas_un_objet=the answer is not a JSON object
 champs_hors_schema=fields outside the closed schema
+tri_garde_indice=a known issuer or a professional mention appears in the text
 champ_texte_attendu=text field expected
 categorie_hors_liste=category not in the list
 personne_hors_liste=person not in the list

@@ -105,8 +105,9 @@ def executer(documents, configuration, modeles, generer=appel_ollama.generer):
 
     tris = dict(zip(
         [chemin for chemin, _ in avec_texte],
-        _etape(avec_texte, lambda doc, ka: classification.tri_rapide(
-            doc[1], parametres, configuration["ollama"], modeles["tri_rapide"], ka, generer), keep_alive)))
+        _etape(avec_texte, lambda doc, ka: classification.garder_les_pieces_administratives(
+            classification.tri_rapide(doc[1], parametres, configuration["ollama"], modeles["tri_rapide"], ka, generer),
+            doc[1], configuration), keep_alive)))
 
     a_classer = [(chemin, texte) for chemin, texte in avec_texte if tris[chemin].verdict != classification.NON_ADMINISTRATIF]
     classeurs = [modeles["classification"]] if isinstance(modeles["classification"], str) else list(modeles["classification"])
