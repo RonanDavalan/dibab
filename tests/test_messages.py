@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import diagnostic, messages
 from tests.test_classement_execute import banc, lancer  # noqa: F401
 from tests.test_rollback import etat, lignes_journal
@@ -35,7 +35,7 @@ def lignes_de_cles(langue):
 def cles_appelees():
     """Les clés littérales passées à `traduire` dans le code du produit, lues par l'analyse du code source."""
     cles = {}
-    for chemin in [RACINE / "skrivagner.py", *sorted((RACINE / "modules").glob("*.py")), *sorted((RACINE / "_outils").glob("*.py"))]:
+    for chemin in [RACINE / "dibab.py", *sorted((RACINE / "modules").glob("*.py")), *sorted((RACINE / "_outils").glob("*.py"))]:
         for noeud in ast.walk(ast.parse(chemin.read_text(encoding="utf-8"))):
             if isinstance(noeud, ast.Call) and isinstance(noeud.func, ast.Name) and noeud.func.id == "traduire" \
                     and noeud.args and isinstance(noeud.args[0], ast.Constant):
@@ -144,16 +144,16 @@ def test_le_repli_passe_par_l_anglais_puis_par_la_cle(tmp_path, monkeypatch):
 
 def test_une_taille_s_affiche_dans_l_unite_de_la_langue(langue_fixee):
     langue_fixee("en")
-    assert skrivagner.formater_taille(2048) == "2.0 KB" and skrivagner.formater_taille(12) == "12 B"
+    assert dibab.formater_taille(2048) == "2.0 KB" and dibab.formater_taille(12) == "12 B"
     langue_fixee("fr")
-    assert skrivagner.formater_taille(2048) == "2.0 Ko" and skrivagner.formater_taille(12) == "12 o"
+    assert dibab.formater_taille(2048) == "2.0 Ko" and dibab.formater_taille(12) == "12 o"
     langue_fixee("de")
-    assert skrivagner.formater_taille(3 * 1024 ** 2) == "3.0 MB"
+    assert dibab.formater_taille(3 * 1024 ** 2) == "3.0 MB"
 
 
 def lancer_processus(arguments, environ, tmp_path):
     base = {"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", **environ}
-    return subprocess.run([sys.executable, str(RACINE / "skrivagner.py"), *arguments], capture_output=True, text=True, env=base, cwd=tmp_path)
+    return subprocess.run([sys.executable, str(RACINE / "dibab.py"), *arguments], capture_output=True, text=True, env=base, cwd=tmp_path)
 
 
 OPTIONS = ("--dry-run", "--execute", "--inventaire", "--rollback", "--autoriser-google", "--session", "--verdicts-simules",
@@ -180,21 +180,21 @@ def test_l_aide_et_le_diagnostic_sont_dans_la_langue_choisie(environ, langue, tm
 
 def test_la_version_ne_se_traduit_pas(tmp_path):
     sorties = {lancer_processus(["--version"], {"LC_ALL": code}, tmp_path).stdout for code in ("fr_FR.UTF-8", "de_DE.UTF-8", "C")}
-    assert sorties == {f"skrivagner {skrivagner.VERSION}\n"}
+    assert sorties == {f"dibab {dibab.VERSION}\n"}
 
 
 @pytest.mark.parametrize("environ, langue", [({"LC_ALL": "fr_FR.UTF-8"}, "fr"), ({"LC_ALL": "de_DE.UTF-8"}, "de"), ({"LC_ALL": "C"}, "en")])
 def test_une_option_inconnue_donne_le_message_du_dictionnaire_et_le_code_2(environ, langue, tmp_path):
     resultat = lancer_processus(["--inexistant"], environ, tmp_path)
     assert resultat.returncode == 2 and resultat.stdout == ""
-    assert resultat.stderr.strip() == lire(langue)["erreur_ligne_de_commande"].format(programme="skrivagner")
+    assert resultat.stderr.strip() == lire(langue)["erreur_ligne_de_commande"].format(programme="dibab")
     assert "unrecognized" not in resultat.stderr
 
 
 def test_deux_modes_exclusifs_donnent_le_meme_message(tmp_path):
     resultat = lancer_processus(["--execute", "--rollback"], {"LC_ALL": "es_ES.UTF-8"}, tmp_path)
     assert resultat.returncode == 2 and "not allowed" not in resultat.stderr
-    assert resultat.stderr.strip() == lire("es")["erreur_ligne_de_commande"].format(programme="skrivagner")
+    assert resultat.stderr.strip() == lire("es")["erreur_ligne_de_commande"].format(programme="dibab")
 
 
 def sans_horodatage(chemin):

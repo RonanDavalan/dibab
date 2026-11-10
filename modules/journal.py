@@ -1,6 +1,6 @@
 # modules/journal.py — Écriture du journal de session JSONL
 #
-# Un journal de session est un fichier .jsonl créé au démarrage de skrivagner.py.
+# Un journal de session est un fichier .jsonl créé au démarrage de dibab.py.
 # Chaque action (démarrage, scan, candidat, déplacement, etc.) y est consignée
 # en une ligne JSON. La rotation est faite par modules/rotation.py.
 

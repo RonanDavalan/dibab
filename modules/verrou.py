@@ -1,4 +1,4 @@
-"""Verrou d'exécution : un seul Skrivagner à la fois déplace des documents.
+"""Verrou d'exécution : un seul Dibab à la fois déplace des documents.
 
 Deux exécutions simultanées se disputeraient les mêmes sources et les mêmes noms de destination,
 et la synchronisation des coffres propagerait le résultat de l'une et de l'autre.

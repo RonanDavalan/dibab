@@ -1,35 +1,35 @@
-% SKRIVAGNER(1) skrivagner | Benutzerbefehle
+% DIBAB(1) dibab | Benutzerbefehle
 % Ronan Davalan
 % 2026-10-29
 
 # NAME
 
-skrivagner - sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts, ohne dass Daten das lokale Netz verlassen
+dibab - sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts, ohne dass Daten das lokale Netz verlassen
 
 # ÜBERSICHT
 
-**skrivagner** [**\--config** *PFAD*] [**\--dry-run** | **\--execute** | **\--inventaire**]
+**dibab** [**\--config** *PFAD*] [**\--dry-run** | **\--execute** | **\--inventaire**]
 
-**skrivagner** **\--dry-run** **\--verdicts-simules** *DATEI*
+**dibab** **\--dry-run** **\--verdicts-simules** *DATEI*
 
-**skrivagner** [**\--config** *PFAD*] **\--rollback** [**\--session** *SITZUNG*]
+**dibab** [**\--config** *PFAD*] **\--rollback** [**\--session** *SITZUNG*]
 
-**skrivagner** [**\--config** *PFAD*] **\--autoriser-google** *ID*
+**dibab** [**\--config** *PFAD*] **\--autoriser-google** *ID*
 
-**skrivagner** [**\--config** *PFAD*] **\--diagnose**
+**dibab** [**\--config** *PFAD*] **\--diagnose**
 
-**skrivagner** {**\--version** | **\--help**}
+**dibab** {**\--version** | **\--help**}
 
 # BESCHREIBUNG
 
-**skrivagner** durchsucht lokale Verzeichnisse, entfernte Maschinen über **ssh**(1) und Postfächer über IMAP im Lesemodus. Es
+**dibab** durchsucht lokale Verzeichnisse, entfernte Maschinen über **ssh**(1) und Postfächer über IMAP im Lesemodus. Es
 extrahiert den Text jedes Dokuments, sondert aus, was nicht administrativ ist, und ordnet den Rest nach Kategorie und Bereich, privat
 oder beruflich, im Konsens mehrerer Sprachmodelle ein. Jedes Dokument wird umbenannt und in den Tresor seines Bereichs verschoben,
 mit einem Journal, das **\--rollback** rückgängig machen kann. Es löscht nie eine Datei, verändert nie ein Postfach oder eine entfernte
 Maschine und bewegt nichts, bei dem es nicht sicher ist: Zweifel führen in einen Ordner namens *À_VÉRIFIER*.
 
 Die Sprachmodelle sind die von Ollama, das auf derselben Maschine läuft. Ollama und seine Modelle werden vom Benutzer getrennt von der
-Ollama-Website installiert: Skrivagner enthält weder das eine noch die anderen. Listen Sie die Modelle mit **ollama list** auf und
+Ollama-Website installiert: Dibab enthält weder das eine noch die anderen. Listen Sie die Modelle mit **ollama list** auf und
 tragen Sie sie, Rolle für Rolle, im Schlüssel **ollama.roles** der Konfiguration ein. Erreicht werden nur die Zieltresore, die Maschinen
 und die Postfächer, die die Konfiguration nennt.
 
@@ -68,7 +68,7 @@ Der Standardmodus ist die Simulation. Lesen Sie das Ergebnis von **\--dry-run** 
 :   Zu lesende Konfigurationsdatei (siehe **DATEIEN**).
 
 **\--version**
-:   Schreibt eine Zeile, **skrivagner** *Version*, und endet.
+:   Schreibt eine Zeile, **dibab** *Version*, und endet.
 
 **\--help**, **-h**
 :   Listet die Optionen, in der Sprache der Sitzung.
@@ -84,27 +84,27 @@ die Sitzung auch läuft.
 
 # INSTALLATION
 
-Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert das Debian-Paket das Programm, seine Abhängigkeiten, die vier Handbuchseiten und die Beispielkonfiguration *config.exemple.json* in */usr/share/doc/skrivagner/examples/*:
+Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert das Debian-Paket das Programm, seine Abhängigkeiten, die vier Handbuchseiten und die Beispielkonfiguration *config.exemple.json* in */usr/share/doc/dibab/examples/*:
 
-    sudo apt install ./skrivagner_*_all.deb
+    sudo apt install ./dibab_*_all.deb
 
-**sudo apt remove skrivagner** und **sudo apt purge skrivagner** löschen die Dateien des Pakets und rühren Konfiguration, Zustand, Journal und Dokumente nie an; das Purge nennt, was es zurücklässt. Stufe: Installation und Diagnose im Container validiert auf diesen vier Versionen; ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama.
+**sudo apt remove dibab** und **sudo apt purge dibab** löschen die Dateien des Pakets und rühren Konfiguration, Zustand, Journal und Dokumente nie an; das Purge nennt, was es zurücklässt. Stufe: Installation und Diagnose im Container validiert auf diesen vier Versionen; ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama.
 
 # DATEIEN
 
 Die Konfiguration ist die erste vorhandene Datei aus der folgenden Reihenfolge, und nur diese wird gelesen:
 
 1.  die von **\--config** benannte Datei;
-2.  die von der Variablen **SKRIVAGNER_CONFIG** benannte Datei, wenn sie nicht leer ist;
-3.  *$XDG_CONFIG_HOME/skrivagner/config.json* oder *~/.config/skrivagner/config.json*, wenn **XDG_CONFIG_HOME** leer oder nicht gesetzt ist;
-4.  *config.json* im Ordner von *skrivagner.py*.
+2.  die von der Variablen **DIBAB_CONFIG** benannte Datei, wenn sie nicht leer ist;
+3.  *$XDG_CONFIG_HOME/dibab/config.json* oder *~/.config/dibab/config.json*, wenn **XDG_CONFIG_HOME** leer oder nicht gesetzt ist;
+4.  *config.json* im Ordner von *dibab.py*.
 
 Eine Option oder Variable, die auf eine fehlende Datei zeigt, beendet das Programm mit dem Exit-Status 1: Es fällt nie auf eine
 andere Datei zurück. *config.exemple.json* ist das Beispiel, im Ordner des Programms; kopieren Sie es mit Modus 600 an einen dieser Orte.
 
-Gibt die Konfiguration die Schlüssel von **suivi** nicht an, wird der Zustand unter *$XDG_STATE_HOME/skrivagner/* oder
-*~/.local/state/skrivagner/* geschrieben: *dernier_scan.json*, *journal.jsonl* (das Aktionsjournal), *sessions/* (ein Journal und ein
-Bericht pro Sitzung) und *skrivagner.log*. *rapatries.json*, *imap_deposes.json* und die Sperre *skrivagner.verrou* liegen neben
+Gibt die Konfiguration die Schlüssel von **suivi** nicht an, wird der Zustand unter *$XDG_STATE_HOME/dibab/* oder
+*~/.local/state/dibab/* geschrieben: *dernier_scan.json*, *journal.jsonl* (das Aktionsjournal), *sessions/* (ein Journal und ein
+Bericht pro Sitzung) und *dibab.log*. *rapatries.json*, *imap_deposes.json* und die Sperre *dibab.verrou* liegen neben
 *dernier_scan.json*. Die Ordner werden mit Modus 700 und die Dateien mit Modus 600 angelegt. Der Zustand liegt dann unverschlüsselt auf
 der Platte: Um ihn in einem Tresor zu halten, geben Sie die Schlüssel **suivi.fichier_date**, **suivi.journal** und **suivi.sessions** an.
 
@@ -112,7 +112,7 @@ Die Meldungswörterbücher sind *modules/langues/en.txt*, *fr.txt*, *de.txt* und
 
 # UMGEBUNG
 
-**SKRIVAGNER_CONFIG**
+**DIBAB_CONFIG**
 :   Pfad der Konfigurationsdatei.
 
 **XDG_CONFIG_HOME**, **XDG_STATE_HOME**
@@ -143,20 +143,20 @@ der Konfigurationsdatei.
 :   **\--execute** auf dieser Maschine abgelehnt (Schlüssel **executer_sur**).
 
 **5**
-:   Ein anderer Lauf hält die Sperre *skrivagner.verrou*.
+:   Ein anderer Lauf hält die Sperre *dibab.verrou*.
 
 # BEISPIELE
 
 Die Installation prüfen, dann simulieren, dann wirklich ablegen:
 
-    skrivagner --diagnose
-    skrivagner --dry-run
-    skrivagner --execute
+    dibab --diagnose
+    dibab --dry-run
+    dibab --execute
 
 Dieselbe Prüfung auf Englisch lesen, dann die letzte Sitzung rückgängig machen:
 
-    LC_ALL=en_US.UTF-8 skrivagner --diagnose
-    skrivagner --rollback
+    LC_ALL=en_US.UTF-8 dibab --diagnose
+    dibab --rollback
 
 # SIEHE AUCH
 

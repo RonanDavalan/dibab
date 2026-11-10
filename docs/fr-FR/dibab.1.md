@@ -1,35 +1,35 @@
-% SKRIVAGNER(1) skrivagner | Commandes utilisateur
+% DIBAB(1) dibab | Commandes utilisateur
 % Ronan Davalan
 % 2026-10-29
 
 # NOM
 
-skrivagner - collecte, analyse et classe les documents administratifs personnels d'un foyer, sans qu'aucune donnée ne quitte le réseau local
+dibab - collecte, analyse et classe les documents administratifs personnels d'un foyer, sans qu'aucune donnée ne quitte le réseau local
 
 # SYNOPSIS
 
-**skrivagner** [**\--config** *CHEMIN*] [**\--dry-run** | **\--execute** | **\--inventaire**]
+**dibab** [**\--config** *CHEMIN*] [**\--dry-run** | **\--execute** | **\--inventaire**]
 
-**skrivagner** **\--dry-run** **\--verdicts-simules** *FICHIER*
+**dibab** **\--dry-run** **\--verdicts-simules** *FICHIER*
 
-**skrivagner** [**\--config** *CHEMIN*] **\--rollback** [**\--session** *SESSION*]
+**dibab** [**\--config** *CHEMIN*] **\--rollback** [**\--session** *SESSION*]
 
-**skrivagner** [**\--config** *CHEMIN*] **\--autoriser-google** *ID*
+**dibab** [**\--config** *CHEMIN*] **\--autoriser-google** *ID*
 
-**skrivagner** [**\--config** *CHEMIN*] **\--diagnose**
+**dibab** [**\--config** *CHEMIN*] **\--diagnose**
 
-**skrivagner** {**\--version** | **\--help**}
+**dibab** {**\--version** | **\--help**}
 
 # DESCRIPTION
 
-**skrivagner** scanne des répertoires locaux, des machines distantes par **ssh**(1) et des boîtes mail par IMAP en lecture seule. Il
+**dibab** scanne des répertoires locaux, des machines distantes par **ssh**(1) et des boîtes mail par IMAP en lecture seule. Il
 extrait le texte de chaque document, écarte ce qui n'est pas administratif, puis classe le reste par catégorie et par domaine,
 personnel ou professionnel, par consensus de plusieurs modèles de langage. Chaque document est renommé et déplacé dans le coffre de
 son domaine, avec un journal que **\--rollback** peut défaire. Il ne supprime jamais un fichier, ne modifie jamais une boîte mail ni une
 machine distante, et ne déplace rien dont il n'est pas sûr : le doute mène à un dossier nommé *À_VÉRIFIER*.
 
 Les modèles de langage sont ceux d'Ollama, qui tourne sur la même machine. Ollama et ses modèles s'installent à part, par
-l'utilisateur, depuis le site d'Ollama : Skrivagner ne contient ni l'un ni les autres. Listez les modèles avec **ollama list**, puis
+l'utilisateur, depuis le site d'Ollama : Dibab ne contient ni l'un ni les autres. Listez les modèles avec **ollama list**, puis
 écrivez-les, rôle par rôle, dans la clé **ollama.roles** de la configuration. Seuls les coffres de destination, les machines et les
 boîtes que la configuration nomme sont joints.
 
@@ -68,7 +68,7 @@ Le mode par défaut est la simulation. Relisez toujours le résultat de **\--dry
 : Fichier de configuration à lire (voir **FICHIERS**).
 
 **\--version**
-: Écrit une ligne, **skrivagner** *version*, et s'arrête.
+: Écrit une ligne, **dibab** *version*, et s'arrête.
 
 **\--help**, **-h**
 : Liste les options, dans la langue de la session.
@@ -84,27 +84,27 @@ la session.
 
 # INSTALLATION
 
-Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, le paquet Debian installe le programme, ses dépendances, les quatre pages de manuel et la configuration d'exemple *config.exemple.json* dans */usr/share/doc/skrivagner/examples/* :
+Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, le paquet Debian installe le programme, ses dépendances, les quatre pages de manuel et la configuration d'exemple *config.exemple.json* dans */usr/share/doc/dibab/examples/* :
 
-    sudo apt install ./skrivagner_*_all.deb
+    sudo apt install ./dibab_*_all.deb
 
-**sudo apt remove skrivagner** et **sudo apt purge skrivagner** suppriment les fichiers du paquet et ne touchent jamais à la configuration, à l'état, au journal ni aux documents ; la purge nomme ce qu'elle laisse. Niveau : installation et diagnostic validés en conteneur sur ces quatre versions ; un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama.
+**sudo apt remove dibab** et **sudo apt purge dibab** suppriment les fichiers du paquet et ne touchent jamais à la configuration, à l'état, au journal ni aux documents ; la purge nomme ce qu'elle laisse. Niveau : installation et diagnostic validés en conteneur sur ces quatre versions ; un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama.
 
 # FICHIERS
 
 La configuration est le premier fichier existant parmi, dans cet ordre, et c'est le seul qui est lu :
 
 1. le fichier que nomme **\--config** ;
-2. le fichier que nomme la variable **SKRIVAGNER_CONFIG**, quand elle n'est pas vide ;
-3. *$XDG_CONFIG_HOME/skrivagner/config.json*, ou *~/.config/skrivagner/config.json* quand **XDG_CONFIG_HOME** est vide ou absente ;
-4. *config.json* dans le dossier de *skrivagner.py*.
+2. le fichier que nomme la variable **DIBAB_CONFIG**, quand elle n'est pas vide ;
+3. *$XDG_CONFIG_HOME/dibab/config.json*, ou *~/.config/dibab/config.json* quand **XDG_CONFIG_HOME** est vide ou absente ;
+4. *config.json* dans le dossier de *dibab.py*.
 
 Une option ou une variable qui désigne un fichier absent arrête le programme avec le code 1 : il ne retombe jamais sur un autre
 fichier. *config.exemple.json* est l'exemple, dans le dossier du programme ; copiez-le à l'un de ces emplacements, en mode 600.
 
-Quand la configuration ne donne pas les clés de **suivi**, l'état s'écrit sous *$XDG_STATE_HOME/skrivagner/*, ou
-*~/.local/state/skrivagner/* : *dernier_scan.json*, *journal.jsonl* (le journal des actions), *sessions/* (un journal et un rapport par
-session) et *skrivagner.log*. *rapatries.json*, *imap_deposes.json* et le verrou *skrivagner.verrou* se trouvent à côté de
+Quand la configuration ne donne pas les clés de **suivi**, l'état s'écrit sous *$XDG_STATE_HOME/dibab/*, ou
+*~/.local/state/dibab/* : *dernier_scan.json*, *journal.jsonl* (le journal des actions), *sessions/* (un journal et un rapport par
+session) et *dibab.log*. *rapatries.json*, *imap_deposes.json* et le verrou *dibab.verrou* se trouvent à côté de
 *dernier_scan.json*. Les dossiers se créent en mode 700 et les fichiers en mode 600. L'état est alors en clair sur le disque : pour
 le garder dans un coffre, donnez les clés **suivi.fichier_date**, **suivi.journal** et **suivi.sessions**.
 
@@ -112,7 +112,7 @@ Les dictionnaires de messages sont *modules/langues/en.txt*, *fr.txt*, *de.txt* 
 
 # ENVIRONNEMENT
 
-**SKRIVAGNER_CONFIG**
+**DIBAB_CONFIG**
 : Chemin du fichier de configuration.
 
 **XDG_CONFIG_HOME**, **XDG_STATE_HOME**
@@ -143,20 +143,20 @@ configuration.
 : **\--execute** refusé sur cette machine (clé **executer_sur**).
 
 **5**
-: Une autre exécution tient le verrou *skrivagner.verrou*.
+: Une autre exécution tient le verrou *dibab.verrou*.
 
 # EXEMPLES
 
 Vérifier l'installation, puis simuler, puis classer pour de bon :
 
-    skrivagner --diagnose
-    skrivagner --dry-run
-    skrivagner --execute
+    dibab --diagnose
+    dibab --dry-run
+    dibab --execute
 
 Lire le même contrôle en anglais, puis annuler la dernière session :
 
-    LC_ALL=en_US.UTF-8 skrivagner --diagnose
-    skrivagner --rollback
+    LC_ALL=en_US.UTF-8 dibab --diagnose
+    dibab --rollback
 
 # VOIR AUSSI
 

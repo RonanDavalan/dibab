@@ -1,35 +1,35 @@
-% SKRIVAGNER(1) skrivagner | Órdenes de usuario
+% DIBAB(1) dibab | Órdenes de usuario
 % Ronan Davalan
 % 2026-10-29
 
 # NOMBRE
 
-skrivagner - recopila, analiza y clasifica los documentos administrativos personales de un hogar, sin que ningún dato salga de la red local
+dibab - recopila, analiza y clasifica los documentos administrativos personales de un hogar, sin que ningún dato salga de la red local
 
 # SINOPSIS
 
-**skrivagner** [**\--config** *RUTA*] [**\--dry-run** | **\--execute** | **\--inventaire**]
+**dibab** [**\--config** *RUTA*] [**\--dry-run** | **\--execute** | **\--inventaire**]
 
-**skrivagner** **\--dry-run** **\--verdicts-simules** *ARCHIVO*
+**dibab** **\--dry-run** **\--verdicts-simules** *ARCHIVO*
 
-**skrivagner** [**\--config** *RUTA*] **\--rollback** [**\--session** *SESIÓN*]
+**dibab** [**\--config** *RUTA*] **\--rollback** [**\--session** *SESIÓN*]
 
-**skrivagner** [**\--config** *RUTA*] **\--autoriser-google** *ID*
+**dibab** [**\--config** *RUTA*] **\--autoriser-google** *ID*
 
-**skrivagner** [**\--config** *RUTA*] **\--diagnose**
+**dibab** [**\--config** *RUTA*] **\--diagnose**
 
-**skrivagner** {**\--version** | **\--help**}
+**dibab** {**\--version** | **\--help**}
 
 # DESCRIPCIÓN
 
-**skrivagner** escanea directorios locales, máquinas remotas por **ssh**(1) y buzones de correo por IMAP en solo lectura. Extrae el
+**dibab** escanea directorios locales, máquinas remotas por **ssh**(1) y buzones de correo por IMAP en solo lectura. Extrae el
 texto de cada documento, aparta lo que no es administrativo y clasifica el resto por categoría y por ámbito, personal o profesional,
 por consenso de varios modelos de lenguaje. Cada documento se renombra y se mueve a la bóveda de su ámbito, con un diario que
 **\--rollback** puede deshacer. Nunca borra un archivo, nunca modifica un buzón ni una máquina remota, y no mueve nada de lo que no esté
 seguro: la duda lleva a una carpeta llamada *À_VÉRIFIER*.
 
 Los modelos de lenguaje son los de Ollama, que se ejecuta en la misma máquina. Ollama y sus modelos se instalan aparte, por el usuario,
-desde el sitio de Ollama: Skrivagner no contiene ni lo uno ni lo otro. Liste los modelos con **ollama list** y escríbalos, rol por rol,
+desde el sitio de Ollama: Dibab no contiene ni lo uno ni lo otro. Liste los modelos con **ollama list** y escríbalos, rol por rol,
 en la clave **ollama.roles** de la configuración. Solo se alcanzan las bóvedas de destino, las máquinas y los buzones que la
 configuración nombra.
 
@@ -68,7 +68,7 @@ El modo por defecto es la simulación. Lea siempre el resultado de **\--dry-run*
 :   Archivo de configuración que se lee (véase **ARCHIVOS**).
 
 **\--version**
-:   Escribe una línea, **skrivagner** *versión*, y termina.
+:   Escribe una línea, **dibab** *versión*, y termina.
 
 **\--help**, **-h**
 :   Lista las opciones, en el idioma de la sesión.
@@ -84,27 +84,27 @@ de la sesión.
 
 # INSTALACIÓN
 
-En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el programa, sus dependencias, las cuatro páginas de manual y la configuración de ejemplo *config.exemple.json* en */usr/share/doc/skrivagner/examples/*:
+En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el programa, sus dependencias, las cuatro páginas de manual y la configuración de ejemplo *config.exemple.json* en */usr/share/doc/dibab/examples/*:
 
-    sudo apt install ./skrivagner_*_all.deb
+    sudo apt install ./dibab_*_all.deb
 
-**sudo apt remove skrivagner** y **sudo apt purge skrivagner** eliminan los archivos del paquete y nunca tocan la configuración, el estado, el diario ni los documentos; la purga nombra lo que deja. Nivel: instalación y diagnóstico validados en contenedor en estas cuatro versiones; un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama.
+**sudo apt remove dibab** y **sudo apt purge dibab** eliminan los archivos del paquete y nunca tocan la configuración, el estado, el diario ni los documentos; la purga nombra lo que deja. Nivel: instalación y diagnóstico validados en contenedor en estas cuatro versiones; un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama.
 
 # ARCHIVOS
 
 La configuración es el primer archivo existente de la lista siguiente, por este orden, y es el único que se lee:
 
 1.  el archivo que nombra **\--config**;
-2.  el archivo que nombra la variable **SKRIVAGNER_CONFIG**, cuando no está vacía;
-3.  *$XDG_CONFIG_HOME/skrivagner/config.json*, o *~/.config/skrivagner/config.json* cuando **XDG_CONFIG_HOME** está vacía o sin definir;
-4.  *config.json* en la carpeta de *skrivagner.py*.
+2.  el archivo que nombra la variable **DIBAB_CONFIG**, cuando no está vacía;
+3.  *$XDG_CONFIG_HOME/dibab/config.json*, o *~/.config/dibab/config.json* cuando **XDG_CONFIG_HOME** está vacía o sin definir;
+4.  *config.json* en la carpeta de *dibab.py*.
 
 Una opción o una variable que designe un archivo ausente detiene el programa con el código 1: nunca recurre a otro archivo.
 *config.exemple.json* es el ejemplo, en la carpeta del programa; cópielo a una de estas ubicaciones, con modo 600.
 
-Cuando la configuración no da las claves de **suivi**, el estado se escribe en *$XDG_STATE_HOME/skrivagner/*, o en
-*~/.local/state/skrivagner/*: *dernier_scan.json*, *journal.jsonl* (el diario de acciones), *sessions/* (un diario y un informe por
-sesión) y *skrivagner.log*. *rapatries.json*, *imap_deposes.json* y el bloqueo *skrivagner.verrou* están junto a *dernier_scan.json*.
+Cuando la configuración no da las claves de **suivi**, el estado se escribe en *$XDG_STATE_HOME/dibab/*, o en
+*~/.local/state/dibab/*: *dernier_scan.json*, *journal.jsonl* (el diario de acciones), *sessions/* (un diario y un informe por
+sesión) y *dibab.log*. *rapatries.json*, *imap_deposes.json* y el bloqueo *dibab.verrou* están junto a *dernier_scan.json*.
 Las carpetas se crean con modo 700 y los archivos con modo 600. El estado queda entonces sin cifrar en el disco: para guardarlo en una
 bóveda, indique las claves **suivi.fichier_date**, **suivi.journal** y **suivi.sessions**.
 
@@ -112,7 +112,7 @@ Los diccionarios de mensajes son *modules/langues/en.txt*, *fr.txt*, *de.txt* y 
 
 # ENTORNO
 
-**SKRIVAGNER_CONFIG**
+**DIBAB_CONFIG**
 :   Ruta del archivo de configuración.
 
 **XDG_CONFIG_HOME**, **XDG_STATE_HOME**
@@ -143,20 +143,20 @@ configuración.
 :   **\--execute** rechazado en esta máquina (clave **executer_sur**).
 
 **5**
-:   Otra ejecución mantiene el bloqueo *skrivagner.verrou*.
+:   Otra ejecución mantiene el bloqueo *dibab.verrou*.
 
 # EJEMPLOS
 
 Comprobar la instalación, luego simular, luego clasificar de verdad:
 
-    skrivagner --diagnose
-    skrivagner --dry-run
-    skrivagner --execute
+    dibab --diagnose
+    dibab --dry-run
+    dibab --execute
 
 Leer la misma comprobación en inglés y deshacer la última sesión:
 
-    LC_ALL=en_US.UTF-8 skrivagner --diagnose
-    skrivagner --rollback
+    LC_ALL=en_US.UTF-8 dibab --diagnose
+    dibab --rollback
 
 # VÉASE TAMBIÉN
 

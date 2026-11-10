@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import oauth2_google, scanner_imap, sources_imap
 from tests.faux_imap import UTILISATEUR, Boite, Serveur, message, piece
 from tests.test_classement_execute import TEXTES, banc, lancer  # noqa: F401
@@ -424,7 +424,7 @@ def test_le_pipeline_avec_autorisation_revoquee_rend_le_code_1_et_n_avance_pas_l
 
 def test_la_commande_autoriser_google_appelle_le_consentement_de_la_source(pipeline_google, monkeypatch, capsys):
     appels = []
-    monkeypatch.setattr(skrivagner.mod_oauth2_google, "autoriser", lambda *arguments: appels.append(arguments))
+    monkeypatch.setattr(dibab.mod_oauth2_google, "autoriser", lambda *arguments: appels.append(arguments))
     assert lancer(monkeypatch, "--autoriser-google", "imap-google") == 0
     client, jeton, utilisateur, parametres, _ = appels[0]
     assert (client.endswith("client.json"), jeton.endswith("jeton.json"), utilisateur) == (True, True, UTILISATEUR)
@@ -440,6 +440,6 @@ def test_la_commande_autoriser_google_signale_l_echec_sans_rien_ecrire(pipeline_
     def echec(*_):
         raise oauth2_google.ErreurOAuth2("consentement refusé")
 
-    monkeypatch.setattr(skrivagner.mod_oauth2_google, "autoriser", echec)
+    monkeypatch.setattr(dibab.mod_oauth2_google, "autoriser", echec)
     assert lancer(monkeypatch, "--autoriser-google", "imap-google") == 1
     assert "consentement refusé" in capsys.readouterr().err

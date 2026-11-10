@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# skrivagner.py — Point d'entrée
+# dibab.py — Point d'entrée
 #
 # Modes : --dry-run (défaut, rien ne bouge), --execute, --inventaire, --rollback, --autoriser-google, --diagnose ; --version.
 # Sources : répertoires locaux, machines distantes par ssh, boîtes IMAP en lecture seule.
@@ -108,7 +108,7 @@ def resoudre_modeles_ou_sortir(configuration):
 
 
 def verifier_machine_ou_sortir(configuration):
-    """Refuse `--execute` hors des machines de `executer_sur` : la synchronisation des coffres vient après un seul Skrivagner."""
+    """Refuse `--execute` hors des machines de `executer_sur` : la synchronisation des coffres vient après un seul Dibab."""
     machines = configuration.get("executer_sur", [])
     if machines and socket.gethostname() not in machines:
         erreur_console(traduire("execute_machine_refusee", machines=", ".join(machines)) + SUITE + traduire("suite_rien_touche"))
@@ -122,7 +122,7 @@ def initialiser_journal_session(configuration, mode, etats_coffres):
         return mod_journal.JournalAbsent(), horodatage
     chemin_session = sessions_dir / f"session_{horodatage}.jsonl"
     journal = mod_journal.JournalSession(chemin_session, horodatage)
-    journal.ajouter("session_demarree", mode=mode, version_skrivagner=VERSION)
+    journal.ajouter("session_demarree", mode=mode, version_dibab=VERSION)
     return journal, horodatage
 
 
@@ -223,7 +223,7 @@ def appliquer_rotation(configuration):
 
 
 def analyser_arguments():
-    parseur = ParseurTraduit(prog="skrivagner", description=traduire("aide_description"))
+    parseur = ParseurTraduit(prog="dibab", description=traduire("aide_description"))
     groupe = parseur.add_mutually_exclusive_group()
     groupe.add_argument("--dry-run", action="store_true",
                         help=traduire("aide_dry_run"))
@@ -237,7 +237,7 @@ def analyser_arguments():
                         help=traduire("aide_autoriser_google"))
     groupe.add_argument("--diagnose", action="store_true",
                         help=traduire("aide_diagnose"))
-    parseur.add_argument("--version", action="version", version=f"skrivagner {VERSION}",
+    parseur.add_argument("--version", action="version", version=f"dibab {VERSION}",
                          help=traduire("aide_version"))
     parseur.add_argument("--config", type=Path, default=None, metavar=traduire("aide_meta_chemin"),
                          help=traduire("aide_config"))
@@ -738,7 +738,7 @@ def principal():
         return code
 
     if mode == "execute":
-        chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "skrivagner.verrou"
+        chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "dibab.verrou"
         try:
             with mod_verrou.verrou(chemin_verrou):
                 return executer_session(configuration, parametres, modeles_cascade, journal, horodatage)
@@ -801,7 +801,7 @@ def deposer_sources_imap(configuration, suivi, journal, rapport):
 
 def executer_rollback(configuration, session, journal, horodatage):
     """Annule une session de classement ; rend 1 si une action n'a pas pu être annulée, rien n'étant alors retiré pour elle."""
-    chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "skrivagner.verrou"
+    chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "dibab.verrou"
     try:
         with mod_verrou.verrou(chemin_verrou):
             actions = mod_journal_actions.JournalActions(configuration["suivi"]["journal"], horodatage)

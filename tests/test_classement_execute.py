@@ -7,7 +7,7 @@ from functools import partial
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import classification, verrou
 from modules.extraction import Extraction
 from tests.textes_factices import CATEGORIES, CONFIG_CLASSEMENT, EMETTEURS_CONNUS, PERSONNES, TEXTES
@@ -66,19 +66,19 @@ def banc(tmp_path, monkeypatch):
     }
     chemin_config = tmp_path / "config.json"
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
-    monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "m", "tri_rapide": "m", "classification": "m1"})
-    monkeypatch.setattr(skrivagner.mod_modeles, "modeles_installes_du_role", lambda *_: ["m1", "m2"])
-    monkeypatch.setattr(skrivagner.mod_extraction, "extraire", lambda chemin, *_, **__: Extraction(
+    monkeypatch.setattr(dibab, "CHEMIN_CONFIG", chemin_config)
+    monkeypatch.setattr(dibab.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "m", "tri_rapide": "m", "classification": "m1"})
+    monkeypatch.setattr(dibab.mod_modeles, "modeles_installes_du_role", lambda *_: ["m1", "m2"])
+    monkeypatch.setattr(dibab.mod_extraction, "extraire", lambda chemin, *_, **__: Extraction(
         chemin.read_text(encoding="utf-8"), "couche_texte", 999, 1, None, 0.0))
-    monkeypatch.setattr(skrivagner.mod_cascade, "executer", partial(skrivagner.mod_cascade.executer, generer=faux_modeles))
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "fuse.gocryptfs")
+    monkeypatch.setattr(dibab.mod_cascade, "executer", partial(dibab.mod_cascade.executer, generer=faux_modeles))
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "fuse.gocryptfs")
     return tmp_path, chemin_config
 
 
 def lancer(monkeypatch, *arguments):
-    monkeypatch.setattr("sys.argv", ["skrivagner", *arguments])
-    return skrivagner.main()
+    monkeypatch.setattr("sys.argv", ["dibab", *arguments])
+    return dibab.main()
 
 
 def arbre(racine, sans_logs=True):
@@ -140,7 +140,7 @@ def test_execute_journalise_chaque_deplacement_sans_texte(banc, monkeypatch):
 
 def test_execute_coffre_ferme_ne_touche_a_rien(banc, monkeypatch, capsys):
     racine, _ = banc
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
     avant = arbre(racine / "source")
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--execute")
@@ -151,7 +151,7 @@ def test_execute_coffre_ferme_ne_touche_a_rien(banc, monkeypatch, capsys):
 
 def test_inventaire_coffre_ferme_ne_touche_a_rien(banc, monkeypatch):
     racine, _ = banc
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--inventaire")
     assert sortie.value.code == 2
@@ -163,13 +163,13 @@ def test_inventaire_par_la_ligne_de_commande(banc, monkeypatch, capsys):
     lancer(monkeypatch, "--execute")
     capsys.readouterr()
     sessions = lambda d: [p for p in (racine / d / "logs" / "sessions").glob("*")]  # noqa: E731
-    avant = {d: skrivagner.mod_inventaire.empreinte_arbre(racine / d, ignorer=sessions(d)) for d in ("coffre-a", "coffre-b")}
+    avant = {d: dibab.mod_inventaire.empreinte_arbre(racine / d, ignorer=sessions(d)) for d in ("coffre-a", "coffre-b")}
     assert lancer(monkeypatch, "--inventaire") == 0
     plans = sorted((racine / "coffre-a" / "logs").glob("inventaire_*.json")) + sorted((racine / "coffre-b" / "logs").glob("inventaire_*.json"))
     assert len(plans) == 2
     # Le journal de session est le seul autre écrit de la commande : il vit déjà dans logs/sessions.
     ignores = plans + [p for d in ("coffre-a", "coffre-b") for p in (racine / d / "logs" / "sessions").glob("*")]
-    apres = {d: skrivagner.mod_inventaire.empreinte_arbre(racine / d, ignorer=ignores) for d in ("coffre-a", "coffre-b")}
+    apres = {d: dibab.mod_inventaire.empreinte_arbre(racine / d, ignorer=ignores) for d in ("coffre-a", "coffre-b")}
     assert avant == apres
     assert "plan écrit" in capsys.readouterr().out
 
@@ -188,7 +188,7 @@ def test_execute_refuse_hors_des_machines_autorisees(banc, monkeypatch):
 def test_execute_refuse_quand_un_autre_tient_le_verrou(banc, monkeypatch):
     racine, _ = banc
     avant = arbre(racine / "source")
-    with verrou.verrou(racine / "coffre-a" / "logs" / "skrivagner.verrou"):
+    with verrou.verrou(racine / "coffre-a" / "logs" / "dibab.verrou"):
         assert lancer(monkeypatch, "--execute") == 5
     assert arbre(racine / "source") == avant
 
@@ -199,7 +199,7 @@ def test_un_echec_de_deplacement_laisse_le_document_et_n_avance_pas_la_date_du_s
     def copie_en_panne(origine, destination):
         raise OSError("coffre plein")
 
-    monkeypatch.setattr(skrivagner.mod_deplacement, "deplacer", partial(skrivagner.mod_deplacement.deplacer, copier=copie_en_panne))
+    monkeypatch.setattr(dibab.mod_deplacement, "deplacer", partial(dibab.mod_deplacement.deplacer, copier=copie_en_panne))
     assert lancer(monkeypatch, "--execute") == 1
     assert len(arbre(racine / "source")) == len(LOT)
     assert "source" not in json.loads((racine / "coffre-a" / "logs" / "dernier_scan.json").read_text())
@@ -218,7 +218,7 @@ def test_execute_sans_cles_de_chemin_ecrit_l_etat_sous_xdg_state_home_en_700_et_
     monkeypatch.setenv("XDG_STATE_HOME", str(etat))
     sans_cles_de_chemin(chemin_config)
     assert lancer(monkeypatch, "--execute") == 0
-    dossier = etat / "skrivagner"
+    dossier = etat / "dibab"
     assert not (racine / "coffre-a" / "logs").exists()
     assert sorted(p.name for p in dossier.iterdir() if p.is_file()) == ["dernier_scan.json", "journal.jsonl"]
     sessions = [p for p in (dossier / "sessions").iterdir()]
@@ -239,9 +239,9 @@ def test_execute_sans_modele_installe_rend_3(banc, monkeypatch):
     racine, _ = banc
 
     def aucun_modele(_):
-        raise skrivagner.mod_modeles.ModeleIndisponible("Aucun modèle installé pour le rôle : ocr.")
+        raise dibab.mod_modeles.ModeleIndisponible("Aucun modèle installé pour le rôle : ocr.")
 
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", aucun_modele)
+    monkeypatch.setattr(dibab.mod_modeles, "resoudre_modeles", aucun_modele)
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--execute")
     assert sortie.value.code == 3 and arbre(racine / "source") != []
@@ -257,8 +257,8 @@ def test_la_configuration_xdg_est_trouvee_avant_celle_du_script(banc, monkeypatc
     _, chemin_config = banc
     xdg = tmp_path_factory.mktemp("xdg-config-essai")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
-    (xdg / "skrivagner").mkdir()
-    copie = xdg / "skrivagner" / "config.json"
+    (xdg / "dibab").mkdir()
+    copie = xdg / "dibab" / "config.json"
     copie.write_text(chemin_config.read_text())
     assert lancer(monkeypatch, "--dry-run") == 0
     assert f"Configuration      : {copie}" in capsys.readouterr().out

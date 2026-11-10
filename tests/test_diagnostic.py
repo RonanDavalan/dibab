@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import coffres, diagnostic, modeles
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -125,8 +125,8 @@ def test_sans_configuration_ni_ollama_le_bilan_est_celui_de_la_specification(air
 def test_configuration_non_configuree_liste_les_quatre_emplacements(aire):
     message = jouer(aire, option=None)["configuration"].message
     assert jouer(aire, option=None)["configuration"].etat == "NON_CONFIGURÉ"
-    assert "--config" in message and "SKRIVAGNER_CONFIG" in message and str(aire["script"]) in message
-    assert "/maison/.config/skrivagner/config.json" in message
+    assert "--config" in message and "DIBAB_CONFIG" in message and str(aire["script"]) in message
+    assert "/maison/.config/dibab/config.json" in message
 
 
 def test_configuration_invalide_est_un_echec_et_les_dependants_ne_sont_pas_verifies(aire):
@@ -147,11 +147,11 @@ def test_des_cles_absentes_sont_un_echec_qui_les_liste(aire):
 
 
 def test_la_variable_du_mot_de_passe_imap_absente_est_un_avertissement_sans_jamais_etre_ecrite(aire):
-    source = {"id": "i", "authentification": "login", "mot_de_passe_env": "SKRIVAGNER_IMAP_EXEMPLE"}
+    source = {"id": "i", "authentification": "login", "mot_de_passe_env": "DIBAB_IMAP_EXEMPLE"}
     aire["chemin"].write_text(json.dumps({**aire["configuration"], "sources_imap": [source]}), encoding="utf-8")
     absente = jouer(aire)["configuration"]
-    assert absente.etat == "AVERTISSEMENT" and "SKRIVAGNER_IMAP_EXEMPLE" in absente.message
-    presente = jouer(aire, environ={**aire["environ"], "SKRIVAGNER_IMAP_EXEMPLE": "valeur-secrete-factice"})
+    assert absente.etat == "AVERTISSEMENT" and "DIBAB_IMAP_EXEMPLE" in absente.message
+    presente = jouer(aire, environ={**aire["environ"], "DIBAB_IMAP_EXEMPLE": "valeur-secrete-factice"})
     assert presente["configuration"].etat == "OK"
     assert "valeur-secrete-factice" not in " ".join(v.message for v in presente.values())
 
@@ -166,10 +166,10 @@ def test_sans_format_a_verifier_le_diagnostic_avertit(aire, nommage, etat):
 
 
 def test_les_deux_avertissements_de_configuration_se_cumulent(aire):
-    source = {"id": "i", "authentification": "login", "mot_de_passe_env": "SKRIVAGNER_IMAP_EXEMPLE"}
+    source = {"id": "i", "authentification": "login", "mot_de_passe_env": "DIBAB_IMAP_EXEMPLE"}
     aire["chemin"].write_text(json.dumps({**aire["configuration"], "sources_imap": [source], "nommage": {}}), encoding="utf-8")
     message = jouer(aire)["configuration"].message
-    assert "SKRIVAGNER_IMAP_EXEMPLE" in message and "nommage.format_a_verifier" in message
+    assert "DIBAB_IMAP_EXEMPLE" in message and "nommage.format_a_verifier" in message
 
 
 def test_l_etat_hors_de_tout_coffre_est_un_avertissement(aire):
@@ -177,7 +177,7 @@ def test_l_etat_hors_de_tout_coffre_est_un_avertissement(aire):
     del configuration["suivi"]
     aire["chemin"].write_text(json.dumps(configuration), encoding="utf-8")
     resultat = jouer(aire)["emplacement_etat"]
-    assert resultat.etat == "AVERTISSEMENT" and "en clair" in resultat.message and "/maison/.local/state/skrivagner" in resultat.message
+    assert resultat.etat == "AVERTISSEMENT" and "en clair" in resultat.message and "/maison/.local/state/dibab" in resultat.message
 
 
 def test_l_etat_sous_un_coffre_est_ok_et_donne_le_dossier(aire, tmp_path):
@@ -243,11 +243,11 @@ def test_avertissements_et_non_verifies_ne_changent_pas_le_code(aire):
 
 
 def test_main_diagnose_sans_configuration_rend_0_et_ne_cree_aucun_fichier(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", tmp_path / "absente.json")
+    monkeypatch.setattr(dibab, "CHEMIN_CONFIG", tmp_path / "absente.json")
     monkeypatch.setenv("HOME", str(tmp_path / "maison"))
-    monkeypatch.setattr("sys.argv", ["skrivagner", "--diagnose"])
+    monkeypatch.setattr("sys.argv", ["dibab", "--diagnose"])
     avant = sorted(tmp_path.rglob("*"))
-    code = skrivagner.main()
+    code = dibab.main()
     lignes = capsys.readouterr().out.splitlines()
     assert [ligne.split()[0] for ligne in lignes[5:-1]] == ["NON_CONFIGURÉ"] + ["NON_VÉRIFIÉ"] * 8
     assert lignes[-1].endswith("1 non configuré(s), 8 non vérifié(s)")
@@ -261,9 +261,9 @@ def test_main_diagnose_avec_une_configuration_valide_et_ollama_eteint_rend_1(tmp
     configuration["ollama"]["timeout_secondes"] = 2
     chemin = tmp_path / "config.json"
     chemin.write_text(json.dumps(configuration), encoding="utf-8")
-    monkeypatch.setenv("SKRIVAGNER_IMAP_EXEMPLE", "valeur-factice")
-    monkeypatch.setattr("sys.argv", ["skrivagner", "--diagnose", "--config", str(chemin)])
-    assert skrivagner.main() == 1
+    monkeypatch.setenv("DIBAB_IMAP_EXEMPLE", "valeur-factice")
+    monkeypatch.setattr("sys.argv", ["dibab", "--diagnose", "--config", str(chemin)])
+    assert dibab.main() == 1
     lignes = {ligne.split()[1]: ligne.split()[0] for ligne in capsys.readouterr().out.splitlines()[:-1]}
     assert lignes["configuration"] == "OK"
     assert lignes["ollama"] == "ÉCHEC"
@@ -271,7 +271,7 @@ def test_main_diagnose_avec_une_configuration_valide_et_ollama_eteint_rend_1(tmp
 
 
 def test_diagnose_par_la_ligne_de_commande_dans_un_domicile_vide(tmp_path):
-    resultat = subprocess.run([sys.executable, str(RACINE / "skrivagner.py"), "--diagnose"], capture_output=True, text=True,
+    resultat = subprocess.run([sys.executable, str(RACINE / "dibab.py"), "--diagnose"], capture_output=True, text=True,
                               env={"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "LC_ALL": "fr_FR.UTF-8"}, cwd=tmp_path)
     lignes = resultat.stdout.splitlines()
     assert any(ligne.startswith("NON_CONFIGURÉ configuration : ") for ligne in lignes)

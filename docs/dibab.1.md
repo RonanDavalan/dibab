@@ -1,35 +1,35 @@
-% SKRIVAGNER(1) skrivagner | User Commands
+% DIBAB(1) dibab | User Commands
 % Ronan Davalan
 % 2026-10-29
 
 # NAME
 
-skrivagner - collects, analyses and files the personal administrative documents of a household, without any data leaving the local network
+dibab - collects, analyses and files the personal administrative documents of a household, without any data leaving the local network
 
 # SYNOPSIS
 
-**skrivagner** [**\--config** *PATH*] [**\--dry-run** | **\--execute** | **\--inventaire**]
+**dibab** [**\--config** *PATH*] [**\--dry-run** | **\--execute** | **\--inventaire**]
 
-**skrivagner** **\--dry-run** **\--verdicts-simules** *FILE*
+**dibab** **\--dry-run** **\--verdicts-simules** *FILE*
 
-**skrivagner** [**\--config** *PATH*] **\--rollback** [**\--session** *SESSION*]
+**dibab** [**\--config** *PATH*] **\--rollback** [**\--session** *SESSION*]
 
-**skrivagner** [**\--config** *PATH*] **\--autoriser-google** *ID*
+**dibab** [**\--config** *PATH*] **\--autoriser-google** *ID*
 
-**skrivagner** [**\--config** *PATH*] **\--diagnose**
+**dibab** [**\--config** *PATH*] **\--diagnose**
 
-**skrivagner** {**\--version** | **\--help**}
+**dibab** {**\--version** | **\--help**}
 
 # DESCRIPTION
 
-**skrivagner** scans local directories, remote machines over **ssh**(1) and mailboxes over read-only IMAP. It extracts the text of
+**dibab** scans local directories, remote machines over **ssh**(1) and mailboxes over read-only IMAP. It extracts the text of
 each document, sets aside what is not administrative, then files the rest by category and by domain, personal or professional,
 by the consensus of several language models. Each document is renamed and moved into the vault of its domain, with a journal that
 **\--rollback** can undo. It never deletes a file, never modifies a mailbox or a remote machine, and moves nothing it is not sure
 about: doubt leads to a folder named *À_VÉRIFIER*.
 
 The language models are those of Ollama, which runs on the same machine. Ollama and its models are installed separately, by the
-user, from the Ollama website: Skrivagner contains neither. List the models with **ollama list**, then write them, role by role,
+user, from the Ollama website: Dibab contains neither. List the models with **ollama list**, then write them, role by role,
 in the key **ollama.roles** of the configuration. Only the destination vault of each domain, the machines and the mailboxes that the configuration
 names are ever reached.
 
@@ -68,7 +68,7 @@ The default mode is the simulation. Always read the result of **\--dry-run** bef
 :   Configuration file to read (see **FILES**).
 
 **\--version**
-:   Prints one line, **skrivagner** *version*, and stops.
+:   Prints one line, **dibab** *version*, and stops.
 
 **\--help**, **-h**
 :   Lists the options, in the language of the session.
@@ -83,27 +83,27 @@ What is written on disk (journals, plans, reports) is in English, whatever the l
 
 # INSTALLATION
 
-On Debian 12 and 13 and on Ubuntu 22.04 and 24.04, the Debian package installs the program, its dependencies, the four manual pages and the example configuration *config.exemple.json* in */usr/share/doc/skrivagner/examples/*:
+On Debian 12 and 13 and on Ubuntu 22.04 and 24.04, the Debian package installs the program, its dependencies, the four manual pages and the example configuration *config.exemple.json* in */usr/share/doc/dibab/examples/*:
 
-    sudo apt install ./skrivagner_*_all.deb
+    sudo apt install ./dibab_*_all.deb
 
-**sudo apt remove skrivagner** and **sudo apt purge skrivagner** delete the files of the package and never touch the configuration, the state, the journal or the documents; the purge names what it leaves. Level: installation and diagnostic validated in a container on these four versions; a container shows neither the mounting of an encrypted vault nor a run with your own Ollama.
+**sudo apt remove dibab** and **sudo apt purge dibab** delete the files of the package and never touch the configuration, the state, the journal or the documents; the purge names what it leaves. Level: installation and diagnostic validated in a container on these four versions; a container shows neither the mounting of an encrypted vault nor a run with your own Ollama.
 
 # FILES
 
 The configuration is the first existing file among, in this order, and only that one is read:
 
 1.  the file named by **\--config**;
-2.  the file named by the variable **SKRIVAGNER_CONFIG**, when it is not empty;
-3.  *$XDG_CONFIG_HOME/skrivagner/config.json*, or *~/.config/skrivagner/config.json* when **XDG_CONFIG_HOME** is empty or unset;
-4.  *config.json* in the folder of *skrivagner.py*.
+2.  the file named by the variable **DIBAB_CONFIG**, when it is not empty;
+3.  *$XDG_CONFIG_HOME/dibab/config.json*, or *~/.config/dibab/config.json* when **XDG_CONFIG_HOME** is empty or unset;
+4.  *config.json* in the folder of *dibab.py*.
 
 An option or a variable that names a missing file stops the program with the exit status 1: it never falls back on another file.
 *config.exemple.json* is the example, in the folder of the program; copy it to one of these places, with mode 600.
 
-When the configuration does not give the keys of **suivi**, the state is written under *$XDG_STATE_HOME/skrivagner/*, or
-*~/.local/state/skrivagner/*: *dernier_scan.json*, *journal.jsonl* (the action journal), *sessions/* (one journal and one report per
-session) and *skrivagner.log*. *rapatries.json*, *imap_deposes.json* and the lock *skrivagner.verrou* sit next to *dernier_scan.json*.
+When the configuration does not give the keys of **suivi**, the state is written under *$XDG_STATE_HOME/dibab/*, or
+*~/.local/state/dibab/*: *dernier_scan.json*, *journal.jsonl* (the action journal), *sessions/* (one journal and one report per
+session) and *dibab.log*. *rapatries.json*, *imap_deposes.json* and the lock *dibab.verrou* sit next to *dernier_scan.json*.
 The folders are created with mode 700 and the files with mode 600. The state is then in clear text on the disk: to keep it in a
 vault, give the keys **suivi.fichier_date**, **suivi.journal** and **suivi.sessions**.
 
@@ -111,7 +111,7 @@ The message dictionaries are *modules/langues/en.txt*, *fr.txt*, *de.txt* and *e
 
 # ENVIRONMENT
 
-**SKRIVAGNER_CONFIG**
+**DIBAB_CONFIG**
 :   Path of the configuration file.
 
 **XDG_CONFIG_HOME**, **XDG_STATE_HOME**
@@ -142,20 +142,20 @@ configuration file.
 :   **\--execute** refused on this machine (key **executer_sur**).
 
 **5**
-:   Another run holds the lock *skrivagner.verrou*.
+:   Another run holds the lock *dibab.verrou*.
 
 # EXAMPLES
 
 Check the installation, then simulate, then file for real:
 
-    skrivagner --diagnose
-    skrivagner --dry-run
-    skrivagner --execute
+    dibab --diagnose
+    dibab --dry-run
+    dibab --execute
 
 Read the same check in French, then undo the last session:
 
-    LC_ALL=fr_FR.UTF-8 skrivagner --diagnose
-    skrivagner --rollback
+    LC_ALL=fr_FR.UTF-8 dibab --diagnose
+    dibab --rollback
 
 # SEE ALSO
 

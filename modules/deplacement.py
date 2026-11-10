@@ -93,7 +93,7 @@ def copier_verifie(source, destination, empreinte, copier=shutil.copy2):
 
     Le nom provisoire commence par un point : le scanner l'ignore si le processus meurt entre les deux.
     """
-    provisoire = destination.with_name(f".skrivagner-partiel-{os.getpid()}-{destination.name}")
+    provisoire = destination.with_name(f".dibab-partiel-{os.getpid()}-{destination.name}")
     destination.parent.mkdir(parents=True, exist_ok=True)
     try:
         copier(source, provisoire)

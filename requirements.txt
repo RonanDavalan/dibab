@@ -1,4 +1,4 @@
-# Dépendances Skrivagner
+# Dépendances Dibab
 #
 # Le code privilégie la bibliothèque standard Python.
 # - SSH via subprocess (pas Paramiko)

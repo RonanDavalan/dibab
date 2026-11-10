@@ -75,7 +75,7 @@ def deposer(octets, nom, dossier, date, suffixe_collision):
     if final.is_file() and empreinte_sha256(final) == empreinte:
         return REPRISE, empreinte
     final = chemin_libre(final, suffixe_collision)
-    provisoire = dossier / f".skrivagner-imap-{os.getpid()}-{final.name}"
+    provisoire = dossier / f".dibab-imap-{os.getpid()}-{final.name}"
     try:
         descripteur = os.open(provisoire, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(descripteur, "wb") as f:

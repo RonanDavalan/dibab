@@ -1,6 +1,6 @@
-"""Où Skrivagner cherche sa configuration et où il écrit son état quand il est installé par un paquet.
+"""Où Dibab cherche sa configuration et où il écrit son état quand il est installé par un paquet.
 
-Ordre de recherche de la configuration : option `--config`, variable `SKRIVAGNER_CONFIG`, emplacement XDG,
+Ordre de recherche de la configuration : option `--config`, variable `DIBAB_CONFIG`, emplacement XDG,
 puis `config.json` à côté du script. Le premier fichier trouvé est le seul lu. Une source explicite
 (option, variable) dont le fichier manque arrête la recherche : on ne retombe jamais sur un autre fichier,
 qui ferait travailler le produit sur d'autres coffres que ceux désignés.
@@ -11,13 +11,13 @@ import os
 from pathlib import Path
 from modules.messages import texte_de, traduire
 
-NOM_DOSSIER = "skrivagner"
-VARIABLE_CONFIGURATION = "SKRIVAGNER_CONFIG"
+NOM_DOSSIER = "dibab"
+VARIABLE_CONFIGURATION = "DIBAB_CONFIG"
 DEFAUTS_SUIVI = {
     "fichier_date": "dernier_scan.json",
     "journal": "journal.jsonl",
     "sessions": "sessions",
-    "logs_systeme": "skrivagner.log",
+    "logs_systeme": "dibab.log",
 }
 
 

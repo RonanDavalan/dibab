@@ -19,13 +19,13 @@
 
   "destinations": {
     "personnel": {
-      "racine": "~/Documents/skrivagner/personnel",
+      "racine": "~/Documents/dibab/personnel",
       "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Administratif",
       "sous_repertoire_a_verifier": "À_VÉRIFIER"
     },
     "professionnel": {
-      "racine": "~/Documents/skrivagner/professionnel",
+      "racine": "~/Documents/dibab/professionnel",
       "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Classement",
       "sous_repertoire_a_verifier": "À_VÉRIFIER"
@@ -109,7 +109,7 @@
   "sources_locales": [
     {
       "id": "vide-poches-local",
-      "chemin": "~/Documents/skrivagner/vide-poches-local",
+      "chemin": "~/Documents/dibab/vide-poches-local",
       "date_reference": "modification",
       "recursif": true,
       "exclusions": []
@@ -167,7 +167,7 @@
       "ssl": true,
       "authentification": "login",
       "utilisateur": "utilisateur@exemple.fr",
-      "mot_de_passe_env": "SKRIVAGNER_IMAP_EXEMPLE",
+      "mot_de_passe_env": "DIBAB_IMAP_EXEMPLE",
       "dossiers": ["INBOX"],
       "vide_poches_destination": "vide-poches-local",
       "date_reference": "reception"
@@ -180,8 +180,8 @@
       "ssl": true,
       "authentification": "oauth2",
       "utilisateur": "utilisateur@exemple.fr",
-      "client_fichier": "~/.config/skrivagner/client-google.json",
-      "token_fichier": "~/.config/skrivagner/jeton-google.json",
+      "client_fichier": "~/.config/dibab/client-google.json",
+      "token_fichier": "~/.config/dibab/jeton-google.json",
       "dossiers": ["INBOX"],
       "vide_poches_destination": "vide-poches-google",
       "date_reference": "reception"

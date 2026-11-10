@@ -390,9 +390,9 @@ def test_un_tri_incertain_ne_rejoint_pas_classement_meme_pour_une_piece_commune(
 
 # Essais contre un Ollama qui répond, avec les modèles nommés par l'environnement.
 def _modeles_essai():
-    tri, fin = os.environ.get("SKRIVAGNER_MODELE_TRI_ESSAI"), os.environ.get("SKRIVAGNER_MODELE_CLASSIFICATION_ESSAI")
+    tri, fin = os.environ.get("DIBAB_MODELE_TRI_ESSAI"), os.environ.get("DIBAB_MODELE_CLASSIFICATION_ESSAI")
     if not tri or not fin:
-        pytest.skip("SKRIVAGNER_MODELE_TRI_ESSAI et SKRIVAGNER_MODELE_CLASSIFICATION_ESSAI absents")
+        pytest.skip("DIBAB_MODELE_TRI_ESSAI et DIBAB_MODELE_CLASSIFICATION_ESSAI absents")
     try:
         with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5) as reponse:
             installes = [m["name"] for m in json.load(reponse)["models"]]
@@ -406,8 +406,8 @@ def _modeles_essai():
 
 def _choix_essai(installes):
     """Le tri par décision de l'environnement (modèle, modèle d'objet, seuils « haut,bas,minimum »), ou None : tri par génération."""
-    decision, objet = os.environ.get("SKRIVAGNER_MODELE_DECISION_ESSAI"), os.environ.get("SKRIVAGNER_MODELE_OBJET_ESSAI")
-    seuils = os.environ.get("SKRIVAGNER_SEUILS_DECISION_ESSAI")
+    decision, objet = os.environ.get("DIBAB_MODELE_DECISION_ESSAI"), os.environ.get("DIBAB_MODELE_OBJET_ESSAI")
+    seuils = os.environ.get("DIBAB_SEUILS_DECISION_ESSAI")
     if not (decision and objet and seuils):
         return None
     if any(m not in installes and f"{m}:latest" not in installes for m in (decision, objet)):
@@ -468,7 +468,7 @@ def test_reel_les_documentations_techniques_sont_non_administratives_et_les_piec
 def test_reel_le_tri_par_decision_trouve_les_documentations_et_garde_les_pieces_administratives():
     modeles, configuration = _modeles_essai()
     if modeles["tri_decision"] is None:
-        pytest.skip("SKRIVAGNER_MODELE_DECISION_ESSAI, SKRIVAGNER_MODELE_OBJET_ESSAI ou SKRIVAGNER_SEUILS_DECISION_ESSAI absent")
+        pytest.skip("DIBAB_MODELE_DECISION_ESSAI, DIBAB_MODELE_OBJET_ESSAI ou DIBAB_SEUILS_DECISION_ESSAI absent")
     documents = TEXTES + TEXTES_LIMITES
     resultats = {r.chemin: r for r in cascade.executer([(t["id"], t["texte"]) for t in documents], configuration, modeles)}
     assert all(r.tri.modele == modeles["tri_decision"].modele and r.tri.repli is None for r in resultats.values())

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import journal_actions, rapatriement, rapport, scanner_ssh, sources_distantes
 from tests.faux_ssh import installer
 from tests.test_classement_execute import LOT, TEXTES, arbre, banc, lancer  # noqa: F401
@@ -41,7 +41,7 @@ def vide_poches(racine):
 
 def tout_rapatrier(configuration, suivi=None):
     court, copie = sources_distantes.executeurs(configuration)
-    journal = skrivagner.mod_journal.JournalAbsent()
+    journal = dibab.mod_journal.JournalAbsent()
     maintenant = datetime.now()
     listages = sources_distantes.lister(configuration, suivi or {}, journal, maintenant, court)
     registre = rapatriement.RegistreRapatries(Path(configuration["suivi"]["fichier_date"]).parent / "rapatries.json")
@@ -149,7 +149,7 @@ def test_execute_machine_absente_n_avance_pas_la_date_et_rend_1(machine, monkeyp
 
 def test_config_sans_bloc_ssh_arrete_avec_le_code_1(machine, monkeypatch):
     racine, _, _ = machine
-    chemin = skrivagner.CHEMIN_CONFIG
+    chemin = dibab.CHEMIN_CONFIG
     configuration = json.loads(chemin.read_text())
     del configuration["ssh"]
     chemin.write_text(json.dumps(configuration))

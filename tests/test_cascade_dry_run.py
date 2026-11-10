@@ -3,7 +3,7 @@
 import json
 from functools import partial
 
-import skrivagner
+import dibab
 from tests.test_classification import FauxModele
 from tests.test_extraction_dry_run import MOT_SECRET, banc, brancher_faux_modele, lancer  # noqa: F401
 from tests.textes_factices import TEXTES
@@ -11,7 +11,7 @@ from tests.textes_factices import TEXTES
 
 def brancher_cascade(monkeypatch, tri, fine):
     faux = FauxModele(tri=tri, fine=fine)
-    monkeypatch.setattr(skrivagner.mod_cascade, "executer", partial(skrivagner.mod_cascade.executer, generer=faux))
+    monkeypatch.setattr(dibab.mod_cascade, "executer", partial(dibab.mod_cascade.executer, generer=faux))
     return faux
 
 
@@ -91,7 +91,7 @@ def _brancher_tri_decision(banc, monkeypatch, seuils):
     configuration["ollama"]["roles"].update(tri_decision=["m-decision"], objet=["m-objet"])
     configuration["classification"]["seuils_tri_decision"] = seuils
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
-    monkeypatch.setattr(skrivagner.mod_modeles, "lister_capacites",
+    monkeypatch.setattr(dibab.mod_modeles, "lister_capacites",
                         lambda url, delai: {"modele-factice": ("completion",), "m-decision:latest": ("decision",), "m-objet:latest": ("completion",)})
 
     def generer(url, modele, consigne, images, delai, keep_alive, format=None, options=None):
@@ -103,7 +103,7 @@ def _brancher_tri_decision(banc, monkeypatch, seuils):
 
     def decider(url, modele, etat, questions, delai, keep_alive):
         return {"nature": {"probabilities": {"administratif": 0.99, "non_administratif": 0.01}}}
-    monkeypatch.setattr(skrivagner.mod_cascade, "executer", partial(skrivagner.mod_cascade.executer, generer=generer, decider=decider))
+    monkeypatch.setattr(dibab.mod_cascade, "executer", partial(dibab.mod_cascade.executer, generer=generer, decider=decider))
     return racine
 
 
@@ -144,7 +144,7 @@ def test_le_dry_run_dit_pourquoi_le_tri_par_decision_n_est_pas_utilise(banc, mon
 def test_sans_tri_par_decision_l_en_tete_reste_celui_d_avant(banc, monkeypatch, capsys):  # noqa: F811
     brancher_faux_modele(monkeypatch, TEXTES[0]["texte"])
     brancher_cascade(monkeypatch, "administratif", TEXTES[0]["reponse"])
-    monkeypatch.setattr(skrivagner.mod_modeles, "lister_capacites", lambda *_: (_ for _ in ()).throw(AssertionError("non déclaré")))
+    monkeypatch.setattr(dibab.mod_modeles, "lister_capacites", lambda *_: (_ for _ in ()).throw(AssertionError("non déclaré")))
     assert lancer(monkeypatch, "--dry-run") == 0
     sortie = capsys.readouterr().out
     assert "tri_decision" not in sortie and "Tri par décision" not in sortie

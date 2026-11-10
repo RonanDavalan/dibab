@@ -1,12 +1,12 @@
-# Skrivagner
+# Dibab
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | **Deutsch** | [Español](../es-ES/README.md)
 
-Skrivagner („Schreiber“ auf Bretonisch) sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts (Rechnungen, Briefe, Verträge, Bescheide von Behörden) in einer einheitlichen Ordnerstruktur und führt ein Journal über alles, was es tut. Es arbeitet souverän: Keine Daten verlassen das lokale Netz, ohne Dienst Dritter, ohne entferntes Modell, ohne Cloud. Die Sprachmodelle sind die von [Ollama](https://ollama.com/) auf Ihrem eigenen Rechner.
+Dibab („wählen“ auf Bretonisch) sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts (Rechnungen, Briefe, Verträge, Bescheide von Behörden) in einer einheitlichen Ordnerstruktur und führt ein Journal über alles, was es tut. Es arbeitet souverän: Keine Daten verlassen das lokale Netz, ohne Dienst Dritter, ohne entferntes Modell, ohne Cloud. Die Sprachmodelle sind die von [Ollama](https://ollama.com/) auf Ihrem eigenen Rechner.
 
 Lizenz: [GNU Affero General Public License Version 3](../../LICENSE).
 
-## Was Skrivagner tut und was nicht
+## Was Dibab tut und was nicht
 
 Es tut:
 
@@ -24,7 +24,7 @@ Es tut nicht:
 
 ## Ein Werkzeug für den Haushalt
 
-Skrivagner ist für die Verwaltung eines Haushalts gedacht, durch den Haushalt. Eine Maschine, ein Verzeichnis oder ein Mail-Konto gehört nur mit dem ausdrücklichen oder stillschweigenden Einverständnis der betroffenen Person zum Geltungsbereich; im Zweifel lassen Sie es weg. Die Software kann diese Achtung nicht garantieren: Der Administrator der Instanz verpflichtet sich dazu. Das Journal enthält Dateinamen und Absender, die schon viel verraten (ein Brief einer Gesundheitsbehörde genügt): Es liegt im Tresor, nicht daneben.
+Dibab ist für die Verwaltung eines Haushalts gedacht, durch den Haushalt. Eine Maschine, ein Verzeichnis oder ein Mail-Konto gehört nur mit dem ausdrücklichen oder stillschweigenden Einverständnis der betroffenen Person zum Geltungsbereich; im Zweifel lassen Sie es weg. Die Software kann diese Achtung nicht garantieren: Der Administrator der Instanz verpflichtet sich dazu. Das Journal enthält Dateinamen und Absender, die schon viel verraten (ein Brief einer Gesundheitsbehörde genügt): Es liegt im Tresor, nicht daneben.
 
 ## Voraussetzungen
 
@@ -52,32 +52,32 @@ ollama pull qwen2.5
 ollama pull granite4.2:8b-Q5_K_M
 ```
 
-Diese Modelle sind die der Referenzinstanz; beliebige andere genügen, man muss sie nur in `ollama.roles` nennen (weiter unten). Die Modelle der Rolle `classification` stimmen ab: Ein Dokument wird nur eingeordnet, wenn ihre Übereinstimmung `ollama.seuil_confiance` erreicht. Ollama gehört nicht zu Skrivagner und wird von diesem nie installiert.
+Diese Modelle sind die der Referenzinstanz; beliebige andere genügen, man muss sie nur in `ollama.roles` nennen (weiter unten). Die Modelle der Rolle `classification` stimmen ab: Ein Dokument wird nur eingeordnet, wenn ihre Übereinstimmung `ollama.seuil_confiance` erreicht. Ollama gehört nicht zu Dibab und wird von diesem nie installiert.
 
 ## Installation aus dem Debian-Paket
 
-Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert eine einzige Datei das Programm und seine Abhängigkeiten (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). Sie enthält weder Ollama noch ein Modell noch eine Konfiguration. Laden Sie `skrivagner_*_all.deb` von der Download-Seite von [skrivagner.davalan.fr](https://skrivagner.davalan.fr/) herunter und führen Sie dann in dem Ordner, der die Datei enthält, Folgendes aus:
+Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert eine einzige Datei das Programm und seine Abhängigkeiten (`python3`, `poppler-utils`, `util-linux`, `openssh-client`). Sie enthält weder Ollama noch ein Modell noch eine Konfiguration. Laden Sie `dibab_*_all.deb` von der Download-Seite von [dibab.davalan.fr](https://dibab.davalan.fr/) herunter und führen Sie dann in dem Ordner, der die Datei enthält, Folgendes aus:
 
 ```bash
-sudo apt install ./skrivagner_*_all.deb
+sudo apt install ./dibab_*_all.deb
 ```
 
 Legen Sie die Konfiguration aus dem Beispiel an, das das Paket installiert, mit dem Modus `600`, und folgen Sie dann den Schritten 4 und 5 der Installation aus den Quellen weiter unten (der Tresor jeder Domäne, die Schlüssel der Konfiguration):
 
 ```bash
-mkdir -p ~/.config/skrivagner
-cp /usr/share/doc/skrivagner/examples/config.exemple.json ~/.config/skrivagner/config.json
-chmod 600 ~/.config/skrivagner/config.json
+mkdir -p ~/.config/dibab
+cp /usr/share/doc/dibab/examples/config.exemple.json ~/.config/dibab/config.json
+chmod 600 ~/.config/dibab/config.json
 ```
 
 Prüfen Sie die Installation, ohne etwas zu schreiben:
 
 ```bash
-skrivagner --version
-skrivagner --diagnose
+dibab --version
+dibab --diagnose
 ```
 
-Das Paket legt den Befehl unter `/usr/bin/skrivagner`, das Programm unter `/usr/lib/skrivagner/` sowie die README-Dateien, die Beispielkonfiguration und die Handbuchseite (`man skrivagner`, in vier Sprachen) unter `/usr/share/` ab. Das Entfernen schont Ihre Daten: `sudo apt remove skrivagner` und `sudo apt purge skrivagner` löschen die Dateien des Pakets und rühren Ihre Konfiguration, Ihren Zustand, Ihr Journal und Ihre Dokumente nie an; das Purge nennt, was es zurücklässt.
+Das Paket legt den Befehl unter `/usr/bin/dibab`, das Programm unter `/usr/lib/dibab/` sowie die README-Dateien, die Beispielkonfiguration und die Handbuchseite (`man dibab`, in vier Sprachen) unter `/usr/share/` ab. Das Entfernen schont Ihre Daten: `sudo apt remove dibab` und `sudo apt purge dibab` löschen die Dateien des Pakets und rühren Ihre Konfiguration, Ihren Zustand, Ihr Journal und Ihre Dokumente nie an; das Purge nennt, was es zurücklässt.
 
 Stufe: Installation und Diagnose im Container validiert unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 (Installation, `--version`, `--diagnose`, die Weigerung, ohne Konfiguration zu schreiben, und die Weigerung, in einen nicht eingehängten Tresor zu schreiben, eine simulierte Ablage, Entfernen und Purge). Ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama und Ihren eigenen Dokumenten.
 
@@ -86,16 +86,16 @@ Stufe: Installation und Diagnose im Container validiert unter Debian 12 und 13 s
 Endgültige Ordnerstruktur (`~` ist Ihr Home-Verzeichnis; passen Sie die Pfade an Ihre Installation an):
 
 ```
-~/applications/skrivagner/               das geklonte Repository
-├── skrivagner.py                        der Einstiegspunkt
+~/applications/dibab/               das geklonte Repository
+├── dibab.py                        der Einstiegspunkt
 ├── modules/                             eine Datei pro Verantwortung
 │   └── langues/                         die Meldungswörterbücher: en, fr, de, es
 ├── docs/                                die Übersetzungen dieser README und die Handbuchseite
 ├── tests/                               die Tests
 ├── config.exemple.json                  die Beispielkonfiguration, versioniert
 └── venv/                                die Python-Umgebung, in Schritt 2 angelegt
-~/.config/skrivagner/config.json         Ihre Konfiguration, in Schritt 3 angelegt, nie versioniert
-~/.local/state/skrivagner/               Zustand, Journal und Sitzungsberichte (Standardort)
+~/.config/dibab/config.json         Ihre Konfiguration, in Schritt 3 angelegt, nie versioniert
+~/.local/state/dibab/               Zustand, Journal und Sitzungsberichte (Standardort)
 ~/Classement/Personnel/                  der Tresor des privaten Bereichs
 ~/Classement/Professionnel/              der Tresor des beruflichen Bereichs
 ```
@@ -103,8 +103,8 @@ Endgültige Ordnerstruktur (`~` ist Ihr Home-Verzeichnis; passen Sie die Pfade a
 1. Das Repository klonen:
 
 ```bash
-mkdir -p ~/applications && git clone https://github.com/RonanDavalan/skrivagner.git ~/applications/skrivagner
-cd ~/applications/skrivagner
+mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~/applications/dibab
+cd ~/applications/dibab
 ```
 
 2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `531 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
@@ -115,12 +115,12 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Die Konfiguration mit Modus `600` anlegen. Skrivagner liest die erste gefundene Datei aus: der Option `--config <Pfad>`, der Umgebungsvariablen `SKRIVAGNER_CONFIG`, `~/.config/skrivagner/config.json` (oder `$XDG_CONFIG_HOME/skrivagner/config.json`), dann `config.json` neben `skrivagner.py`. Eine Option oder Variable, die auf eine fehlende Datei zeigt, beendet das Programm: Es fällt nie auf eine andere Datei zurück.
+3. Die Konfiguration mit Modus `600` anlegen. Dibab liest die erste gefundene Datei aus: der Option `--config <Pfad>`, der Umgebungsvariablen `DIBAB_CONFIG`, `~/.config/dibab/config.json` (oder `$XDG_CONFIG_HOME/dibab/config.json`), dann `config.json` neben `dibab.py`. Eine Option oder Variable, die auf eine fehlende Datei zeigt, beendet das Programm: Es fällt nie auf eine andere Datei zurück.
 
 ```bash
-mkdir -p ~/.config/skrivagner
-cp config.exemple.json ~/.config/skrivagner/config.json
-chmod 600 ~/.config/skrivagner/config.json
+mkdir -p ~/.config/dibab
+cp config.exemple.json ~/.config/dibab/config.json
+chmod 600 ~/.config/dibab/config.json
 ```
 
 4. Die beiden Tresore anlegen und den Typ ihres Dateisystems lesen:
@@ -130,9 +130,9 @@ mkdir -p ~/Classement/Personnel ~/Classement/Professionnel
 findmnt -n -T ~/Classement/Personnel -o FSTYPE
 ```
 
-Der Befehl gibt zum Beispiel `ext4` aus. Vor jedem Schreiben stellt Skrivagner fest, dass die Wurzel jedes Tresors eingehängt ist, denn ein geschlossener Tresor hinterlässt einen nackten Ordner unverschlüsselt auf der Platte: Es vergleicht diesen Typ mit `systemes_fichiers_acceptes`. Das Beispiel erwartet `fuse.gocryptfs`. Wenn Sie anders verschlüsseln (LUKS, eCryptfs …), öffnen Sie den Datenträger und tragen Sie den Typ ein, den `findmnt` für ihn liefert. Auf einem unverschlüsselten Datenträger unterscheidet diese Prüfung ein fehlendes von einem vorhandenen Einhängen nicht mehr: Sie verzichten dann auf diesen Schutz.
+Der Befehl gibt zum Beispiel `ext4` aus. Vor jedem Schreiben stellt Dibab fest, dass die Wurzel jedes Tresors eingehängt ist, denn ein geschlossener Tresor hinterlässt einen nackten Ordner unverschlüsselt auf der Platte: Es vergleicht diesen Typ mit `systemes_fichiers_acceptes`. Das Beispiel erwartet `fuse.gocryptfs`. Wenn Sie anders verschlüsseln (LUKS, eCryptfs …), öffnen Sie den Datenträger und tragen Sie den Typ ein, den `findmnt` für ihn liefert. Auf einem unverschlüsselten Datenträger unterscheidet diese Prüfung ein fehlendes von einem vorhandenen Einhängen nicht mehr: Sie verzichten dann auf diesen Schutz.
 
-5. `~/.config/skrivagner/config.json` bearbeiten, mindestens diese Schlüssel:
+5. `~/.config/dibab/config.json` bearbeiten, mindestens diese Schlüssel:
 
 | Schlüssel | Aufgabe |
 |---|---|
@@ -140,7 +140,7 @@ Der Befehl gibt zum Beispiel `ext4` aus. Vor jedem Schreiben stellt Skrivagner f
 | `destinations.*.systemes_fichiers_acceptes` | der in Schritt 4 gelesene Typ |
 | `personnes` | die Vornamen des Haushalts, die die Ordner des privaten Bereichs benennen |
 | `sources_locales[].chemin` | die zu durchsuchenden Verzeichnisse |
-| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | fehlen sie, wird der Zustand unverschlüsselt unter `~/.local/state/skrivagner/` (oder `$XDG_STATE_HOME/skrivagner/`) geschrieben; um ihn zu verschlüsseln, tragen Sie diese drei Schlüssel im Tresor ein (zum Beispiel `~/Classement/Personnel/logs/…`): Das Journal enthält sensible Daten |
+| `suivi.fichier_date`, `suivi.journal`, `suivi.sessions` | fehlen sie, wird der Zustand unverschlüsselt unter `~/.local/state/dibab/` (oder `$XDG_STATE_HOME/dibab/`) geschrieben; um ihn zu verschlüsseln, tragen Sie diese drei Schlüssel im Tresor ein (zum Beispiel `~/Classement/Personnel/logs/…`): Das Journal enthält sensible Daten |
 | `ollama.roles` | für jede Rolle die bevorzugten Modelle der Reihe nach; das erste installierte wird verwendet |
 
 Die vollständige Liste der Schlüssel und ihrer Wirkung steht in `config.exemple.json`, dessen Blöcke jeweils ein realistisches Beispiel sind. Passwörter gehören nie hinein.
@@ -148,14 +148,14 @@ Die vollständige Liste der Schlüssel und ihrer Wirkung steht in `config.exempl
 6. Die Installation prüfen, ohne etwas zu schreiben:
 
 ```bash
-venv/bin/python skrivagner.py --version
-venv/bin/python skrivagner.py --diagnose
+venv/bin/python dibab.py --version
+venv/bin/python dibab.py --diagnose
 ```
 
 `--version` schreibt eine Zeile und endet:
 
 ```
-skrivagner 0.9.0-alpha
+dibab 0.9.0-alpha
 ```
 
 `--diagnose` schreibt eine Zeile pro Prüfung, `<ZUSTAND> <Kennung> : <Meldung>`, dann eine Zusammenfassung. In einem neuen Home-Verzeichnis, ohne Konfiguration und ohne Ollama, lautet die Ausgabe wie folgt, und der Exit-Code ist `0`:
@@ -166,7 +166,7 @@ OK outil_pdftotext : /usr/bin/pdftotext
 OK outil_pdftoppm : /usr/bin/pdftoppm
 OK outil_findmnt : /usr/bin/findmnt
 OK outil_ssh : /usr/bin/ssh
-NON_CONFIGURÉ configuration : keine Konfiguration gefunden (die Option --config: nicht angegeben; die Variable SKRIVAGNER_CONFIG: nicht angegeben; der XDG-Ort: ~/.config/skrivagner/config.json; der Ordner des Skripts: ~/applications/skrivagner/config.json)
+NON_CONFIGURÉ configuration : keine Konfiguration gefunden (die Option --config: nicht angegeben; die Variable DIBAB_CONFIG: nicht angegeben; der XDG-Ort: ~/.config/dibab/config.json; der Ordner des Skripts: ~/applications/dibab/config.json)
 NON_VÉRIFIÉ emplacement_etat : hängt von der Konfiguration ab
 NON_VÉRIFIÉ ollama : hängt von der Konfiguration ab
 NON_VÉRIFIÉ modele_ocr : hängt von der Konfiguration ab
@@ -184,14 +184,14 @@ Die Zustandskürzel (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉ
 Diagnose: 12 OK, 1 Warnung(en), 0 Fehler, 1 nicht konfiguriert, 0 nicht geprüft
 ```
 
-Die einzige Warnung betrifft Zustand und Journal, die unverschlüsselt unter `~/.local/state/skrivagner/` liegen, bis Sie sie in einen Tresor verlegen. Die Sortierung per Entscheidung (`ollama.roles.tri_decision`) bleibt `NON_CONFIGURÉ`, solange Sie sie nicht deklarieren: die Sortierung läuft dann über `tri_rapide`.
+Die einzige Warnung betrifft Zustand und Journal, die unverschlüsselt unter `~/.local/state/dibab/` liegen, bis Sie sie in einen Tresor verlegen. Die Sortierung per Entscheidung (`ollama.roles.tri_decision`) bleibt `NON_CONFIGURÉ`, solange Sie sie nicht deklarieren: die Sortierung läuft dann über `tri_rapide`.
 
 ## Sprache der Meldungen
 
-Skrivagner schreibt seine Meldungen auf Englisch, Französisch, Deutsch oder Spanisch. Die Sprache wird einmal beim Start gelesen, aus der ersten nicht leeren der Variablen `LC_ALL`, `LC_MESSAGES` und `LANG`: `fr_FR.UTF-8` ergibt Französisch, `de_DE.UTF-8` Deutsch, `es_ES.UTF-8` Spanisch, `en_US.UTF-8` Englisch, jeder andere Wert oder keiner Englisch. Um dieselbe Prüfung in einer anderen Sprache zu lesen:
+Dibab schreibt seine Meldungen auf Englisch, Französisch, Deutsch oder Spanisch. Die Sprache wird einmal beim Start gelesen, aus der ersten nicht leeren der Variablen `LC_ALL`, `LC_MESSAGES` und `LANG`: `fr_FR.UTF-8` ergibt Französisch, `de_DE.UTF-8` Deutsch, `es_ES.UTF-8` Spanisch, `en_US.UTF-8` Englisch, jeder andere Wert oder keiner Englisch. Um dieselbe Prüfung in einer anderen Sprache zu lesen:
 
 ```bash
-LC_ALL=fr_FR.UTF-8 venv/bin/python skrivagner.py --diagnose
+LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
 Optionsnamen, Zustandskürzel, Kennungen, Journale und Plandateien ändern sich nie mit der Sprache: Was auf die Platte geschrieben wird, ist Englisch, damit ein in einer Sprache geschriebenes Journal von `--rollback` in jeder anderen wieder abgespielt wird. Die Meldungswörterbücher sind die Dateien `modules/langues/en.txt`, `fr.txt`, `de.txt` und `es.txt`.
@@ -199,26 +199,26 @@ Optionsnamen, Zustandskürzel, Kennungen, Journale und Plandateien ändern sich 
 ## Verwendung
 
 ```bash
-cd ~/applications/skrivagner
-venv/bin/python skrivagner.py --dry-run     # Simulation (Standard): nichts bewegt sich
-venv/bin/python skrivagner.py --execute     # tatsächliche Ablage
-venv/bin/python skrivagner.py --rollback    # macht die letzte Ablagesitzung rückgängig
-venv/bin/python skrivagner.py --inventaire  # liest den Bestand der Tresore, nichts wird verschoben
-venv/bin/python skrivagner.py --diagnose    # prüft Installation, Konfiguration, Ollama und Tresore, schreibt nichts
-venv/bin/python skrivagner.py --version     # schreibt eine Zeile, `skrivagner <Version>`, und endet
-venv/bin/python skrivagner.py --dry-run --config ~/andere/config.json   # liest jene Konfiguration
-venv/bin/python skrivagner.py --help        # listet alle Optionen, in der Sprache der Sitzung
+cd ~/applications/dibab
+venv/bin/python dibab.py --dry-run     # Simulation (Standard): nichts bewegt sich
+venv/bin/python dibab.py --execute     # tatsächliche Ablage
+venv/bin/python dibab.py --rollback    # macht die letzte Ablagesitzung rückgängig
+venv/bin/python dibab.py --inventaire  # liest den Bestand der Tresore, nichts wird verschoben
+venv/bin/python dibab.py --diagnose    # prüft Installation, Konfiguration, Ollama und Tresore, schreibt nichts
+venv/bin/python dibab.py --version     # schreibt eine Zeile, `dibab <Version>`, und endet
+venv/bin/python dibab.py --dry-run --config ~/andere/config.json   # liest jene Konfiguration
+venv/bin/python dibab.py --help        # listet alle Optionen, in der Sprache der Sitzung
 ```
 
 Beginnen Sie immer mit `--dry-run`, prüfen Sie jedes vorgeschlagene Ziel und starten Sie dann `--execute`. Der erste Durchlauf ist langsam (mehrere Modelle lesen jedes Dokument); die Fehlerausgabe zeigt den Fortschritt, `Modell i/n, Dokument j/m`. Hier ein `--dry-run` auf einem leeren Quellordner, der Ollama und die drei Modelle der Rollen voraussetzt:
 
 ```
-Skrivagner 0.9.0-alpha — Sitzung 2026-10-29T17:33:29
+Dibab 0.9.0-alpha — Sitzung 2026-10-29T17:33:29
   Modus              : dry-run
-  Konfiguration      : ~/.config/skrivagner/config.json
+  Konfiguration      : ~/.config/dibab/config.json
   Tresor personnel     : ~/Classement/Personnel — eingehängt
   Tresor professionnel : ~/Classement/Professionnel — eingehängt
-  Sitzungsjournal    : ~/.local/state/skrivagner/sessions/session_2026-10-29T17:33:29.jsonl
+  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-10-29T17:33:29.jsonl
   Modell ocr           : glm-ocr:latest
   Modell tri_rapide    : gemma3:4b
   Modell classification: granite4.2:8b-Q5_K_M
@@ -245,41 +245,41 @@ Exit-Codes:
 | `2` | Tresor vor einem schreibenden Modus nicht als eingehängt festgestellt; ungültige Befehlszeile |
 | `3` | kein Modell für eine Rolle installiert (`ollama list`), oder Ollama antwortet nicht |
 | `4` | `--execute` auf dieser Maschine abgelehnt (Schlüssel `executer_sur`) |
-| `5` | ein anderer Lauf hält die Sperre `skrivagner.verrou` (neben `suivi.fichier_date`) |
+| `5` | ein anderer Lauf hält die Sperre `dibab.verrou` (neben `suivi.fichier_date`) |
 
 Jede Verschiebung wird im Aktionsjournal festgehalten (`suivi.journal`, eine JSON-Zeile pro Aktion, ohne Dokumenttext), und jede Sitzung hinterlässt einen Bericht in `suivi.sessions`. `--rollback --session <Zeitstempel>` macht eine bestimmte Sitzung rückgängig: Das Dokument kehrt an seinen ursprünglichen Platz zurück, die Kopie per Fingerabdruck geprüft.
 
 ### Handbuchseite
 
-Die Handbuchseite ist in Markdown in `docs/skrivagner.1.md` geschrieben, ihre Übersetzungen liegen in `docs/fr-FR/`, `docs/de-DE/` und `docs/es-ES/`. Um sie aus den Quellen zu lesen:
+Die Handbuchseite ist in Markdown in `docs/dibab.1.md` geschrieben, ihre Übersetzungen liegen in `docs/fr-FR/`, `docs/de-DE/` und `docs/es-ES/`. Um sie aus den Quellen zu lesen:
 
 ```bash
-pandoc --standalone --from markdown-smart --to man docs/de-DE/skrivagner.1.md | man -l -
+pandoc --standalone --from markdown-smart --to man docs/de-DE/dibab.1.md | man -l -
 ```
 
 ### Entfernte Maschinen über ssh
 
-Deklarieren Sie jede Maschine in `sources_distantes` (`ssh`-Alias, Verzeichnisse, `vide_poches_destination`). `ssh <Alias> true` muss ohne Passwort gelingen, und die Maschine muss `find`, `sha256sum` und `cat` anbieten. In der Simulation listet Skrivagner die Dateien auf, ohne etwas zu kopieren; bei der Ausführung kopiert es sie in den Sammelordner der Maschine, prüft ihren Fingerabdruck und behandelt sie dann wie lokale Dateien. Die Originaldateien bleiben unberührt. Eine abgelehnte Verbindung beendet die betroffene Maschine: Versuchen Sie es nicht in einer Schleife erneut.
+Deklarieren Sie jede Maschine in `sources_distantes` (`ssh`-Alias, Verzeichnisse, `vide_poches_destination`). `ssh <Alias> true` muss ohne Passwort gelingen, und die Maschine muss `find`, `sha256sum` und `cat` anbieten. In der Simulation listet Dibab die Dateien auf, ohne etwas zu kopieren; bei der Ausführung kopiert es sie in den Sammelordner der Maschine, prüft ihren Fingerabdruck und behandelt sie dann wie lokale Dateien. Die Originaldateien bleiben unberührt. Eine abgelehnte Verbindung beendet die betroffene Maschine: Versuchen Sie es nicht in einer Schleife erneut.
 
 ### Postfächer über IMAP
 
 Deklarieren Sie jedes Postfach in `sources_imap`. Das Passwort wird aus der Umgebungsvariablen gelesen, die `mot_de_passe_env` nennt, nie aus der Datei:
 
 ```bash
-read -rs SKRIVAGNER_IMAP_EXEMPLE && export SKRIVAGNER_IMAP_EXEMPLE
+read -rs DIBAB_IMAP_EXEMPLE && export DIBAB_IMAP_EXEMPLE
 ```
 
-Skrivagner öffnet die Ordner schreibgeschützt (`EXAMINE`) und liest nur den Anhang (`BODY.PEEK`): Keine Nachricht wird als gelesen markiert, kein Flag gesetzt.
+Dibab öffnet die Ordner schreibgeschützt (`EXAMINE`) und liest nur den Anhang (`BODY.PEEK`): Keine Nachricht wird als gelesen markiert, kein Flag gesetzt.
 
 ### Google-Konten über OAuth2
 
 Ein Google-Konto wird statt mit dem Passwort mit einem OAuth2-Token abgerufen (`AUTHENTICATE XOAUTH2`). In der [Google-Cloud-Konsole](https://console.cloud.google.com), mit dem abzurufenden Konto: ein Projekt anlegen, die Gmail-API aktivieren, den OAuth-Zustimmungsbildschirm konfigurieren (Typ extern), ihn dann **veröffentlichen** (Status „In production“, denn unter „Testing“ läuft die Autorisierung nach sieben Tagen ab), schließlich einen Anmeldedaten „Desktop-App“ anlegen und dessen JSON herunterladen. Legen Sie es im Tresor ab, mit Modus `600`, deklarieren Sie dann die Quelle mit `"authentification": "oauth2"`, `client_fichier` und `token_fichier` (siehe das Beispiel `imap-google-exemple`) und stimmen Sie einmalig zu:
 
 ```bash
-venv/bin/python skrivagner.py --autoriser-google imap-google-exemple
+venv/bin/python dibab.py --autoriser-google imap-google-exemple
 ```
 
-Öffnen Sie die angezeigte Adresse in einem Browser, akzeptieren Sie die Warnung „nicht verifizierte App“ (es ist Ihre eigene Anwendung) und die Einwilligung. Das Token wird mit Modus `600` im Ordner des `token_fichier` geschrieben, der ein Git-Repository und die Pfade aus `oauth2.chemins_interdits` ablehnt; es erneuert sich selbst und erscheint weder im Journal noch auf dem Bildschirm. Widerruft Google es (Zugriff entzogen, Kontopasswort geändert, sechs Monate ohne Scan), endet Skrivagner mit einer eindeutigen Meldung: Führen Sie den Befehl erneut aus.
+Öffnen Sie die angezeigte Adresse in einem Browser, akzeptieren Sie die Warnung „nicht verifizierte App“ (es ist Ihre eigene Anwendung) und die Einwilligung. Das Token wird mit Modus `600` im Ordner des `token_fichier` geschrieben, der ein Git-Repository und die Pfade aus `oauth2.chemins_interdits` ablehnt; es erneuert sich selbst und erscheint weder im Journal noch auf dem Bildschirm. Widerruft Google es (Zugriff entzogen, Kontopasswort geändert, sechs Monate ohne Scan), endet Dibab mit einer eindeutigen Meldung: Führen Sie den Befehl erneut aus.
 
 ## Souveränität
 
@@ -291,7 +291,7 @@ venv/bin/python skrivagner.py --autoriser-google imap-google-exemple
 
 - Nur Linux. Die Einhängeprüfung beruht auf `findmnt`.
 - Die Einordnung ist so gut wie Ihre Modelle: Auf der Referenzinstanz hat ein erster Versuch mit 15 echten Dokumenten 2 eingeordnet, 3 als nicht administrativ ausgesondert und 10 aus Vorsicht in `À_VÉRIFIER/` gelegt. Messen Sie, bevor Sie vertrauen: Die Messung des Bereichs liegt in `_outils/mesurer_domaines.py`.
-- Skrivagner hängt keinen Tresor ein, verschlüsselt und synchronisiert keinen und löscht kein Dokument: Speicherplatz und Sicherungen liegen in Ihrer Verantwortung.
+- Dibab hängt keinen Tresor ein, verschlüsselt und synchronisiert keinen und löscht kein Dokument: Speicherplatz und Sicherungen liegen in Ihrer Verantwortung.
 - Die Kategorien, die bekannten Absender und die Namensvorlage in `config.exemple.json` spiegeln das französische Verwaltungsleben wider (Familienkasse, Finanzamt, Versicherungen); passen Sie sie an Ihr Land an.
 - Die Schritte in der Google-Konsole hängen von Googles Oberfläche ab, die sich ändert: Die Begriffe bleiben die seiner OAuth2-Dokumentation.
 - Das Projekt ist jung: Version 0.9.0-alpha, keine kontinuierliche Integration.
@@ -302,9 +302,10 @@ Siehe [CONTRIBUTING.md](../../CONTRIBUTING.md). Eine Sicherheitslücke wird priv
 
 ## Mitwirkende
 
-Skrivagner ist das Ergebnis einer Zusammenarbeit zwischen einer Person und Sprachmodellen, mit den Rollen so aufgeschrieben, wie sie gespielt wurden. Die vollständige Liste steht in [CONTRIBUTORS.md](../../CONTRIBUTORS.md).
+Dibab ist das Ergebnis einer Zusammenarbeit zwischen einer Person und Sprachmodellen, mit den Rollen so aufgeschrieben, wie sie gespielt wurden. Die vollständige Liste steht in [CONTRIBUTORS.md](../../CONTRIBUTORS.md).
 
 *   **Ronan Davalan**: Architekt und Schiedsrichter; Vision, Entscheidungen, Umfang, Freigabe. Einziger Git-Autor.
 *   **Claude Code (Anthropic)**: Umsetzungsingenieur; Python-Code und Tests sowie die öffentlichen Dokumente (diese README und ihre Übersetzungen, die Handbuchseite, `CONTRIBUTING.md`, `SECURITY.md`).
-*   **Gemini (Google)**: Entwurfsberater; schlug den ursprünglichen Namen „Le Greffier“ vor.
+*   **Gemini (Google)**: Entwurfsberater; schlug den ursprünglichen Namen „Le Greffier“ vor und besprach den Namen Dibab mit Ronan Davalan.
 *   **Copilot (Microsoft)**: übersetzte diesen Namen ins Bretonische, daher „Skrivagner“.
+*   **Muse Spark 1.3 (Meta)**: Namensfindung; brachte die Achse „dibab“ („wählen“ auf Bretonisch) ein, daher der Name Dibab.

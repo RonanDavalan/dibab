@@ -241,19 +241,19 @@ def test_la_mesure_suit_la_recherche_de_la_configuration_variable_puis_xdg_puis_
     assert code == 1
     xdg = tmp_path_factory.mktemp("xdg-mesure")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
-    (xdg / "skrivagner").mkdir()
-    (xdg / "skrivagner" / "config.json").write_text(banc.fichier.read_text(encoding="utf-8"), encoding="utf-8")
+    (xdg / "dibab").mkdir()
+    (xdg / "dibab" / "config.json").write_text(banc.fichier.read_text(encoding="utf-8"), encoding="utf-8")
     assert lancer_sans_option(banc, "--a-blanc")[0] == 0
-    (xdg / "skrivagner" / "config.json").unlink()
-    monkeypatch.setenv("SKRIVAGNER_CONFIG", str(banc.fichier))
+    (xdg / "dibab" / "config.json").unlink()
+    monkeypatch.setenv("DIBAB_CONFIG", str(banc.fichier))
     assert lancer_sans_option(banc, "--a-blanc")[0] == 0
-    monkeypatch.delenv("SKRIVAGNER_CONFIG")
+    monkeypatch.delenv("DIBAB_CONFIG")
     monkeypatch.setattr(mesure_domaines, "CHEMIN_CONFIG", banc.fichier)
     assert lancer_sans_option(banc, "--a-blanc")[0] == 0
 
 
 def test_la_mesure_n_essaie_pas_les_autres_emplacements_quand_la_variable_designe_un_fichier_absent(banc, monkeypatch, capsys):
     monkeypatch.setattr(mesure_domaines, "CHEMIN_CONFIG", banc.fichier)
-    monkeypatch.setenv("SKRIVAGNER_CONFIG", str(banc.racine / "absent.json"))
+    monkeypatch.setenv("DIBAB_CONFIG", str(banc.racine / "absent.json"))
     assert lancer_sans_option(banc, "--a-blanc")[0] == 1
-    assert "SKRIVAGNER_CONFIG" in capsys.readouterr().err
+    assert "DIBAB_CONFIG" in capsys.readouterr().err

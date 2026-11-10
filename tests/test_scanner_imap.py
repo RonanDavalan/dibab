@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import journal_actions, scanner_imap, sources_imap
 from tests.faux_imap import MOT_DE_PASSE, UTILISATEUR, Boite, Serveur, message, piece
 from tests.test_classement_execute import TEXTES, arbre, banc, lancer  # noqa: F401
@@ -243,7 +243,7 @@ def configuration_minimale(tmp_path, port, **source):
         "nommage": {"suffixe_collision": "_{n}"}, "extensions_cibles": [".pdf", ".jpg"],
         "imap": {"delai_secondes": 5, "taille_max_piece_mo": 1},
         "sources_imap": [{"id": "imap-test", "serveur": "127.0.0.1", "port": port, "ssl": True, "authentification": "login",
-                          "utilisateur": UTILISATEUR, "mot_de_passe_env": "SKRIVAGNER_IMAP_TEST", "dossiers": ["INBOX"],
+                          "utilisateur": UTILISATEUR, "mot_de_passe_env": "DIBAB_IMAP_TEST", "dossiers": ["INBOX"],
                           "vide_poches_destination": "vide-poches-imap", **source}],
     }
 
@@ -262,7 +262,7 @@ def ouvrir_clair():
 
 def traiter(configuration, deposer, environ=None, suivi=None, journal=None):
     return sources_imap.traiter(configuration, suivi or {}, journal or JournalMemoire(), MAINTENANT, deposer,
-                                environ={"SKRIVAGNER_IMAP_TEST": MOT_DE_PASSE} if environ is None else environ, ouvrir=ouvrir_clair())
+                                environ={"DIBAB_IMAP_TEST": MOT_DE_PASSE} if environ is None else environ, ouvrir=ouvrir_clair())
 
 
 def test_le_dry_run_liste_sans_rien_telecharger_ni_ecrire(serveur, tmp_path):
@@ -334,7 +334,7 @@ def test_variable_absente_ignore_la_source_sans_connexion(serveur, tmp_path):
     boite = boite_standard()
     configuration = configuration_minimale(tmp_path, serveur(boite).port)
     resultats, dates, en_echec = traiter(configuration, deposer=True, environ={})
-    assert resultats[0].ignoree and "SKRIVAGNER_IMAP_TEST" in resultats[0].erreurs[0]
+    assert resultats[0].ignoree and "DIBAB_IMAP_TEST" in resultats[0].erreurs[0]
     assert boite.commandes == [] and dates == {} and en_echec == set()
 
 
@@ -350,7 +350,7 @@ def test_mauvais_mot_de_passe_echoue_sans_nouvelle_tentative_et_sans_fuite(serve
     boite = boite_standard()
     configuration = configuration_minimale(tmp_path, serveur(boite).port)
     journal = JournalMemoire()
-    resultats, dates, en_echec = traiter(configuration, deposer=True, environ={"SKRIVAGNER_IMAP_TEST": "secret-erroné-42"}, journal=journal)
+    resultats, dates, en_echec = traiter(configuration, deposer=True, environ={"DIBAB_IMAP_TEST": "secret-erroné-42"}, journal=journal)
     sources_imap.afficher(resultats, True)
     assert en_echec == {"imap-test"} and dates == {}
     assert len([c for c in boite.commandes if c.startswith(("LOGIN", "AUTHENTICATE"))]) == 1
@@ -410,10 +410,10 @@ def boite_pipeline(banc, serveur, monkeypatch):
     configuration = json.loads(chemin_config.read_text())
     configuration.update(imap={"delai_secondes": 5, "taille_max_piece_mo": 5}, sources_imap=[{
         "id": "imap-test", "serveur": "127.0.0.1", "port": ouvert.port, "ssl": True, "authentification": "login",
-        "utilisateur": UTILISATEUR, "mot_de_passe_env": "SKRIVAGNER_IMAP_TEST", "dossiers": ["INBOX"],
+        "utilisateur": UTILISATEUR, "mot_de_passe_env": "DIBAB_IMAP_TEST", "dossiers": ["INBOX"],
         "vide_poches_destination": "vide-poches-imap"}])
     chemin_config.write_text(json.dumps(configuration))
-    monkeypatch.setenv("SKRIVAGNER_IMAP_TEST", MOT_DE_PASSE)
+    monkeypatch.setenv("DIBAB_IMAP_TEST", MOT_DE_PASSE)
     monkeypatch.setattr(scanner_imap, "ouvrir_connexion", lambda serveur, port, delai: imaplib.IMAP4("127.0.0.1", port))
     return racine, boite
 
@@ -445,7 +445,7 @@ def test_le_dry_run_du_pipeline_liste_les_pieces_sans_rien_deposer(boite_pipelin
 
 def test_le_vide_poches_aussi_declare_en_source_locale_n_est_lu_qu_une_fois(boite_pipeline, monkeypatch):
     racine, _ = boite_pipeline
-    chemin = skrivagner.CHEMIN_CONFIG
+    chemin = dibab.CHEMIN_CONFIG
     configuration = json.loads(chemin.read_text())
     configuration["sources_locales"].append({"id": "vide-poches-local", "chemin": str(racine / "coffre-a" / "vide-poches-imap")})
     chemin.write_text(json.dumps(configuration))
@@ -456,7 +456,7 @@ def test_le_vide_poches_aussi_declare_en_source_locale_n_est_lu_qu_une_fois(boit
 
 
 def test_config_sans_bloc_imap_arrete_avec_le_code_1(boite_pipeline, monkeypatch):
-    chemin = skrivagner.CHEMIN_CONFIG
+    chemin = dibab.CHEMIN_CONFIG
     configuration = json.loads(chemin.read_text())
     del configuration["imap"]
     chemin.write_text(json.dumps(configuration))

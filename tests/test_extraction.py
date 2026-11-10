@@ -200,16 +200,16 @@ def test_appel_ollama_erreurs():
 
 @pytest.mark.ollama_reel
 def test_ocr_reel_sur_le_png_factice(tmp_path):
-    """Ne tourne que si Ollama répond et que SKRIVAGNER_MODELE_OCR_ESSAI nomme un modèle installé."""
-    url = os.environ.get("SKRIVAGNER_OLLAMA_URL_ESSAI", "http://localhost:11434")
-    modele = os.environ.get("SKRIVAGNER_MODELE_OCR_ESSAI")
+    """Ne tourne que si Ollama répond et que DIBAB_MODELE_OCR_ESSAI nomme un modèle installé."""
+    url = os.environ.get("DIBAB_OLLAMA_URL_ESSAI", "http://localhost:11434")
+    modele = os.environ.get("DIBAB_MODELE_OCR_ESSAI")
     try:
         from modules import modeles
         installes = modeles.lister_modeles_installes(url, 3)
     except modeles.ModeleIndisponible:
         pytest.skip("Ollama ne répond pas")
     if not modele or modele not in installes:
-        pytest.skip("SKRIVAGNER_MODELE_OCR_ESSAI absent ou non installé")
+        pytest.skip("DIBAB_MODELE_OCR_ESSAI absent ou non installé")
     png = png_factice(tmp_path / "reel.png")
     resultat = extraction.extraire(png, PARAMETRES, {**OLLAMA, "url": url, "timeout_secondes": 120}, modele)
     assert resultat.methode == "ocr", resultat.raison

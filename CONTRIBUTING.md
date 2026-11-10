@@ -1,24 +1,24 @@
-# Contributing to Skrivagner
+# Contributing to Dibab
 
-Thank you for your interest. Skrivagner files sensitive administrative documents: caution comes before speed, and every contribution is judged first on what it must not risk breaking.
+Thank you for your interest. Dibab files sensitive administrative documents: caution comes before speed, and every contribution is judged first on what it must not risk breaking.
 
 ## Before writing code
 
 - Open an issue that describes the need before a large change (a new source, a new visible behaviour). A defect fix or a documentation fix can arrive directly as a pull request.
 - A security flaw is never reported in an issue: see [SECURITY.md](SECURITY.md).
-- Skrivagner stays a sovereign household tool: no third-party service, no remote model, no telemetry, no "cloud" mode. A contribution that introduces them will be refused.
+- Dibab stays a sovereign household tool: no third-party service, no remote model, no telemetry, no "cloud" mode. A contribution that introduces them will be refused.
 
 ## Environment
 
 ```bash
-git clone https://github.com/RonanDavalan/skrivagner.git ~/applications/skrivagner
-cd ~/applications/skrivagner
+git clone https://github.com/RonanDavalan/dibab.git ~/applications/dibab
+cd ~/applications/dibab
 python3 -m venv venv
 venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-The tests touch neither Ollama, nor `ssh`, nor IMAP, nor Google: they use fake servers and fictitious documents (`tests/faux_imap.py`, `tests/faux_ssh.py`, `tests/textes_factices.py`). The tests marked `ollama_reel` are skipped as long as `SKRIVAGNER_MODELE_OCR_ESSAI` does not name an installed model.
+The tests touch neither Ollama, nor `ssh`, nor IMAP, nor Google: they use fake servers and fictitious documents (`tests/faux_imap.py`, `tests/faux_ssh.py`, `tests/textes_factices.py`). The tests marked `ollama_reel` are skipped as long as `DIBAB_MODELE_OCR_ESSAI` does not name an installed model.
 
 ## The rules of the code
 

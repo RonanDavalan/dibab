@@ -5,7 +5,7 @@ from functools import partial
 
 import pytest
 
-import skrivagner
+import dibab
 from tests.textes_factices import CONFIG_CLASSEMENT
 from tests.textes_factices import CATEGORIES, EMETTEURS_CONNUS, PERSONNES
 from tests.test_extraction import FauxOllama, PARAMETRES, pdf_avec_couche_texte, pdf_sans_couche_texte, png_factice
@@ -46,23 +46,23 @@ def banc(tmp_path, monkeypatch):
     }
     chemin_config = tmp_path / "config.json"
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
-    monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
-    monkeypatch.setattr(skrivagner.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers",
+    monkeypatch.setattr(dibab, "CHEMIN_CONFIG", chemin_config)
+    monkeypatch.setattr(dibab.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
+    monkeypatch.setattr(dibab.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers",
                         lambda racine, executer=None: "tmpfs" if str(racine) == "/dev/shm" else "fuse.gocryptfs")
     return tmp_path, chemin_config
 
 
 def lancer(monkeypatch, *arguments):
-    monkeypatch.setattr("sys.argv", ["skrivagner", *arguments])
-    return skrivagner.main()
+    monkeypatch.setattr("sys.argv", ["dibab", *arguments])
+    return dibab.main()
 
 
 def brancher_faux_modele(monkeypatch, texte):
     faux = FauxOllama(texte)
-    monkeypatch.setattr(skrivagner.mod_extraction, "extraire",
-                        partial(skrivagner.mod_extraction.extraire, generer=faux))
+    monkeypatch.setattr(dibab.mod_extraction, "extraire",
+                        partial(dibab.mod_extraction.extraire, generer=faux))
     return faux
 
 

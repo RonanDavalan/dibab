@@ -1,6 +1,6 @@
 # Security policy
 
-Skrivagner handles administrative documents (health, bank, tax, inheritance) and access to mailboxes: a flaw has a real cost for third parties. This policy says how to report one and what you can expect in return.
+Dibab handles administrative documents (health, bank, tax, inheritance) and access to mailboxes: a flaw has a real cost for third parties. This policy says how to report one and what you can expect in return.
 
 ## Supported versions
 
@@ -8,9 +8,9 @@ Only the latest published version receives security fixes. The project has no ma
 
 ## Reporting a vulnerability
 
-Use the private reporting of GitHub: the "Security" tab of the repository, then "Report a vulnerability" (GitHub Security Advisories). **Never open a public issue** for a flaw: publishing it before the fix exposes the people who already use Skrivagner.
+Use the private reporting of GitHub: the "Security" tab of the repository, then "Report a vulnerability" (GitHub Security Advisories). **Never open a public issue** for a flaw: publishing it before the fix exposes the people who already use Dibab.
 
-State the version (`venv/bin/python skrivagner.py --version` prints it), what you observed, the steps to reproduce it and, if possible, what you judge to be in danger. Do not send any real document and no secret: a fictitious text is enough.
+State the version (`venv/bin/python dibab.py --version` prints it), what you observed, the steps to reproduce it and, if possible, what you judge to be in danger. Do not send any real document and no secret: a fictitious text is enough.
 
 ## Delays
 

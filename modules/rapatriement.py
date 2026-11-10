@@ -81,7 +81,7 @@ def rapatrier_fichier(fichier, dossier, registre, suffixe_collision, executer, e
         registre.noter(fichier.source_id, cle, empreinte)
         return REPRISE, empreinte
     final = chemin_libre(final, suffixe_collision)
-    provisoire = dossier / f".skrivagner-rapatrie-{os.getpid()}-{final.name}"
+    provisoire = dossier / f".dibab-rapatrie-{os.getpid()}-{final.name}"
     try:
         with open(provisoire, "wb") as f:
             retour = executer_copie(fichier.alias, f"cat -- {expression_distante(fichier.repertoire, fichier.relatif)}", stdout=f)

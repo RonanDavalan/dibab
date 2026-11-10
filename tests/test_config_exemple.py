@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-import skrivagner
+import dibab
 from modules import chemins, installation, mesure_domaines, sources_distantes, sources_imap
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -18,7 +18,7 @@ def charger():
 def test_l_exemple_se_charge_et_l_etat_prend_ses_defauts_xdg(tmp_path):
     environ = {"HOME": str(tmp_path)}
     configuration, dossier = installation.appliquer_defauts_suivi(chemins.developper_chemins(charger()), environ)
-    assert dossier == tmp_path / ".local" / "state" / "skrivagner"
+    assert dossier == tmp_path / ".local" / "state" / "dibab"
     assert configuration["suivi"]["journal"] == f"{dossier}/journal.jsonl"
     assert all("~" not in source["chemin"] for source in configuration["sources_locales"])
 
@@ -27,8 +27,8 @@ def test_l_exemple_copie_en_config_json_est_une_configuration_valide(tmp_path, m
     monkeypatch.setenv("HOME", str(tmp_path))
     copie = tmp_path / "config.json"
     copie.write_text(EXEMPLE.read_text(encoding="utf-8"), encoding="utf-8")
-    configuration, _, _ = skrivagner.charger_configuration(copie)
-    assert skrivagner.cles_configuration_absentes(configuration) == []
+    configuration, _, _ = dibab.charger_configuration(copie)
+    assert dibab.cles_configuration_absentes(configuration) == []
 
 
 def test_l_exemple_porte_toutes_les_cles_exigees_par_les_modules():

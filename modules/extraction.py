@@ -100,7 +100,7 @@ def extraire(chemin, parametres, configuration_ollama, modele_ocr,
         repertoire = Path(parametres["repertoire_temporaire"])
         if coffres.type_systeme_fichiers(repertoire) != "tmpfs":
             raise ErreurExtraction(traduire("extraction_pas_tmpfs", repertoire=repertoire))
-        with tempfile.TemporaryDirectory(dir=repertoire, prefix="skrivagner-") as temporaire:
+        with tempfile.TemporaryDirectory(dir=repertoire, prefix="dibab-") as temporaire:
             pages = _pages_png(chemin, parametres, temporaire, executer)
             if not pages:
                 raise ErreurExtraction(traduire("extraction_aucune_page"))

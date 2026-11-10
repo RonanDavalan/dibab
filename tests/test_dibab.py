@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-import skrivagner
+import dibab
 from tests.textes_factices import CONFIG_CLASSEMENT
 
 CAS = {
@@ -53,21 +53,21 @@ def banc(tmp_path, monkeypatch):
     chemin_config.write_text(json.dumps(configuration), encoding="utf-8")
     verdicts = tmp_path / "verdicts.json"
     verdicts.write_text(json.dumps(CAS), encoding="utf-8")
-    monkeypatch.setattr(skrivagner, "CHEMIN_CONFIG", chemin_config)
-    monkeypatch.setattr(skrivagner.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
-    monkeypatch.setattr(skrivagner.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
-    monkeypatch.setattr(skrivagner.mod_extraction, "extraire", lambda *_, **__: skrivagner.mod_extraction.Extraction(
+    monkeypatch.setattr(dibab, "CHEMIN_CONFIG", chemin_config)
+    monkeypatch.setattr(dibab.mod_modeles, "resoudre_modeles", lambda _: {"ocr": "modele-factice", "tri_rapide": "modele-factice", "classification": "modele-factice"})
+    monkeypatch.setattr(dibab.mod_modeles, "modeles_installes_du_role", lambda *_: ["modele-factice"])
+    monkeypatch.setattr(dibab.mod_extraction, "extraire", lambda *_, **__: dibab.mod_extraction.Extraction(
         "", "echec", 0, 0, None, 0.0, "extraction simulée"))
     return tmp_path, verdicts
 
 
 def simuler_type(monkeypatch, type_rendu):
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: type_rendu)
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: type_rendu)
 
 
 def lancer(monkeypatch, *arguments):
-    monkeypatch.setattr("sys.argv", ["skrivagner", *arguments])
-    return skrivagner.main()
+    monkeypatch.setattr("sys.argv", ["dibab", *arguments])
+    return dibab.main()
 
 
 def test_execute_coffre_ferme_s_arrete_code_2_sans_rien_toucher(banc, monkeypatch, capsys):
@@ -83,7 +83,7 @@ def test_execute_coffre_ferme_s_arrete_code_2_sans_rien_toucher(banc, monkeypatc
 
 def test_execute_un_seul_coffre_ferme_s_arrete(banc, monkeypatch):
     racine, _ = banc
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers",
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers",
                         lambda r, executer=None: "fuse.gocryptfs" if str(r).endswith("coffre-a") else "ext4")
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--execute")

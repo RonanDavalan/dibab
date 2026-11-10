@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import skrivagner
+import dibab
 from modules import journal_actions, rotation
 from tests.test_classement_execute import LOT, TEXTE_IDENTITE, TEXTES, arbre, banc, lancer  # noqa: F401
 
@@ -106,7 +106,7 @@ def test_piece_commune_une_copie_modifiee_aucune_n_est_retiree(banc, monkeypatch
 def test_rollback_coffre_ferme_ne_touche_a_rien(banc, monkeypatch):
     racine, _ = banc
     lancer(monkeypatch, "--execute")
-    monkeypatch.setattr(skrivagner.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
+    monkeypatch.setattr(dibab.mod_coffres, "type_systeme_fichiers", lambda racine, executer=None: "ext4")
     avant = etat(racine)
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--rollback")
