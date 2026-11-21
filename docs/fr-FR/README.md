@@ -305,7 +305,7 @@ Voir [CONTRIBUTING.md](../../CONTRIBUTING.md). Une faille se signale en privé s
 Dibab est le fruit d'une collaboration entre une personne et des modèles de langage, avec les rôles écrits tels qu'ils ont été tenus. La liste complète est dans [CONTRIBUTORS.md](../../CONTRIBUTORS.md).
 
 * **Ronan Davalan** : architecte et arbitre ; vision, décisions, périmètre, validation. Seul auteur git.
-* **Claude Code (Anthropic)** : ingénieur de réalisation ; code Python et tests, et documents publics (ce README et ses traductions, la page de manuel, `CONTRIBUTING.md`, `SECURITY.md`).
+* **Claude Code (Anthropic)** : ingénieur de réalisation ; code Python et tests, et documents publics (ce README et ses traductions, la page de manuel, `CONTRIBUTING.md`, `SECURITY.md`), logo et site (graphisme, mise en page et textes).
 * **Gemini (Google)** : conseiller de conception ; a proposé le nom d'origine « Le Greffier » et discuté le nom Dibab avec Ronan Davalan.
 * **Copilot (Microsoft)** : a traduit ce nom en breton, d'où « Skrivagner ».
 * **Muse Spark 1.3 (Meta)** : idéation du nom ; a soulevé l'axe « dibab » (« choisir » en breton), d'où le nom Dibab.

@@ -305,7 +305,7 @@ Siehe [CONTRIBUTING.md](../../CONTRIBUTING.md). Eine Sicherheitslücke wird priv
 Dibab ist das Ergebnis einer Zusammenarbeit zwischen einer Person und Sprachmodellen, mit den Rollen so aufgeschrieben, wie sie gespielt wurden. Die vollständige Liste steht in [CONTRIBUTORS.md](../../CONTRIBUTORS.md).
 
 *   **Ronan Davalan**: Architekt und Schiedsrichter; Vision, Entscheidungen, Umfang, Freigabe. Einziger Git-Autor.
-*   **Claude Code (Anthropic)**: Umsetzungsingenieur; Python-Code und Tests sowie die öffentlichen Dokumente (diese README und ihre Übersetzungen, die Handbuchseite, `CONTRIBUTING.md`, `SECURITY.md`).
+*   **Claude Code (Anthropic)**: Umsetzungsingenieur; Python-Code und Tests sowie die öffentlichen Dokumente (diese README und ihre Übersetzungen, die Handbuchseite, `CONTRIBUTING.md`, `SECURITY.md`) sowie das Logo und die Website (Grafik, Layout und Texte).
 *   **Gemini (Google)**: Entwurfsberater; schlug den ursprünglichen Namen „Le Greffier“ vor und besprach den Namen Dibab mit Ronan Davalan.
 *   **Copilot (Microsoft)**: übersetzte diesen Namen ins Bretonische, daher „Skrivagner“.
 *   **Muse Spark 1.3 (Meta)**: Namensfindung; brachte die Achse „dibab“ („wählen“ auf Bretonisch) ein, daher der Name Dibab.
