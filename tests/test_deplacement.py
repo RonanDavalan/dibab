@@ -19,7 +19,7 @@ def piece(tmp_path, contenu=b"contenu factice", nom="scan.pdf"):
     return chemin
 
 
-def plan_de(source, config, domaine="personnel", categorie="CAF", **champs):
+def plan_de(source, config, domaine="personnel", categorie="Aides", **champs):
     verdict = Verdict(True, domaine, categorie, emetteur="Organisme", personne="Personne1", date=date(2026, 3, 15), **champs)
     return classement.planifier(source, verdict, config, REPLI)
 
@@ -35,7 +35,7 @@ def test_copie_verifiee_puis_retrait_de_la_source(tmp_path, config):  # noqa: F8
     assert resultat.action == deplacement.CLASSE and not source.exists()
     assert plan.chemins[0].read_bytes() == b"contenu factice"
     assert resultat.empreinte == empreinte_sha256(plan.chemins[0])
-    assert fichiers(tmp_path / "a") == ["Rangement/Personne1/2026/2026-03-15_Organisme_CAF.pdf"]
+    assert fichiers(tmp_path / "a") == ["Rangement/Personne1/2026/2026-03-15_Organisme_Aides.pdf"]
 
 
 def test_copie_interrompue_laisse_la_source_et_aucune_copie(tmp_path, config):  # noqa: F811
@@ -92,9 +92,9 @@ def test_collision_de_nom_suffixe_sans_ecraser(tmp_path, config):  # noqa: F811
     for source in (premier, second, troisieme):
         assert deplacement.deplacer(source, plan_de(source, config), config, registre).action == deplacement.CLASSE
     zone = tmp_path / "a/Rangement/Personne1/2026"
-    assert (zone / "2026-03-15_Organisme_CAF.pdf").read_bytes() == b"un"
-    assert (zone / "2026-03-15_Organisme_CAF_2.pdf").read_bytes() == b"deux"
-    assert (zone / "2026-03-15_Organisme_CAF_3.pdf").read_bytes() == b"trois"
+    assert (zone / "2026-03-15_Organisme_Aides.pdf").read_bytes() == b"un"
+    assert (zone / "2026-03-15_Organisme_Aides_2.pdf").read_bytes() == b"deux"
+    assert (zone / "2026-03-15_Organisme_Aides_3.pdf").read_bytes() == b"trois"
 
 
 def test_doublon_d_une_empreinte_deja_classee_part_dans_doublon(tmp_path, config):  # noqa: F811
@@ -104,7 +104,7 @@ def test_doublon_d_une_empreinte_deja_classee_part_dans_doublon(tmp_path, config
     source = piece(tmp_path)
     resultat = deplacement.deplacer(source, plan_de(source, config), config, deplacement.Registre())
     assert resultat.action == deplacement.DOUBLON and not source.exists()
-    assert fichiers(tmp_path / "a") == ["Rangement/Ancien/2019/ancien.pdf", "doublon/2026-03-15_Organisme_CAF.pdf"]
+    assert fichiers(tmp_path / "a") == ["Rangement/Ancien/2019/ancien.pdf", "doublon/2026-03-15_Organisme_Aides.pdf"]
     assert existant.read_bytes() == b"contenu factice"
 
 
@@ -122,7 +122,7 @@ def test_doublon_en_collision_de_nom_est_suffixe_aussi(tmp_path, config):  # noq
     for nom in ("2.pdf", "3.pdf"):
         copie = piece(tmp_path, nom=nom)
         assert deplacement.deplacer(copie, plan_de(copie, config), config, registre).action == deplacement.DOUBLON
-    assert fichiers(tmp_path / "a/doublon") == ["2026-03-15_Organisme_CAF.pdf", "2026-03-15_Organisme_CAF_2.pdf"]
+    assert fichiers(tmp_path / "a/doublon") == ["2026-03-15_Organisme_Aides.pdf", "2026-03-15_Organisme_Aides_2.pdf"]
 
 
 def test_piece_commune_est_copiee_dans_les_deux_coffres(tmp_path, config):  # noqa: F811

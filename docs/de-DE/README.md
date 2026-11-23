@@ -292,7 +292,7 @@ venv/bin/python dibab.py --autoriser-google imap-google-exemple
 - Nur Linux. Die Einhängeprüfung beruht auf `findmnt`.
 - Die Einordnung ist so gut wie Ihre Modelle: Auf der Referenzinstanz hat ein erster Versuch mit 15 echten Dokumenten 2 eingeordnet, 3 als nicht administrativ ausgesondert und 10 aus Vorsicht in `À_VÉRIFIER/` gelegt. Messen Sie, bevor Sie vertrauen: Die Messung des Bereichs liegt in `_outils/mesurer_domaines.py`.
 - Dibab hängt keinen Tresor ein, verschlüsselt und synchronisiert keinen und löscht kein Dokument: Speicherplatz und Sicherungen liegen in Ihrer Verantwortung.
-- Die Kategorien, die bekannten Absender und die Namensvorlage in `config.exemple.json` spiegeln das französische Verwaltungsleben wider (Familienkasse, Finanzamt, Versicherungen); passen Sie sie an Ihr Land an.
+- Die Kategorien und die bekannten Absender in `config.exemple.json` sind generisch; passen Sie sie an Ihr Land an.
 - Die Schritte in der Google-Konsole hängen von Googles Oberfläche ab, die sich ändert: Die Begriffe bleiben die seiner OAuth2-Dokumentation.
 - Das Projekt ist jung: Version 0.9.0-alpha, keine kontinuierliche Integration.
 

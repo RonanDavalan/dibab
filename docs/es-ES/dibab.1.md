@@ -25,8 +25,8 @@ dibab - recopila, analiza y clasifica los documentos administrativos personales 
 **dibab** escanea directorios locales, máquinas remotas por **ssh**(1) y buzones de correo por IMAP en solo lectura. Extrae el
 texto de cada documento, aparta lo que no es administrativo y clasifica el resto por categoría y por ámbito, personal o profesional,
 por consenso de varios modelos de lenguaje. Cada documento se renombra y se mueve a la bóveda de su ámbito, con un diario que
-**\--rollback** puede deshacer. Nunca borra un archivo, nunca modifica un buzón ni una máquina remota, y no mueve nada de lo que no esté
-seguro: la duda lleva a una carpeta llamada *À_VÉRIFIER*.
+**\--rollback** puede deshacer. Nunca destruye un documento: el original se retira solo tras una copia verificada; nunca modifica un
+buzón ni una máquina remota, y no mueve nada de lo que no esté seguro: la duda lleva a una carpeta llamada *À_VÉRIFIER*.
 
 Los modelos de lenguaje son los de Ollama, que se ejecuta en la misma máquina. Ollama y sus modelos se instalan aparte, por el usuario,
 desde el sitio de Ollama: Dibab no contiene ni lo uno ni lo otro. Liste los modelos con **ollama list** y escríbalos, rol por rol,
@@ -79,8 +79,9 @@ Los mensajes se escriben en inglés, francés, alemán o español. El idioma se 
 **LC_ALL**, **LC_MESSAGES** y **LANG** que no esté vacía: lo que precede al primer **\_**, **.** o **@** da **en**, **fr**, **de** o **es**;
 cualquier otro valor, **C**, **POSIX** o ninguna variable da inglés. Los nombres de las opciones, los símbolos de estado de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), los identificadores de las comprobaciones y la
-línea de **\--version** nunca cambian. Lo que se escribe en el disco (diarios, planes, informes) está en inglés, sea cual sea el idioma
-de la sesión.
+línea de **\--version** nunca cambian. Las claves y los textos libres que se escriben en el disco (diarios, planes, informes) están en
+inglés, sea cual sea el idioma de la sesión; los símbolos de acción (**classe**, **a_verifier**, **doublon**) y los nombres de ámbito
+nunca cambian.
 
 # INSTALACIÓN
 

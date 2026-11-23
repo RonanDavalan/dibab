@@ -80,19 +80,19 @@ def test_domaine_emetteur():
 
 
 def test_verdict_depuis_dict():
-    resultat = verdict_depuis_dict({"administratif": True, "categorie": "CAF", "domaine": "personnel",
+    resultat = verdict_depuis_dict({"administratif": True, "categorie": "Aides", "domaine": "personnel",
                                     "date": "2026-05-15", "signaux": [SIGNAL_PERSO]})
     assert resultat.date.isoformat() == "2026-05-15"
     assert resultat.signaux == (SIGNAL_PERSO,)
     assert resultat.objet is None
-    assert verdict_depuis_dict({"administratif": True, "categorie": "CAF", "objet": "avis"}).objet == "avis"
+    assert verdict_depuis_dict({"administratif": True, "categorie": "Aides", "objet": "avis"}).objet == "avis"
 
 
 @pytest.mark.parametrize("donnees", [
-    {"administratif": True, "categorie": "CAF", "objet": 3},
-    {"categorie": "CAF"},
-    {"administratif": "oui", "categorie": "CAF"},
-    {"administratif": True, "categorie": "CAF", "date": "15/05/2026"},
+    {"administratif": True, "categorie": "Aides", "objet": 3},
+    {"categorie": "Aides"},
+    {"administratif": "oui", "categorie": "Aides"},
+    {"administratif": True, "categorie": "Aides", "date": "15/05/2026"},
 ])
 def test_verdict_invalide(donnees):
     with pytest.raises(ValueError):

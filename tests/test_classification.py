@@ -175,14 +175,14 @@ def test_la_classification_rend_les_champs_du_document():
     verdict = resultat.verdict
     assert resultat.valide and verdict.date.isoformat() == "2026-03-15"
     assert (verdict.emetteur, verdict.destinataire, verdict.categorie, verdict.personne) == \
-        ("CAF", "Madame Personne1", "CAF", "Personne1")
+        ("Organisme public", "Madame Personne1", "Aides", "Personne1")
     assert verdict.domaine == "personnel"
     assert {s["nature"] for s in verdict.signaux} == {"destinataire", "emetteur_connu"}
 
 
 def test_une_citation_absente_du_texte_ne_fait_pas_signal():
     fine = {**TEXTES[0]["reponse"], "destinataire": "Madame Fantôme", "nature_destinataire": "entreprise",
-            "emetteur": "EDF"}
+            "emetteur": "Fournisseur A"}
     verdict = classification.classifier(TEXTES[1]["texte"], CONFIGURATION, PARAMETRES, "m", 0, FauxModele(fine=fine)).verdict
     assert verdict.signaux == () and verdict.emetteur is None and verdict.domaine == "incertain"
 
@@ -221,18 +221,18 @@ def test_aucun_emetteur_connu_dans_le_texte_ne_donne_rien():
 
 
 def test_deux_emetteurs_connus_dans_le_texte_ne_donnent_rien():
-    texte = "Courrier commun de la CAF et d'EDF : votre dossier est complet."
+    texte = "Courrier commun de l'Organisme public et du Fournisseur A : votre dossier est complet."
     resultat = _classer(texte, TEXTES[8]["reponse"])
     assert resultat.verdict.emetteur is None and resultat.verdict.domaine == "incertain"
 
 
 def test_la_liste_ne_reconnait_qu_un_mot_entier():
-    resultat = _classer("Courrier de la CAFETERIA du quartier.", TEXTES[8]["reponse"])
+    resultat = _classer("Courrier de l'Organisme publicitaire du quartier.", TEXTES[8]["reponse"])
     assert resultat.verdict.emetteur is None
 
 
 def test_un_emetteur_cite_par_le_modele_prime_sur_la_liste():
-    texte = "Lycée Jean-Exemple. Copie transmise à la CAF. Bulletin de l'élève Personne2."
+    texte = "Lycée Jean-Exemple. Copie transmise à l'Organisme public. Bulletin de l'élève Personne2."
     resultat = _classer(texte, {**TEXTES[1]["reponse"]})
     assert resultat.verdict.emetteur == "Lycée Jean-Exemple" and resultat.releve.origine_emetteur == "modele"
 
@@ -241,7 +241,7 @@ def test_le_releve_garde_ce_que_le_modele_a_rendu_sans_le_destinataire():
     resultat = _classer(TEXTES[0]["texte"], TEXTES[0]["reponse"])
     releve = resultat.releve
     assert (releve.emetteur_rendu, releve.emetteur_cite, releve.destinataire_cite, releve.nature_destinataire) == \
-        ("CAF", True, True, "personne_physique")
+        ("Organisme public", True, True, "personne_physique")
     assert "Personne1" not in json.dumps(releve.__dict__)
 
 

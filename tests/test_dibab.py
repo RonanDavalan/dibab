@@ -8,7 +8,7 @@ import dibab
 from tests.textes_factices import CONFIG_CLASSEMENT
 
 CAS = {
-    "perso.pdf": {"administratif": True, "domaine": "personnel", "categorie": "CAF", "emetteur": "Organisme"},
+    "perso.pdf": {"administratif": True, "domaine": "personnel", "categorie": "Aides", "emetteur": "Organisme"},
     "pro.pdf": {"administratif": True, "domaine": "professionnel", "categorie": "Factures", "emetteur": "Client"},
     "mixte.pdf": {"administratif": True, "domaine": "mixte", "categorie": "Impôts", "emetteur": "Fisc"},
     "incertain_pro.pdf": {"administratif": True, "domaine": "incertain", "categorie": "Factures",

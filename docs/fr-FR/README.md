@@ -292,7 +292,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appl
 - Linux seulement. Le contrôle de montage repose sur `findmnt`.
 - Le classement vaut ce que valent vos modèles : sur l'instance de référence, un premier essai sur 15 documents réels en a classé 2, écarté 3 comme non administratifs et mis 10 en `À_VÉRIFIER/`, par choix de prudence. Mesurez avant de faire confiance : la mesure du domaine est dans `_outils/mesurer_domaines.py`.
 - Dibab ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface aucun document : l'espace disque et les sauvegardes sont à votre charge.
-- Les catégories, les émetteurs connus et le gabarit de nommage de `config.exemple.json` reflètent la vie administrative française (CAF, impôts, assurances) ; adaptez-les à votre pays.
+- Les catégories et les émetteurs connus de `config.exemple.json` sont génériques ; adaptez-les à votre pays.
 - Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
 - Le projet est jeune : version 0.9.0-alpha, pas d'intégration continue.
 

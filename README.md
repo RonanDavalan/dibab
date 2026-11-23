@@ -293,7 +293,7 @@ Open the address that is printed in a browser, accept the "unverified applicatio
 - Linux only. The mount check relies on `findmnt`.
 - The filing is worth what your models are worth: on the reference instance, a first trial on 15 real documents filed 2, set 3 aside as not administrative and put 10 in `À_VÉRIFIER/`, as a matter of caution. Measure before trusting: the domain measurement is in `_outils/mesurer_domaines.py`.
 - Dibab does not mount, encrypt or synchronise any vault, and erases no document: disk space and backups are up to you.
-- The categories, the known senders and the naming template of `config.exemple.json` reflect French administrative life (family allowance fund, tax office, insurers); adapt them to your country.
+- The categories and the known senders of `config.exemple.json` are generic; adapt them to your country.
 - The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.
 - The project is young: version 0.9.0-alpha, no continuous integration.
 

@@ -192,11 +192,11 @@
 
   "categories": [
     "Factures",
-    "CAF",
+    "Aides",
     "Impôts",
     "Banques",
     "Assurances",
-    "Mdph",
+    "Handicap",
     "Hopital",
     "Medecin",
     "Vétérinaire",
@@ -212,31 +212,29 @@
 
   "emetteurs_connus": {
     "Assurances": [
-      {"nom": "MAIF", "domaine": "personnel"},
-      {"nom": "MACIF", "domaine": "personnel"},
-      {"nom": "AXA", "domaine": "mixte"},
-      {"nom": "Groupama", "domaine": "mixte"},
-      {"nom": "MATMUT", "domaine": "personnel"}
+      {"nom": "Assurance A", "domaine": "personnel"},
+      {"nom": "Assurance B", "domaine": "personnel"},
+      {"nom": "Assurance C", "domaine": "mixte"},
+      {"nom": "Assurance D", "domaine": "mixte"},
+      {"nom": "Assurance E", "domaine": "personnel"}
     ],
     "Banques": [
-      {"nom": "Crédit Agricole", "domaine": "mixte"},
-      {"nom": "BNP Paribas", "domaine": "mixte"},
-      {"nom": "Société Générale", "domaine": "mixte"},
-      {"nom": "La Banque Postale", "domaine": "mixte"}
+      {"nom": "Banque A", "domaine": "mixte"},
+      {"nom": "Banque B", "domaine": "mixte"},
+      {"nom": "Banque C", "domaine": "mixte"},
+      {"nom": "Banque D", "domaine": "mixte"}
     ],
     "Factures": [
-      {"nom": "EDF", "domaine": "personnel"},
-      {"nom": "Engie", "domaine": "personnel"},
-      {"nom": "Orange", "domaine": "mixte"},
-      {"nom": "SFR", "domaine": "mixte"},
-      {"nom": "Bouygues", "domaine": "mixte"},
-      {"nom": "Free", "domaine": "mixte"}
+      {"nom": "Fournisseur A", "domaine": "personnel"},
+      {"nom": "Fournisseur B", "domaine": "personnel"},
+      {"nom": "Fournisseur C", "domaine": "mixte"},
+      {"nom": "Fournisseur D", "domaine": "mixte"},
+      {"nom": "Fournisseur E", "domaine": "mixte"},
+      {"nom": "Fournisseur F", "domaine": "mixte"}
     ],
-    "CAF": [{"nom": "CAF", "domaine": "personnel"}],
+    "Aides": [{"nom": "Organisme public", "domaine": "personnel"}],
     "Impôts": [
-      {"nom": "Impôts", "domaine": "mixte"},
-      {"nom": "Trésor Public", "domaine": "mixte"},
-      {"nom": "DGFiP", "domaine": "mixte"}
+      {"nom": "Service fiscal", "domaine": "mixte"}
     ]
   }
 }

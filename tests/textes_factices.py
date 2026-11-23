@@ -5,13 +5,13 @@ tester la règle et la validation sans modèle. `attendu` est (administratif, do
 `objet` est l'objet qu'un tri exact rendrait. Aucun nom réel : personnes et organismes sont inventés.
 """
 
-CATEGORIES = ["Factures", "CAF", "Impôts", "Banques", "Lycée", "Cotisations", "Identité"]
+CATEGORIES = ["Factures", "Aides", "Impôts", "Banques", "Lycée", "Cotisations", "Identité"]
 PERSONNES = ["Personne1", "Personne2"]
 EMETTEURS_CONNUS = {
-    "CAF": [{"nom": "CAF", "domaine": "personnel"}],
-    "Factures": [{"nom": "Hébergeur-Exemple", "domaine": "professionnel"}, {"nom": "EDF", "domaine": "personnel"}],
+    "Aides": [{"nom": "Organisme public", "domaine": "personnel"}],
+    "Factures": [{"nom": "Hébergeur-Exemple", "domaine": "professionnel"}, {"nom": "Fournisseur A", "domaine": "personnel"}],
     "Banques": [{"nom": "Banque-Exemple", "domaine": "mixte"}],
-    "Impôts": [{"nom": "DGFiP", "domaine": "mixte"}],
+    "Impôts": [{"nom": "Service fiscal", "domaine": "mixte"}],
     "Emploi": [{"nom": "Caisse-Exemple", "domaine": "personnel"}],
 }
 
@@ -23,10 +23,10 @@ def _fine(emetteur, destinataire, nature, categorie, personne, date="2026-03-15"
 
 TEXTES = [
     {"id": "personnel-1", "objet": "notification de paiement d'allocation", "texte": (
-        "CAF de l'Exemple. Notification de paiement du 15/03/2026. Madame Personne1, votre allocation "
+        "Organisme public de l'Exemple. Notification de paiement du 15/03/2026. Madame Personne1, votre allocation "
         "de rentrée scolaire de 412 euros sera versée le 20 mars."),
      "attendu": (True, "personnel", "personnel", "classement"), "tri": "administratif",
-     "reponse": _fine("CAF", "Madame Personne1", "personne_physique", "CAF", "Personne1")},
+     "reponse": _fine("Organisme public", "Madame Personne1", "personne_physique", "Aides", "Personne1")},
     {"id": "personnel-2", "objet": "bulletin scolaire du deuxième trimestre", "texte": (
         "Lycée Jean-Exemple. Bulletin du deuxième trimestre de l'élève Personne2, classe de seconde. "
         "À l'attention des parents. Moyenne générale : 13,4."),
@@ -43,15 +43,15 @@ TEXTES = [
      "attendu": (True, "professionnel", "professionnel", "classement"), "tri": "administratif",
      "reponse": _fine("Caisse des cotisations d'Exemple", "Atelier Exemple SARL", "entreprise", "Cotisations", "aucune")},
     {"id": "mixte-1", "objet": "avis d'impôt sur le revenu", "texte": (
-        "DGFiP. Avis d'impôt sur le revenu 2025 de Personne1, entrepreneur individuel, SIRET 987 654 321 00019. "
+        "Service fiscal. Avis d'impôt sur le revenu 2025 de Personne1, entrepreneur individuel, SIRET 987 654 321 00019. "
         "Revenu fiscal de référence : 31 200 euros, dont bénéfices de l'activité non salariée."),
      "attendu": (True, "mixte", "professionnel", "a_verifier"), "tri": "administratif",
-     "reponse": _fine("DGFiP", "Personne1", "entrepreneur_individuel", "Impôts", "Personne1")},
+     "reponse": _fine("Service fiscal", "Personne1", "entrepreneur_individuel", "Impôts", "Personne1")},
     {"id": "mixte-2", "objet": "facture d'électricité d'un atelier", "texte": (
-        "EDF. Facture d'électricité du 15/03/2026, contrat professionnel de l'atelier. Destinataire : "
+        "Fournisseur A. Facture d'électricité du 15/03/2026, contrat professionnel de l'atelier. Destinataire : "
         "Atelier Exemple SARL, 4 rue de l'Exemple. Montant : 183 euros."),
      "attendu": (True, "mixte", "professionnel", "a_verifier"), "tri": "administratif",
-     "reponse": _fine("EDF", "Atelier Exemple SARL", "entreprise", "Factures", "aucune")},
+     "reponse": _fine("Fournisseur A", "Atelier Exemple SARL", "entreprise", "Factures", "aucune")},
     {"id": "incertain-pro-1", "objet": "conditions générales de vente", "texte": (
         "Conditions générales de vente. Article 1 : les prix s'entendent hors TVA. Article 2 : le paiement "
         "est dû à trente jours. Article 3 : tout litige relève du tribunal du lieu du vendeur."),

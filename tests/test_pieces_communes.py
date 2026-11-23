@@ -45,8 +45,8 @@ def test_nom_normalise():
 
 
 def test_nom_date_inconnue_et_emetteur_inconnu():
-    verdict = Verdict(True, "personnel", "CAF")
-    assert nommer(NOMMAGE, verdict, ".pdf", datetime(2026, 3, 2)) == "~2026-03-02_Inconnu_CAF.pdf"
+    verdict = Verdict(True, "personnel", "Aides")
+    assert nommer(NOMMAGE, verdict, ".pdf", datetime(2026, 3, 2)) == "~2026-03-02_Inconnu_Aides.pdf"
 
 
 def test_nom_a_verifier_porte_le_prefixe():

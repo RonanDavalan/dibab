@@ -38,8 +38,8 @@ def planifier(source, config, **verdict):
 
 
 def test_personnel_range_par_personne_et_annee(source, config, tmp_path):
-    plan = planifier(source, config, domaine="personnel", categorie="CAF", emetteur="Organisme X", personne="Personne1", date=date(2026, 3, 15))
-    assert plan.chemins == (tmp_path / "a/Rangement/Personne1/2026/2026-03-15_Organisme-X_CAF.pdf",)
+    plan = planifier(source, config, domaine="personnel", categorie="Aides", emetteur="Organisme X", personne="Personne1", date=date(2026, 3, 15))
+    assert plan.chemins == (tmp_path / "a/Rangement/Personne1/2026/2026-03-15_Organisme-X_Aides.pdf",)
 
 
 def test_professionnel_range_par_annee_et_categorie(source, config, tmp_path):
@@ -76,12 +76,12 @@ def test_non_administratif_ne_bouge_pas(source, config):
 
 def test_personne_inconnue_ou_hors_liste_va_dans_le_dossier_commun(source, config, tmp_path):
     for personne in (None, "Quelqu'un d'autre"):
-        plan = planifier(source, config, domaine="personnel", categorie="CAF", personne=personne, date=date(2026, 3, 15))
+        plan = planifier(source, config, domaine="personnel", categorie="Aides", personne=personne, date=date(2026, 3, 15))
         assert plan.chemins[0].parent == tmp_path / "a/Rangement/Commun/2026"
 
 
 def test_date_inconnue_prend_l_annee_du_repli(source, config, tmp_path):
-    plan = planifier(source, config, domaine="personnel", categorie="CAF", personne="Personne1")
+    plan = planifier(source, config, domaine="personnel", categorie="Aides", personne="Personne1")
     assert plan.chemins[0].parent == tmp_path / "a/Rangement/Personne1/2024"
     assert plan.nom.startswith("~2024-07-09_")
 
@@ -95,7 +95,7 @@ def test_une_categorie_ne_sort_pas_de_la_destination(source, config, tmp_path, c
 
 def test_un_document_a_verifier_garde_son_nom_d_origine(source, config):
     # Sans `nommage.format_a_verifier`, même avec un objet, le nom d'origine seul suit le préfixe.
-    plan = planifier(source, config, domaine="incertain", categorie="Inconnue", objet="attestation", emetteur="CAF")
+    plan = planifier(source, config, domaine="incertain", categorie="Inconnue", objet="attestation", emetteur="Organisme public")
     assert plan.nom == "[AV]scan.PDF"
 
 
@@ -108,7 +108,7 @@ def config_a_verifier(config):
 
 
 def test_un_document_a_verifier_prend_date_emetteur_objet_et_nom_d_origine(source, config_a_verifier):
-    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="CAF", date=date(2026, 3, 15),
+    plan = planifier(source, config_a_verifier, domaine="incertain", categorie="Aides", date=date(2026, 3, 15),
                      emetteur="Caisse Exemple", objet="attestation de paiement")
     assert plan.nom == "[AV]2026-03-15_Caisse-Exemple_attestation-de-paiement_scan.pdf"
 
@@ -162,13 +162,13 @@ def test_l_objet_ne_fabrique_ni_chemin_ni_caractere_de_controle(source, config_a
 
 def test_objet_est_permis_dans_le_format_d_un_document_classe(source, config):
     config["nommage"]["format"] = "{date}_{emetteur}_{objet}_{categorie}{ext}"
-    avec = planifier(source, config, domaine="personnel", categorie="CAF", personne="Personne1", date=date(2026, 3, 15),
-                     emetteur="CAF", objet="notification")
-    sans = planifier(source, config, domaine="personnel", categorie="CAF", personne="Personne1", date=date(2026, 3, 15), emetteur="CAF")
-    assert (avec.nom, sans.nom) == ("2026-03-15_CAF_notification_CAF.pdf", "2026-03-15_CAF_CAF.pdf")
+    avec = planifier(source, config, domaine="personnel", categorie="Aides", personne="Personne1", date=date(2026, 3, 15),
+                     emetteur="Organisme public", objet="notification")
+    sans = planifier(source, config, domaine="personnel", categorie="Aides", personne="Personne1", date=date(2026, 3, 15), emetteur="Organisme public")
+    assert (avec.nom, sans.nom) == ("2026-03-15_Organisme-public_notification_Aides.pdf", "2026-03-15_Organisme-public_Aides.pdf")
 
 
 def test_le_format_par_defaut_d_un_document_classe_ne_change_pas(source, config_a_verifier):
-    plan = planifier(source, config_a_verifier, domaine="personnel", categorie="CAF", personne="Personne1",
-                     date=date(2026, 3, 15), emetteur="CAF", objet="notification")
-    assert plan.nom == "2026-03-15_CAF_CAF.pdf"
+    plan = planifier(source, config_a_verifier, domaine="personnel", categorie="Aides", personne="Personne1",
+                     date=date(2026, 3, 15), emetteur="Organisme public", objet="notification")
+    assert plan.nom == "2026-03-15_Organisme-public_Aides.pdf"

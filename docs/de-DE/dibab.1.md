@@ -25,8 +25,9 @@ dibab - sammelt, analysiert und archiviert die persönlichen Verwaltungsdokument
 **dibab** durchsucht lokale Verzeichnisse, entfernte Maschinen über **ssh**(1) und Postfächer über IMAP im Lesemodus. Es
 extrahiert den Text jedes Dokuments, sondert aus, was nicht administrativ ist, und ordnet den Rest nach Kategorie und Bereich, privat
 oder beruflich, im Konsens mehrerer Sprachmodelle ein. Jedes Dokument wird umbenannt und in den Tresor seines Bereichs verschoben,
-mit einem Journal, das **\--rollback** rückgängig machen kann. Es löscht nie eine Datei, verändert nie ein Postfach oder eine entfernte
-Maschine und bewegt nichts, bei dem es nicht sicher ist: Zweifel führen in einen Ordner namens *À_VÉRIFIER*.
+mit einem Journal, das **\--rollback** rückgängig machen kann. Es zerstört nie ein Dokument: Das Original wird erst nach einer geprüften
+Kopie entfernt; es verändert nie ein Postfach oder eine entfernte Maschine und bewegt nichts, bei dem es nicht sicher ist: Zweifel führen
+in einen Ordner namens *À_VÉRIFIER*.
 
 Die Sprachmodelle sind die von Ollama, das auf derselben Maschine läuft. Ollama und seine Modelle werden vom Benutzer getrennt von der
 Ollama-Website installiert: Dibab enthält weder das eine noch die anderen. Listen Sie die Modelle mit **ollama list** auf und
@@ -79,8 +80,9 @@ Meldungen werden auf Englisch, Französisch, Deutsch oder Spanisch geschrieben. 
 ersten nicht leeren der Variablen **LC_ALL**, **LC_MESSAGES** und **LANG**: Der Teil vor dem ersten **\_**, **.** oder **@** ergibt **en**,
 **fr**, **de** oder **es**; jeder andere Wert, **C**, **POSIX** oder keine Variable ergibt Englisch. Die Optionsnamen, die Zustandskürzel
 von **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), die Kennungen der Prüfungen und die
-Zeile von **\--version** ändern sich nie. Was auf die Platte geschrieben wird (Journale, Pläne, Berichte), ist Englisch, in welcher Sprache
-die Sitzung auch läuft.
+Zeile von **\--version** ändern sich nie. Die Schlüssel und die freien Texte, die auf die Platte geschrieben werden (Journale, Pläne,
+Berichte), sind Englisch, in welcher Sprache die Sitzung auch läuft; die Aktionskürzel (**classe**, **a_verifier**, **doublon**) und die
+Bereichsnamen ändern sich nie.
 
 # INSTALLATION
 

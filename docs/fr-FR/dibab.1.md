@@ -25,8 +25,9 @@ dibab - collecte, analyse et classe les documents administratifs personnels d'un
 **dibab** scanne des répertoires locaux, des machines distantes par **ssh**(1) et des boîtes mail par IMAP en lecture seule. Il
 extrait le texte de chaque document, écarte ce qui n'est pas administratif, puis classe le reste par catégorie et par domaine,
 personnel ou professionnel, par consensus de plusieurs modèles de langage. Chaque document est renommé et déplacé dans le coffre de
-son domaine, avec un journal que **\--rollback** peut défaire. Il ne supprime jamais un fichier, ne modifie jamais une boîte mail ni une
-machine distante, et ne déplace rien dont il n'est pas sûr : le doute mène à un dossier nommé *À_VÉRIFIER*.
+son domaine, avec un journal que **\--rollback** peut défaire. Il ne détruit jamais un document : l'original n'est retiré qu'après une
+copie vérifiée ; il ne modifie jamais une boîte mail ni une machine distante, et ne déplace rien dont il n'est pas sûr : le doute mène à
+un dossier nommé *À_VÉRIFIER*.
 
 Les modèles de langage sont ceux d'Ollama, qui tourne sur la même machine. Ollama et ses modèles s'installent à part, par
 l'utilisateur, depuis le site d'Ollama : Dibab ne contient ni l'un ni les autres. Listez les modèles avec **ollama list**, puis
@@ -79,8 +80,8 @@ Les messages sont écrits en anglais, en français, en allemand ou en espagnol. 
 des variables **LC_ALL**, **LC_MESSAGES** et **LANG** qui n'est pas vide : ce qui précède le premier **\_**, **.** ou **@** donne **en**,
 **fr**, **de** ou **es** ; toute autre valeur, **C**, **POSIX** ou aucune variable donne l'anglais. Les noms d'option, les jetons d'état de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), les identifiants des vérifications et la ligne de
-**\--version** ne changent jamais. Ce qui s'écrit sur le disque (journaux, plans, rapports) est en anglais, quelle que soit la langue de
-la session.
+**\--version** ne changent jamais. Les clés et les textes libres écrits sur le disque (journaux, plans, rapports) sont en anglais, quelle
+que soit la langue de la session ; les jetons d'action (**classe**, **a_verifier**, **doublon**) et les noms de domaine ne changent jamais.
 
 # INSTALLATION
 

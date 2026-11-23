@@ -25,8 +25,8 @@ dibab - collects, analyses and files the personal administrative documents of a 
 **dibab** scans local directories, remote machines over **ssh**(1) and mailboxes over read-only IMAP. It extracts the text of
 each document, sets aside what is not administrative, then files the rest by category and by domain, personal or professional,
 by the consensus of several language models. Each document is renamed and moved into the vault of its domain, with a journal that
-**\--rollback** can undo. It never deletes a file, never modifies a mailbox or a remote machine, and moves nothing it is not sure
-about: doubt leads to a folder named *À_VÉRIFIER*.
+**\--rollback** can undo. It never destroys a document: the original is removed only after a checked copy; it never modifies a
+mailbox or a remote machine, and moves nothing it is not sure about: doubt leads to a folder named *À_VÉRIFIER*.
 
 The language models are those of Ollama, which runs on the same machine. Ollama and its models are installed separately, by the
 user, from the Ollama website: Dibab contains neither. List the models with **ollama list**, then write them, role by role,
@@ -79,7 +79,8 @@ Messages are written in English, French, German or Spanish. The language is read
 **LC_MESSAGES** and **LANG** that is not empty: the part before the first **\_**, **.** or **@** gives **en**, **fr**, **de** or **es**;
 any other value, **C**, **POSIX** or no variable gives English. The option names, the state tokens of **\--diagnose** (**OK**,
 **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), the identifiers of the checks and the **\--version** line never change.
-What is written on disk (journals, plans, reports) is in English, whatever the language of the session.
+The keys and the free text written on disk (journals, plans, reports) are in English, whatever the language of the session; the
+action tokens (**classe**, **a_verifier**, **doublon**) and the domain names never change.
 
 # INSTALLATION
 
