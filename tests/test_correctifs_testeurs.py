@@ -84,3 +84,34 @@ def test_la_ligne_d_inventaire_nomme_a_verifier_et_son_compte(langue):
 def test_le_message_du_doublon_dit_que_la_source_est_retiree(langue):
     texte = messages.dictionnaire(langue)["classement_doublon"].format(nom="facture.pdf")
     assert "doublon/" in texte and "facture.pdf" in texte
+
+
+def test_le_journal_et_le_suivi_sont_prives(tmp_path):
+    from datetime import datetime
+    from modules import journal, journal_actions, rapport, suivi
+
+    ancien = os.umask(0o002)
+    try:
+        etat = tmp_path / "coffre" / "suivi"
+        session = etat / "sessions" / "session_a.jsonl"
+        journal.JournalSession(session, "a").ajouter("essai")
+        suivi.sauvegarder(etat / "dernier_scan.json", {"source": datetime(2026, 11, 24)})
+        journal_actions.JournalActions(etat / "journal.jsonl", "a")
+        rapport.Rapport("a", "execute").ecrire(etat / "sessions")
+    finally:
+        os.umask(ancien)
+    for dossier in (etat, etat / "sessions"):
+        assert _mode(dossier) == 0o700
+    for fichier in (session, etat / "dernier_scan.json", etat / "sessions" / "rapport_a.json"):
+        assert _mode(fichier) == 0o600
+
+
+def test_deux_plans_de_la_meme_seconde_ont_deux_fichiers(tmp_path):
+    plan = {"horodatage": "2026-11-24T16:44:29", "actions": []}
+    dossier = tmp_path / "logs"
+    deplacement.creer_dossiers_prives(dossier)
+    premier = inventaire._ecrire_sans_ecraser(dossier, "inventaire_2026-11-24T16-44-29", plan)
+    second = inventaire._ecrire_sans_ecraser(dossier, "inventaire_2026-11-24T16-44-29", plan)
+    assert premier.name == "inventaire_2026-11-24T16-44-29.json"
+    assert second.name == "inventaire_2026-11-24T16-44-29_2.json"
+    assert _mode(second) == 0o600

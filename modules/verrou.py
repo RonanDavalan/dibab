@@ -7,6 +7,7 @@ et la synchronisation des coffres propagerait le résultat de l'une et de l'autr
 import os
 from contextlib import contextmanager
 from pathlib import Path
+from modules.deplacement import creer_dossiers_prives
 from modules.messages import traduire
 
 
@@ -36,7 +37,7 @@ def _commande_du_processus(pid):
 def verrou(chemin):
     """Pose le verrou `chemin` ; un verrou laissé par un processus mort est repris."""
     chemin = Path(chemin)
-    chemin.parent.mkdir(parents=True, exist_ok=True)
+    creer_dossiers_prives(chemin.parent)
     for _ in range(2):
         try:
             descripteur = os.open(chemin, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)

@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+from modules.deplacement import creer_dossiers_prives
 from modules.messages import pour_journal
 from modules.pieces_communes import empreinte_sha256
 
@@ -27,7 +28,7 @@ class JournalActions:
     def _ecrire(self, enregistrement):
         enregistrement = {"schema_version": SCHEMA_VERSION, "session": self.session,
                           "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"), **pour_journal(enregistrement)}
-        self.chemin.parent.mkdir(parents=True, exist_ok=True)
+        creer_dossiers_prives(self.chemin.parent)
         descripteur = os.open(self.chemin, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
         with os.fdopen(descripteur, "a", encoding="utf-8") as f:
             f.write(json.dumps(enregistrement, ensure_ascii=False) + "\n")

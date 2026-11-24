@@ -2,7 +2,7 @@
 
 **English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
 
-Dibab ("to choose" in Breton) collects, analyses and files the personal administrative documents of a household (invoices, letters, contracts, notices from public bodies) into a normalised tree, and keeps a journal of everything it does. It runs in sovereign mode: no data leaves the local network, with no third-party service, no remote model and no cloud. The language models are those of [Ollama](https://ollama.com/), on your own machine.
+Dibab ("to choose" in Breton) collects, analyses and files the personal administrative documents of a household (invoices, letters, contracts, notices from public bodies) into a normalised tree, and keeps a journal of everything it does. It runs in sovereign mode: no document and no text of a document leaves the local network, with no remote model and no cloud. The only connections to the outside are the ones you declare: the IMAP mailbox that Dibab reads, and Google's OAuth2 consent when that mailbox is a Google account. The language models are those of [Ollama](https://ollama.com/), on your own machine.
 
 Licence: [GNU Affero General Public License version 3](LICENSE).
 
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `545 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `547 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -184,7 +184,7 @@ The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIF
 Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 1 not configured, 0 not checked
 ```
 
-With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it: the triage then goes through `tri_rapide`.
+With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it and Ollama answers: the triage then goes through `tri_rapide`. When Ollama does not answer, it is `NON_VÉRIFIÉ` like the other models, and the three failures of that run are Ollama and the two vault roots.
 
 ## Language of the messages
 
@@ -194,7 +194,7 @@ Dibab writes its messages in English, French, German or Spanish. The language is
 LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk is in English, so that a journal written in one language is replayed by `--rollback` in any other. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
+The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the text values are in English, and the keys of the journals and the plan files (`evenement`, `horodatage`…) are fixed technical identifiers. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
 
 ## Usage
 

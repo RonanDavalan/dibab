@@ -59,6 +59,6 @@ def test_un_plan_ne_nomme_aucun_fichier_de_l_autre_coffre(coffres):
 
 def test_un_second_inventaire_n_ecrase_pas_le_premier(coffres):
     plans = inventaire.construire_plans(coffres)
-    inventaire.ecrire_plans(plans, coffres)
-    with pytest.raises(FileExistsError):
-        inventaire.ecrire_plans(plans, coffres)
+    premiers = inventaire.ecrire_plans(plans, coffres)
+    seconds = inventaire.ecrire_plans(plans, coffres)
+    assert all(premiers[d] != seconds[d] and premiers[d].exists() and seconds[d].exists() for d in plans)

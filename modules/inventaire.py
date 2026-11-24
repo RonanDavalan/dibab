@@ -142,10 +142,23 @@ def ecrire_plans(plans, configuration):
     ecrits = {}
     for domaine, plan in plans.items():
         racine = Path(configuration["destinations"][domaine]["racine"])
-        chemin = racine / configuration["destination"]["sous_repertoire_logs"] / \
-            f"inventaire_{plan['horodatage'].replace(':', '-')}.json"
-        creer_dossiers_prives(chemin.parent)
-        with open(os.open(chemin, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as f:
-            json.dump(plan, f, ensure_ascii=False, indent=1)
-        ecrits[domaine] = chemin
+        dossier = racine / configuration["destination"]["sous_repertoire_logs"]
+        base = f"inventaire_{plan['horodatage'].replace(':', '-')}"
+        creer_dossiers_prives(dossier)
+        ecrits[domaine] = _ecrire_sans_ecraser(dossier, base, plan)
     return ecrits
+
+
+def _ecrire_sans_ecraser(dossier, base, plan):
+    """Écrit le plan sous `base.json`, ou `base_2.json`, `base_3.json`… si le nom est déjà pris ; `O_EXCL` garde la course sûre."""
+    numero = 1
+    while True:
+        chemin = dossier / (f"{base}.json" if numero == 1 else f"{base}_{numero}.json")
+        try:
+            descripteur = os.open(chemin, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            numero += 1
+            continue
+        with os.fdopen(descripteur, "w", encoding="utf-8") as f:
+            json.dump(plan, f, ensure_ascii=False, indent=1)
+        return chemin

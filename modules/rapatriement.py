@@ -9,7 +9,7 @@ import os
 import re
 from pathlib import Path
 
-from modules.deplacement import chemin_libre
+from modules.deplacement import chemin_libre, creer_dossiers_prives
 from modules.pieces_communes import empreinte_sha256
 from modules.scanner_ssh import ErreurSsh, expression_distante
 from modules.messages import traduire
@@ -51,7 +51,7 @@ class RegistreRapatries:
 
     def noter(self, source_id, cle, empreinte):
         self.donnees.setdefault(source_id, {})[cle] = empreinte
-        self.chemin.parent.mkdir(parents=True, exist_ok=True)
+        creer_dossiers_prives(self.chemin.parent)
         provisoire = self.chemin.with_suffix(".tmp")
         descripteur = os.open(provisoire, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(descripteur, "w", encoding="utf-8") as f:

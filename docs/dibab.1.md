@@ -4,7 +4,7 @@
 
 # NAME
 
-dibab - collects, analyses and files the personal administrative documents of a household, without any data leaving the local network
+dibab - collects, analyses and files the personal administrative documents of a household, without any document leaving the local network
 
 # SYNOPSIS
 

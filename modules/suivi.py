@@ -11,8 +11,11 @@
 #   fin de session --execute uniquement (jamais en dry-run).
 
 import json
+import os
 from datetime import datetime
 from pathlib import Path
+
+from modules.deplacement import creer_dossiers_prives
 
 
 FORMAT_DATE = "%Y-%m-%dT%H:%M:%S"
@@ -57,7 +60,7 @@ def sauvegarder(chemin_fichier, suivi):
     on écrit dans un fichier temporaire puis on rename.
     """
     chemin = Path(chemin_fichier)
-    chemin.parent.mkdir(parents=True, exist_ok=True)
+    creer_dossiers_prives(chemin.parent)
 
     donnees_serialisables = {
         id_source: date.strftime(FORMAT_DATE)
@@ -65,6 +68,6 @@ def sauvegarder(chemin_fichier, suivi):
     }
 
     chemin_temp = chemin.with_suffix(chemin.suffix + ".tmp")
-    with open(chemin_temp, "w", encoding="utf-8") as f:
+    with os.fdopen(os.open(chemin_temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
         json.dump(donnees_serialisables, f, ensure_ascii=False, indent=2, sort_keys=True)
     chemin_temp.replace(chemin)

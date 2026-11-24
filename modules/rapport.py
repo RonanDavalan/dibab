@@ -6,6 +6,8 @@ import time
 from collections import Counter
 from pathlib import Path
 
+from modules.deplacement import creer_dossiers_prives
+
 SCHEMA_VERSION = 1
 
 
@@ -23,7 +25,7 @@ class Rapport:
 
     def ecrire(self, dossier_sessions):
         chemin = Path(dossier_sessions) / f"rapport_{self.session}.json"
-        chemin.parent.mkdir(parents=True, exist_ok=True)
+        creer_dossiers_prives(chemin.parent)
         contenu = {"schema_version": SCHEMA_VERSION, "session": self.session, "mode": self.mode,
                    "duree_secondes": round(time.monotonic() - self.debut, 3), "actions": dict(self.comptes),
                    "echecs": self.comptes.get("echec", 0), "rapatries": self.rapatries,
