@@ -48,7 +48,7 @@ def test_le_plan_classe_chaque_document(tmp_path, coffres):
     assert perso["Rangement/Personne1/2025/facture.pdf"]["doublon_de"] == "Rangement/Personne1/2025/facture-bis.pdf"
     assert perso["Rangement/Personne1/2025/facture-bis.pdf"]["doublon_de"] is None
     assert perso["Rangement/Personne1/2025/identite.pdf"]["present_dans_autre_coffre"] is True
-    assert plans["personnel"]["resume"] == {"documents": 4, "conserver": 3, "a_classer": 1, "doublons_internes": 1, "presents_dans_autre_coffre": 1}
+    assert plans["personnel"]["resume"] == {"documents": 4, "conserver": 3, "a_classer": 1, "doublons_internes": 1, "presents_dans_autre_coffre": 1, "a_verifier_non_listes": 0}
     assert plans["professionnel"]["resume"]["a_classer"] == 1
 
 

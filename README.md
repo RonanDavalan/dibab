@@ -24,7 +24,7 @@ It does not:
 
 ## A tool for a household
 
-Dibab is designed for the administrative life of a household, by the household. A machine, a directory or a mail account enters the scope only with the agreement, explicit or implicit, of the person concerned; when in doubt, leave it out. The software cannot guarantee this respect: the administrator of the instance commits to it. The journal holds file names and senders, which already reveal a lot (a letter from a health body is enough): it lives in the vault, not beside it.
+Dibab is designed for the administrative life of a household, by the household. A machine, a directory or a mail account enters the scope only with the agreement, explicit or implicit, of the person concerned; when in doubt, leave it out. The software cannot guarantee this respect: the administrator of the instance commits to it. The session journal holds the subject, the sender, the category, the person and the date of each document, which already reveal a lot (a letter from a health body is enough): it lives in the vault, not beside it.
 
 ## Requirements
 
@@ -184,7 +184,7 @@ The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIF
 Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 1 not configured, 0 not checked
 ```
 
-The one warning is the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it: the triage then goes through `tri_rapide`.
+With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it: the triage then goes through `tri_rapide`.
 
 ## Language of the messages
 

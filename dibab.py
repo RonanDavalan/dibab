@@ -115,9 +115,18 @@ def verifier_machine_ou_sortir(configuration):
         sys.exit(4)
 
 
+def identifiant_session_unique(sessions_dir, horodatage):
+    """Rend `horodatage`, suffixé `-2`, `-3`… tant qu'une session de ce nom existe : deux exécutions d'une même seconde ne partagent ni journal ni rapport."""
+    identifiant, numero = horodatage, 1
+    while (sessions_dir / f"session_{identifiant}.jsonl").exists() or (sessions_dir / f"rapport_{identifiant}.json").exists():
+        numero += 1
+        identifiant = f"{horodatage}-{numero}"
+    return identifiant
+
+
 def initialiser_journal_session(configuration, mode, etats_coffres):
     sessions_dir = Path(configuration["suivi"]["sessions"])
-    horodatage = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    horodatage = identifiant_session_unique(sessions_dir, datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     if mod_coffres.coffre_non_monte_contenant(sessions_dir, etats_coffres):
         return mod_journal.JournalAbsent(), horodatage
     chemin_session = sessions_dir / f"session_{horodatage}.jsonl"

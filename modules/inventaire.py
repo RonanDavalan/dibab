@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from modules import domaines
+from modules.deplacement import creer_dossiers_prives
 from modules.pieces_communes import empreinte_sha256
 from modules.messages import traduire
 
@@ -60,6 +61,15 @@ def lister(domaine, configuration):
             classe = relatif.parts[0] == destination["sous_repertoire_classement"]
             documents.append((relatif, chemin.stat().st_size, classe))
     return documents
+
+
+def compter_a_verifier(racine, sous_repertoire, extensions):
+    """Compte les documents du dossier À_VÉRIFIER, que l'inventaire ne liste pas : ils attendent un verdict, pas une migration."""
+    dossier = Path(racine) / sous_repertoire
+    if not dossier.is_dir():
+        return 0
+    return sum(1 for chemin in dossier.rglob("*")
+               if chemin.is_file() and not chemin.name.startswith(".") and chemin.suffix.lower() in extensions)
 
 
 def _empreintes(documents_par_coffre, configuration):
@@ -116,6 +126,10 @@ def construire_plans(configuration, maintenant=None):
                 A_CLASSER: sum(a["action"] == A_CLASSER for a in actions),
                 "doublons_internes": sum(a["doublon_de"] is not None for a in actions),
                 "presents_dans_autre_coffre": sum(a["present_dans_autre_coffre"] for a in actions),
+                "a_verifier_non_listes": compter_a_verifier(
+                    configuration["destinations"][domaine]["racine"],
+                    configuration["destinations"][domaine]["sous_repertoire_a_verifier"],
+                    {extension.lower() for extension in configuration["extensions_cibles"]}),
             },
             "dossiers": [{"dossier": nom, **valeurs} for nom, valeurs in sorted(dossiers.items())],
             "actions": actions,
@@ -130,8 +144,8 @@ def ecrire_plans(plans, configuration):
         racine = Path(configuration["destinations"][domaine]["racine"])
         chemin = racine / configuration["destination"]["sous_repertoire_logs"] / \
             f"inventaire_{plan['horodatage'].replace(':', '-')}.json"
-        chemin.parent.mkdir(parents=True, exist_ok=True)
-        with open(chemin, "x", encoding="utf-8") as f:
+        creer_dossiers_prives(chemin.parent)
+        with open(os.open(chemin, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as f:
             json.dump(plan, f, ensure_ascii=False, indent=1)
         ecrits[domaine] = chemin
     return ecrits

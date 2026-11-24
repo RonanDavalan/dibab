@@ -88,15 +88,26 @@ def chemin_libre(chemin, modele_suffixe):
         n += 1
 
 
+def creer_dossiers_prives(dossier):
+    """Crée `dossier` et ses parents absents en 700 : `mkdir(parents=True, mode=)` ne règle que le dernier niveau."""
+    dossier = Path(dossier)
+    manquants = [dossier, *dossier.parents]
+    manquants = [chemin for chemin in manquants if not chemin.exists()]
+    for chemin in reversed(manquants):
+        chemin.mkdir(mode=0o700, exist_ok=True)
+        chemin.chmod(0o700)
+
+
 def copier_verifie(source, destination, empreinte, copier=shutil.copy2):
     """Copie `source` sous un nom provisoire, vérifie l'empreinte, puis donne son nom à la copie.
 
     Le nom provisoire commence par un point : le scanner l'ignore si le processus meurt entre les deux.
     """
     provisoire = destination.with_name(f".dibab-partiel-{os.getpid()}-{destination.name}")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    creer_dossiers_prives(destination.parent)
     try:
         copier(source, provisoire)
+        provisoire.chmod(0o600)
         if empreinte_sha256(provisoire) != empreinte:
             raise OSError(traduire("copie_empreinte_differente", cible=destination.name))
         if destination.exists():
