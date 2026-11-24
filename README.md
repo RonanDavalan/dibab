@@ -186,7 +186,7 @@ The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIF
 Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 1 not configured, 0 not checked
 ```
 
-With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it and Ollama answers: the triage then goes through `tri_rapide`. When Ollama does not answer, it is `NON_VÉRIFIÉ` like the other models, and the three failures of that run are Ollama and the two vault roots.
+With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it and Ollama answers: the triage then goes through `tri_rapide`. When Ollama does not answer, it is `NON_VÉRIFIÉ` like the other models, and the three failures of that run are Ollama and the two vault folders.
 
 ## Language of the messages
 
