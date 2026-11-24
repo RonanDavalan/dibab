@@ -24,7 +24,7 @@ No hace:
 
 ## Una herramienta de hogar
 
-Dibab está pensado para la gestión administrativa de un hogar, por el hogar. Una máquina, un directorio o una cuenta de correo solo entra en el ámbito con el acuerdo, explícito o implícito, de la persona afectada; en caso de duda, no lo incluya. El programa no puede garantizar este respeto: es el administrador de la instancia quien se compromete a ello. El diario contiene nombres de archivo y remitentes, que ya revelan mucho (basta una carta de un organismo de salud): vive en la bóveda, no a su lado.
+Dibab está pensado para la gestión administrativa de un hogar, por el hogar. Una máquina, un directorio o una cuenta de correo solo entra en el ámbito con el acuerdo, explícito o implícito, de la persona afectada; en caso de duda, no lo incluya. El programa no puede garantizar este respeto: es el administrador de la instancia quien se compromete a ello. El diario contiene nombres de archivo y remitentes, que ya revelan mucho (basta una carta de un organismo de salud): su lugar está en la bóveda, no a su lado: ponga las tres claves `suivi.*` dentro de la bóveda para mantenerlo allí; si no, se escribe en claro bajo `~/.local/state/dibab/`.
 
 ## Requisitos
 
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Crear el entorno de Python y comprobar las pruebas (esperado: `531 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
+2. Crear el entorno de Python y comprobar las pruebas (esperado: `545 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
 
 ```bash
 python3 -m venv venv

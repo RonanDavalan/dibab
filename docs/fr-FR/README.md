@@ -24,7 +24,7 @@ Il ne fait pas :
 
 ## Un outil de foyer
 
-Dibab est conçu pour la gestion administrative d'un foyer, par le foyer. Une machine, un répertoire ou un compte mail n'entre dans le périmètre qu'avec l'accord, explicite ou implicite, de la personne concernée ; en cas de doute, ne l'incluez pas. Le logiciel ne peut pas garantir ce respect : c'est l'administrateur de l'instance qui s'y engage. Le journal contient des noms de fichiers et des émetteurs, qui révèlent déjà beaucoup (un courrier d'un organisme de santé suffit) : il vit dans le coffre, pas à côté.
+Dibab est conçu pour la gestion administrative d'un foyer, par le foyer. Une machine, un répertoire ou un compte mail n'entre dans le périmètre qu'avec l'accord, explicite ou implicite, de la personne concernée ; en cas de doute, ne l'incluez pas. Le logiciel ne peut pas garantir ce respect : c'est l'administrateur de l'instance qui s'y engage. Le journal contient des noms de fichiers et des émetteurs, qui révèlent déjà beaucoup (un courrier d'un organisme de santé suffit) : il a sa place dans le coffre, pas à côté : placez les trois clés `suivi.*` dans le coffre pour l'y garder, sinon il est écrit en clair sous `~/.local/state/dibab/`.
 
 ## Prérequis
 
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `531 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `545 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv

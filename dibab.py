@@ -601,7 +601,10 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal,
             sources_en_echec.add(candidat.source_id)
             ecrire(traduire("classement_echec", nom=resultat.chemin.name, raison=deplacement.raison), 2)
         else:
-            ecrire(traduire("classement_action", nom=resultat.chemin.name, action=deplacement.action), 2)
+            if deplacement.action == mod_deplacement.DOUBLON:
+                ecrire(traduire("classement_doublon", nom=resultat.chemin.name), 2)
+            else:
+                ecrire(traduire("classement_action", nom=resultat.chemin.name, action=deplacement.action), 2)
             for destination in deplacement.destinations:
                 ecrire(traduire("fleche_destination", destination=destination), 6)
         journal.ajouter(
@@ -628,7 +631,7 @@ def executer_inventaire(configuration, journal):
         resume = plan["resume"]
         ecrire(traduire("inventaire_coffre", domaine=f"{domaine:<14s}", documents=resume["documents"], conserver=resume["conserver"],
                         a_classer=resume["a_classer"], doublons=resume["doublons_internes"],
-                        presents=resume["presents_dans_autre_coffre"]), 2)
+                        presents=resume["presents_dans_autre_coffre"], a_verifier=resume["a_verifier_non_listes"]), 2)
         ecrire(traduire("inventaire_plan_ecrit", chemin=ecrits[domaine]), 6)
         journal.ajouter("inventaire", coffre=domaine, **resume)
     print()
@@ -752,6 +755,7 @@ def principal():
             with mod_verrou.verrou(chemin_verrou):
                 return executer_session(configuration, parametres, modeles_cascade, journal, horodatage)
         except mod_verrou.VerrouPris as erreur:
+            journal.ajouter("session_refusee", motif="verrou")
             erreur_console(texte_de(erreur) + SUITE + traduire("suite_rien_touche"))
             return 5
 
@@ -774,6 +778,8 @@ def principal():
         verdicts = charger_verdicts_simules(arguments.verdicts_simules)
         afficher_routage(configuration, candidats, verdicts, journal)
 
+    if any(not etat.monte for etat in etats_coffres):
+        ecrire(traduire("dry_run_coffre_non_monte"))
     journal.ajouter("session_terminee", mode=mode)
     return 0
 

@@ -24,6 +24,14 @@ def _processus_vivant(pid):
     return True
 
 
+def _commande_du_processus(pid):
+    """Nom de la commande du processus `pid` d'après /proc, `?` quand il n'est pas lisible."""
+    try:
+        return Path(f"/proc/{pid}/comm").read_text(encoding="utf-8").strip() or "?"
+    except OSError:
+        return "?"
+
+
 @contextmanager
 def verrou(chemin):
     """Pose le verrou `chemin` ; un verrou laissé par un processus mort est repris."""
@@ -38,7 +46,7 @@ def verrou(chemin):
             except (OSError, ValueError):
                 pid = None
             if pid is not None and _processus_vivant(pid):
-                raise VerrouPris(traduire("verrou_pris", pid=pid, chemin=chemin))
+                raise VerrouPris(traduire("verrou_pris", pid=pid, commande=_commande_du_processus(pid), chemin=chemin))
             chemin.unlink(missing_ok=True)
             continue
         with os.fdopen(descripteur, "w", encoding="utf-8") as f:

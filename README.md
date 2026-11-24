@@ -24,7 +24,7 @@ It does not:
 
 ## A tool for a household
 
-Dibab is designed for the administrative life of a household, by the household. A machine, a directory or a mail account enters the scope only with the agreement, explicit or implicit, of the person concerned; when in doubt, leave it out. The software cannot guarantee this respect: the administrator of the instance commits to it. The session journal holds the subject, the sender, the category, the person and the date of each document, which already reveal a lot (a letter from a health body is enough): it lives in the vault, not beside it.
+Dibab is designed for the administrative life of a household, by the household. A machine, a directory or a mail account enters the scope only with the agreement, explicit or implicit, of the person concerned; when in doubt, leave it out. The software cannot guarantee this respect: the administrator of the instance commits to it. The session journal holds the subject, the sender, the category, the person and the date of each document, which already reveal a lot (a letter from a health body is enough): it belongs in the vault, not beside it: put the three `suivi.*` keys inside the vault to keep it there, otherwise it is written in clear under `~/.local/state/dibab/`.
 
 ## Requirements
 
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `531 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `545 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -249,6 +249,8 @@ Exit codes:
 | `5` | another run holds the lock `dibab.verrou` (next to `suivi.fichier_date`) |
 
 Every move is written in the action journal (`suivi.journal`, one JSON line per action, no document text) and every session leaves a report in `suivi.sessions`. `--rollback --session <timestamp>` undoes a given session: the document returns to its original place, the copy checked by fingerprint.
+
+A document whose fingerprint is already filed is copied to the `doublon` folder at the root of the vault, checked, then removed from the source, like a filed document; emptying that folder is up to you. A run refused because another one holds the lock leaves a `session_refusee` line in its session journal.
 
 ### Manual page
 

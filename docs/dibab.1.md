@@ -62,7 +62,7 @@ The default mode is the simulation. Always read the result of **\--dry-run** bef
 :   Checks the installation, the configuration, Ollama and the vault of each domain, one line per check, and writes nothing.
 
 **\--verdicts-simules** *FILE*
-:   With **\--dry-run** only: a JSON file that maps a file name to a verdict, whose routing is printed.
+:   With **\--dry-run** only: a JSON file that maps a file name to a verdict, whose routing is printed. Extraction and the model classification still run; the file only adds the routing of the given verdicts.
 
 **\--config** *PATH*
 :   Configuration file to read (see **FILES**).

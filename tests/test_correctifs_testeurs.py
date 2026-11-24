@@ -1,9 +1,13 @@
 """Défauts remis par les testeurs-découverte : droits du coffre, identifiant de session, inventaire de À_VÉRIFIER."""
 
+import os
 import stat
+from pathlib import Path
+
+import pytest
 
 import dibab
-from modules import deplacement, inventaire
+from modules import deplacement, inventaire, messages, verrou
 from modules.pieces_communes import empreinte_sha256
 
 
@@ -56,3 +60,27 @@ def test_le_plan_compte_les_documents_de_a_verifier(tmp_path):
     (a_verifier / ".cache.pdf").write_bytes(b"x")
     assert inventaire.compter_a_verifier(tmp_path, "À_VÉRIFIER", {".pdf"}) == 1
     assert inventaire.compter_a_verifier(tmp_path, "absent", {".pdf"}) == 0
+
+
+def test_le_verrou_pris_dit_que_le_processus_vit_et_son_nom(tmp_path):
+    chemin = tmp_path / "dibab.verrou"
+    with verrou.verrou(chemin):
+        with pytest.raises(verrou.VerrouPris) as refus:
+            with verrou.verrou(chemin):
+                pass
+    nom = Path("/proc/self/comm").read_text(encoding="utf-8").strip()
+    assert str(os.getpid()) in str(refus.value)
+    assert nom in str(refus.value)
+
+
+@pytest.mark.parametrize("langue", messages.LANGUES)
+def test_la_ligne_d_inventaire_nomme_a_verifier_et_son_compte(langue):
+    ligne = messages.dictionnaire(langue)["inventaire_coffre"].format(
+        domaine="personnel", documents=4, conserver=3, a_classer=1, doublons=1, presents=1, a_verifier=7)
+    assert "À_VÉRIFIER" in ligne and "7" in ligne
+
+
+@pytest.mark.parametrize("langue", messages.LANGUES)
+def test_le_message_du_doublon_dit_que_la_source_est_retiree(langue):
+    texte = messages.dictionnaire(langue)["classement_doublon"].format(nom="facture.pdf")
+    assert "doublon/" in texte and "facture.pdf" in texte

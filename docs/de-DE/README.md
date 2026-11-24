@@ -24,7 +24,7 @@ Es tut nicht:
 
 ## Ein Werkzeug für den Haushalt
 
-Dibab ist für die Verwaltung eines Haushalts gedacht, durch den Haushalt. Eine Maschine, ein Verzeichnis oder ein Mail-Konto gehört nur mit dem ausdrücklichen oder stillschweigenden Einverständnis der betroffenen Person zum Geltungsbereich; im Zweifel lassen Sie es weg. Die Software kann diese Achtung nicht garantieren: Der Administrator der Instanz verpflichtet sich dazu. Das Journal enthält Dateinamen und Absender, die schon viel verraten (ein Brief einer Gesundheitsbehörde genügt): Es liegt im Tresor, nicht daneben.
+Dibab ist für die Verwaltung eines Haushalts gedacht, durch den Haushalt. Eine Maschine, ein Verzeichnis oder ein Mail-Konto gehört nur mit dem ausdrücklichen oder stillschweigenden Einverständnis der betroffenen Person zum Geltungsbereich; im Zweifel lassen Sie es weg. Die Software kann diese Achtung nicht garantieren: Der Administrator der Instanz verpflichtet sich dazu. Das Journal enthält Dateinamen und Absender, die schon viel verraten (ein Brief einer Gesundheitsbehörde genügt): Sein Platz ist im Tresor, nicht daneben: Legen Sie die drei Schlüssel `suivi.*` in den Tresor, um es dort zu halten, sonst wird es unverschlüsselt unter `~/.local/state/dibab/` geschrieben.
 
 ## Voraussetzungen
 
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `531 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
+2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `545 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
 
 ```bash
 python3 -m venv venv
