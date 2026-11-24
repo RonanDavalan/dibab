@@ -2,7 +2,7 @@
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | **Español**
 
-Dibab («elegir» en bretón) recopila, analiza y clasifica los documentos administrativos personales de un hogar (facturas, cartas, contratos, avisos de organismos) en un árbol normalizado, y lleva un diario de todo lo que hace. Funciona en modo soberano: ningún dato sale de la red local, sin servicio de terceros, sin modelo remoto, sin nube. Los modelos de lenguaje son los de [Ollama](https://ollama.com/), en su propia máquina.
+Dibab («elegir» en bretón) recopila, analiza y clasifica los documentos administrativos personales de un hogar (facturas, cartas, contratos, avisos de organismos) en un árbol normalizado, y lleva un diario de todo lo que hace. Funciona en modo soberano: ningún documento ni texto de documento sale de la red local, sin modelo remoto ni nube. Las únicas conexiones hacia el exterior son las que usted declara: el buzón IMAP que Dibab lee, y el consentimiento OAuth2 de Google cuando ese buzón es una cuenta Google. Los modelos de lenguaje son los de [Ollama](https://ollama.com/), en su propia máquina.
 
 Licencia: [GNU Affero General Public License versión 3](../../LICENSE).
 
@@ -17,7 +17,7 @@ Hace:
 No hace:
 
 - mover un archivo del que no está seguro: la duda lleva a una carpeta `À_VÉRIFIER/`, nunca a una clasificación arriesgada;
-- borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo «Inventario y rotación» del manual);
+- borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo 8 «Inventario y rotación» del manual PDF);
 - modificar un buzón de correo ni una máquina remota;
 - ejecutarse en segundo plano: se lanza a mano, y el modo por defecto es la simulación (`--dry-run`);
 - montar, cifrar o sincronizar una bóveda: eso corre por su cuenta (véase «Límites»).
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Crear el entorno de Python y comprobar las pruebas (esperado: `547 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
+2. Crear el entorno de Python y comprobar las pruebas (esperado: `557 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
 
 ```bash
 python3 -m venv venv
@@ -178,6 +178,8 @@ NON_VÉRIFIÉ destination_professionnel : depende de la configuración
 Diagnóstico: 5 OK, 0 advertencia(s), 0 fallo(s), 1 sin configurar, 8 sin comprobar
 ```
 
+Las rutas de este ejemplo son las de una instalación desde las fuentes. Con el paquete, la carpeta del script es `/usr/lib/dibab/` y `~` es su propio directorio personal.
+
 Los símbolos de estado (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) y los identificadores son los mismos en todos los idiomas, para que un script pueda compararlos. Una vez escrita la configuración, todo lo que declara y la máquina no cumple (Ollama apagado, modelo ausente, bóveda sin montar) es un `ÉCHEC` y el código de salida vale `1`. Con la configuración del paso 5 rellenada y las bóvedas montadas, la salida termina con un resumen como este:
 
 ```
@@ -194,7 +196,7 @@ Dibab escribe sus mensajes en inglés, francés, alemán o español. El idioma s
 LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-Los nombres de las opciones, los símbolos de estado, los identificadores, los diarios y los archivos de plan nunca cambian con el idioma: lo que se escribe en el disco está en inglés, para que un diario escrito en un idioma se reproduzca con `--rollback` en cualquier otro. Los diccionarios de mensajes son los archivos `modules/langues/en.txt`, `fr.txt`, `de.txt` y `es.txt`.
+Los nombres de las opciones, los símbolos de estado, los identificadores, los diarios y los archivos de plan nunca cambian con el idioma: las claves de los diarios y de los archivos de plan (`evenement`, `horodatage`…) y los valores que nombran un evento o una categoría (`session_demarree`, `administratif`…) son identificadores técnicos fijos, escritos en francés, para que un diario escrito en un idioma se reproduzca con `--rollback` en cualquier otro. Los diccionarios de mensajes son los archivos `modules/langues/en.txt`, `fr.txt`, `de.txt` y `es.txt`.
 
 ## Uso
 

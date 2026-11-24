@@ -2,7 +2,7 @@
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | **Deutsch** | [Español](../es-ES/README.md)
 
-Dibab („wählen“ auf Bretonisch) sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts (Rechnungen, Briefe, Verträge, Bescheide von Behörden) in einer einheitlichen Ordnerstruktur und führt ein Journal über alles, was es tut. Es arbeitet souverän: Keine Daten verlassen das lokale Netz, ohne Dienst Dritter, ohne entferntes Modell, ohne Cloud. Die Sprachmodelle sind die von [Ollama](https://ollama.com/) auf Ihrem eigenen Rechner.
+Dibab („wählen“ auf Bretonisch) sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts (Rechnungen, Briefe, Verträge, Bescheide von Behörden) in einer einheitlichen Ordnerstruktur und führt ein Journal über alles, was es tut. Es arbeitet souverän: Kein Dokument und kein Dokumenttext verlässt das lokale Netz, ohne Remote-Modell und ohne Cloud. Nach außen gehen nur die Verbindungen, die Sie angeben: das IMAP-Postfach, das Dibab liest, und die OAuth2-Zustimmung von Google, wenn dieses Postfach ein Google-Konto ist. Die Sprachmodelle sind die von [Ollama](https://ollama.com/) auf Ihrem eigenen Rechner.
 
 Lizenz: [GNU Affero General Public License Version 3](../../LICENSE).
 
@@ -17,7 +17,7 @@ Es tut:
 Es tut nicht:
 
 - eine Datei bewegen, bei der es nicht sicher ist: Unsicherheit führt in einen Ordner `À_VÉRIFIER/`, nie zu einer riskanten Ablage;
-- ein Dokument löschen: Es verschiebt und kopiert, es löscht nicht (es entfernt nur seine eigenen alten Journale, Kapitel „Inventur und Rotation“ des Handbuchs);
+- ein Dokument löschen: Es verschiebt und kopiert, es löscht nicht (es entfernt nur seine eigenen alten Journale, Kapitel 8 „Inventur und Rotation“ des PDF-Handbuchs);
 - ein Postfach oder eine entfernte Maschine verändern;
 - im Hintergrund laufen: Es wird von Hand gestartet, und der Standardmodus ist die Simulation (`--dry-run`);
 - einen Tresor einhängen, verschlüsseln oder synchronisieren: Das ist Ihre Sache (siehe „Grenzen“).
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `547 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
+2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `557 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
 
 ```bash
 python3 -m venv venv
@@ -178,6 +178,8 @@ NON_VÉRIFIÉ destination_professionnel : hängt von der Konfiguration ab
 Diagnose: 5 OK, 0 Warnung(en), 0 Fehler, 1 nicht konfiguriert, 8 nicht geprüft
 ```
 
+Die Pfade in diesem Beispiel sind die einer Installation aus den Quellen. Beim Paket ist der Skriptordner `/usr/lib/dibab/`, und `~` ist Ihr eigenes Home-Verzeichnis.
+
 Die Zustandskürzel (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) und die Kennungen sind in allen Sprachen gleich, damit ein Skript sie vergleichen kann. Sobald die Konfiguration geschrieben ist, ist alles, was sie deklariert und die Maschine nicht erfüllt (Ollama aus, Modell fehlt, Tresor nicht eingehängt), ein `ÉCHEC`, und der Exit-Code ist `1`. Mit der ausgefüllten Konfiguration aus Schritt 5 und eingehängten Tresoren endet die Ausgabe mit einer Zusammenfassung wie dieser:
 
 ```
@@ -194,7 +196,7 @@ Dibab schreibt seine Meldungen auf Englisch, Französisch, Deutsch oder Spanisch
 LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-Optionsnamen, Zustandskürzel, Kennungen, Journale und Plandateien ändern sich nie mit der Sprache: Was auf die Platte geschrieben wird, ist Englisch, damit ein in einer Sprache geschriebenes Journal von `--rollback` in jeder anderen wieder abgespielt wird. Die Meldungswörterbücher sind die Dateien `modules/langues/en.txt`, `fr.txt`, `de.txt` und `es.txt`.
+Optionsnamen, Zustandskürzel, Kennungen, Journale und Plandateien ändern sich nie mit der Sprache: Die Schlüssel der Journale und Plandateien (`evenement`, `horodatage`…) und die Werte, die ein Ereignis oder eine Kategorie benennen (`session_demarree`, `administratif`…), sind feste technische Kennungen auf Französisch, damit ein in einer Sprache geschriebenes Journal von `--rollback` in jeder anderen wieder abgespielt wird. Die Meldungswörterbücher sind die Dateien `modules/langues/en.txt`, `fr.txt`, `de.txt` und `es.txt`.
 
 ## Verwendung
 

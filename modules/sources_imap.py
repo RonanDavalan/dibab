@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from modules import journal_actions, oauth2_google, scanner_imap, scanner_local
-from modules.deplacement import chemin_libre
+from modules.deplacement import chemin_libre, creer_dossiers_prives
 from modules.pieces_communes import empreinte_sha256
 from modules.rapatriement import RegistreRapatries
 from modules.messages import ecrire, texte_de, traduire
@@ -70,7 +70,7 @@ def sources_locales_derivees(configuration):
 def deposer(octets, nom, dossier, date, suffixe_collision):
     """Écrit `octets` sous `nom` dans `dossier` ; rend (action, empreinte). Jamais de fichier à moitié écrit sous son nom final."""
     empreinte = hashlib.sha256(octets).hexdigest()
-    dossier.mkdir(parents=True, exist_ok=True, mode=0o700)
+    creer_dossiers_prives(dossier)
     final = dossier / nom
     if final.is_file() and empreinte_sha256(final) == empreinte:
         return REPRISE, empreinte

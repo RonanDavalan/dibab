@@ -43,6 +43,20 @@ def _annuler_une(action):
     return ""
 
 
+def identifiant_de_session(valeur):
+    """Rend l'identifiant nu d'une session, que l'on ait donné cet identifiant ou le nom (ou le chemin) de son fichier."""
+    if not valeur:
+        return valeur
+    nom = Path(valeur).name
+    return nom.removeprefix("session_").removesuffix(".jsonl")
+
+
+def session_connue(journal, session):
+    """Vrai si une action du journal porte cette session, annulée ou non."""
+    return any(ligne.get("session") == session and ligne.get("evenement") == journal_actions.ACTION
+               for ligne in journal_actions.lire_lignes(journal.chemin))
+
+
 def annuler_session(journal, session=None):
     """Annule, de la plus récente à la plus ancienne, les actions actives de `session` (la dernière par défaut)."""
     actions = journal_actions.actions_actives(journal_actions.lire_lignes(journal.chemin))

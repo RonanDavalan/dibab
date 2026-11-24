@@ -182,7 +182,7 @@ def test_execute_refuse_hors_des_machines_autorisees(banc, monkeypatch):
     assert socket.gethostname() != "une-autre-machine"
     with pytest.raises(SystemExit) as sortie:
         lancer(monkeypatch, "--execute")
-    assert sortie.value.code == 4 and arbre(racine / "coffre-a", False) == []
+    assert sortie.value.code == 4 and arbre(racine / "source") == sorted(LOT) and arbre(racine / "coffre-a") == []
 
 
 def test_execute_refuse_quand_un_autre_tient_le_verrou(banc, monkeypatch):

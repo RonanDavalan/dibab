@@ -17,7 +17,7 @@ It does:
 It does not:
 
 - move a file it is not sure about: doubt leads to a `À_VÉRIFIER/` folder, never to a risky filing;
-- delete a document: it moves and copies, it does not erase (it only prunes its own old journals, chapter "Inventory and rotation" of the manual);
+- delete a document: it moves and copies, it does not erase (it only prunes its own old journals, chapter 8, "Inventory and rotation", of the PDF manual);
 - modify a mailbox or a remote machine;
 - run in the background: you start it by hand, and the default mode is the simulation (`--dry-run`);
 - mount, encrypt or synchronise a vault: that is up to you (see "Limits").
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `547 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `557 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -178,6 +178,8 @@ NON_VÉRIFIÉ destination_professionnel : depends on the configuration
 Diagnostic: 5 OK, 0 warning(s), 0 failure(s), 1 not configured, 8 not checked
 ```
 
+The paths in this example are those of an installation from the sources. Installed from the package, the script folder is `/usr/lib/dibab/` and `~` is your own home directory.
+
 The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) and the identifiers are the same in every language, so that a script can compare them. Once the configuration is written, everything it declares and the machine does not hold (Ollama off, a model missing, a vault not mounted) is an `ÉCHEC` and the exit code is `1`. With the configuration of step 5 filled in and each vault mounted, the output ends on a summary like this one:
 
 ```
@@ -194,7 +196,7 @@ Dibab writes its messages in English, French, German or Spanish. The language is
 LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the text values are in English, and the keys of the journals and the plan files (`evenement`, `horodatage`…) are fixed technical identifiers. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
+The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the keys of the journals and the plan files (`evenement`, `horodatage`…) and the values that name an event or a category (`session_demarree`, `administratif`…) are fixed technical identifiers, written in French. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
 
 ## Usage
 

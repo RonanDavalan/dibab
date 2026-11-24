@@ -2,7 +2,7 @@
 
 [English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md)
 
-Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucune donnée ne quitte le réseau local, sans service tiers, sans modèle distant, sans nuage. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
+Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
 
 Licence : [GNU Affero General Public License version 3](../../LICENSE).
 
@@ -17,7 +17,7 @@ Il fait :
 Il ne fait pas :
 
 - bouger un fichier dont il n'est pas sûr : l'incertitude mène à un dossier `À_VÉRIFIER/`, jamais à un classement hasardeux ;
-- supprimer un document : il déplace et copie, il n'efface pas (il ne retire que ses propres vieux journaux, chapitre « Inventaire et rotation » du manuel) ;
+- supprimer un document : il déplace et copie, il n'efface pas (il ne retire que ses propres vieux journaux, chapitre 8, « Inventaire et rotation », du manuel PDF) ;
 - modifier une boîte mail ni une machine distante ;
 - tourner en tâche de fond : il se lance à la main, et le mode par défaut est la simulation (`--dry-run`) ;
 - monter, chiffrer ou synchroniser un coffre : c'est votre affaire (voir « Limites »).
@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `547 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `557 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -178,6 +178,8 @@ NON_VÉRIFIÉ destination_professionnel : dépend de la configuration
 Diagnostic : 5 OK, 0 avertissement(s), 0 échec(s), 1 non configuré(s), 8 non vérifié(s)
 ```
 
+Les chemins de cet exemple sont ceux d'une installation depuis les sources. Installé par le paquet, le dossier du script est `/usr/lib/dibab/` et `~` est votre propre dossier personnel.
+
 Les jetons d'état (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIFIÉ`) et les identifiants sont les mêmes dans toutes les langues, pour qu'un script puisse les comparer. Une fois la configuration écrite, tout ce qu'elle déclare et que la machine ne tient pas (Ollama éteint, modèle absent, coffre non monté) est un `ÉCHEC` et le code de sortie vaut `1`. Avec la configuration de l'étape 5 remplie et les coffres montés, la sortie se termine par un bilan comme celui-ci :
 
 ```
@@ -194,7 +196,7 @@ Dibab écrit ses messages en anglais, en français, en allemand ou en espagnol. 
 LC_ALL=de_DE.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-Les noms d'option, les jetons d'état, les identifiants, les journaux et les fichiers de plan ne changent jamais avec la langue : ce qui s'écrit sur le disque est en anglais, pour qu'un journal écrit dans une langue se rejoue par `--rollback` dans n'importe quelle autre. Les dictionnaires de messages sont les fichiers `modules/langues/en.txt`, `fr.txt`, `de.txt` et `es.txt`.
+Les noms d'option, les jetons d'état, les identifiants, les journaux et les fichiers de plan ne changent jamais avec la langue : les clés des journaux et des fichiers de plan (`evenement`, `horodatage`…) et les valeurs qui nomment un évènement ou une catégorie (`session_demarree`, `administratif`…) sont des identifiants techniques fixes, écrits en français, pour qu'un journal écrit dans une langue se rejoue par `--rollback` dans n'importe quelle autre. Les dictionnaires de messages sont les fichiers `modules/langues/en.txt`, `fr.txt`, `de.txt` et `es.txt`.
 
 ## Usage
 

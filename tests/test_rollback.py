@@ -118,7 +118,7 @@ def test_rollback_d_une_session_nommee(banc, monkeypatch):
     lancer(monkeypatch, "--execute")
     session = next(ligne["session"] for ligne in lignes_journal(racine) if ligne["evenement"] == "action")
     avant = etat(racine)
-    assert lancer(monkeypatch, "--rollback", "--session", "autre-session") == 0
+    assert lancer(monkeypatch, "--rollback", "--session", "autre-session") == 1
     assert etat(racine) == avant
     assert lancer(monkeypatch, "--rollback", "--session", session) == 0
     assert len(journal_actions.actions_actives(lignes_journal(racine))) == 0

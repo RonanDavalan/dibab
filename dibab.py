@@ -107,10 +107,12 @@ def resoudre_modeles_ou_sortir(configuration):
         sys.exit(3)
 
 
-def verifier_machine_ou_sortir(configuration):
+def verifier_machine_ou_sortir(configuration, etats_coffres):
     """Refuse `--execute` hors des machines de `executer_sur` : la synchronisation des coffres vient après un seul Dibab."""
     machines = configuration.get("executer_sur", [])
     if machines and socket.gethostname() not in machines:
+        journal, _ = initialiser_journal_session(configuration, "execute", etats_coffres)
+        journal.ajouter("session_refusee", motif="executer_sur")
         erreur_console(traduire("execute_machine_refusee", machines=", ".join(machines)) + SUITE + traduire("suite_rien_touche"))
         sys.exit(4)
 
@@ -612,6 +614,11 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal,
             chemin=str(resultat.chemin),
             action=deplacement.action,
             domaine=resultat.verdict.domaine,
+            objet=resultat.verdict.objet,
+            categorie=resultat.verdict.categorie,
+            emetteur=resultat.verdict.emetteur,
+            date=resultat.verdict.date.isoformat() if resultat.verdict.date else None,
+            personne=resultat.verdict.personne,
             confiance=resultat.confiance,
             destinations=[str(destination) for destination in deplacement.destinations],
             empreinte=deplacement.empreinte,
@@ -703,7 +710,7 @@ def principal():
     preparer_etat(dossier_etat, configuration)
     etats_coffres = verifier_coffres_ou_sortir(configuration, mode)
     if mode == "execute":
-        verifier_machine_ou_sortir(configuration)
+        verifier_machine_ou_sortir(configuration, etats_coffres)
     parametres = None
     if mode in ("dry-run", "execute"):
         parametres = parametres_extraction_ou_sortir(configuration)
@@ -817,9 +824,15 @@ def deposer_sources_imap(configuration, suivi, journal, rapport):
 def executer_rollback(configuration, session, journal, horodatage):
     """Annule une session de classement ; rend 1 si une action n'a pas pu être annulée, rien n'étant alors retiré pour elle."""
     chemin_verrou = Path(configuration["suivi"]["fichier_date"]).parent / "dibab.verrou"
+    session = mod_rollback.identifiant_de_session(session)
     try:
         with mod_verrou.verrou(chemin_verrou):
             actions = mod_journal_actions.JournalActions(configuration["suivi"]["journal"], horodatage)
+            if session and not mod_rollback.session_connue(actions, session):
+                erreur_console(traduire("rollback_session_inconnue", session=session) + SUITE + traduire("suite_rien_touche"))
+                journal.ajouter("rollback", session_annulee=session, annulees=0, echecs=0, motif="session_inconnue")
+                journal.ajouter("session_terminee", mode="rollback")
+                return 1
             session, resultats = mod_rollback.annuler_session(actions, session)
     except mod_verrou.VerrouPris as erreur:
         erreur_console(texte_de(erreur) + SUITE + traduire("suite_rien_touche"))

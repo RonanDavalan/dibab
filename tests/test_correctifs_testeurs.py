@@ -1,14 +1,20 @@
 """Défauts remis par les testeurs-découverte : droits du coffre, identifiant de session, inventaire de À_VÉRIFIER."""
 
+import hashlib
+import json
 import os
+import socket
 import stat
+from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 import dibab
-from modules import deplacement, inventaire, messages, verrou
+from modules import deplacement, inventaire, journal_actions, messages, rapatriement, rollback, sources_imap, verrou
 from modules.pieces_communes import empreinte_sha256
+from tests.test_classement_execute import banc, lancer  # noqa: F401
 
 
 def _mode(chemin):
@@ -115,3 +121,91 @@ def test_deux_plans_de_la_meme_seconde_ont_deux_fichiers(tmp_path):
     assert premier.name == "inventaire_2026-11-24T16-44-29.json"
     assert second.name == "inventaire_2026-11-24T16-44-29_2.json"
     assert _mode(second) == 0o600
+
+
+def test_le_dossier_d_une_source_ssh_est_en_700_meme_sous_un_umask_ouvert(tmp_path):
+    contenu = b"%PDF distant"
+    empreinte = hashlib.sha256(contenu).hexdigest()
+    fichier = SimpleNamespace(source_id="machine1", alias="machine1", repertoire="/docs", relatif="a.pdf", nom="a.pdf",
+                              taille_octets=len(contenu), mtime=datetime(2026, 11, 24, 10, 0, 0))
+
+    def executer(alias, commande):
+        return SimpleNamespace(returncode=0, stdout=f"{empreinte}  a.pdf\n".encode())
+
+    def copier(alias, commande, stdout):
+        stdout.write(contenu)
+        return SimpleNamespace(returncode=0)
+
+    dossier = tmp_path / "coffre" / "vide-poches-machine1"
+    ancien = os.umask(0)
+    try:
+        registre = rapatriement.RegistreRapatries(tmp_path / "rapatries.json")
+        action, _ = rapatriement.rapatrier_fichier(fichier, dossier, registre, "_{n}", executer, copier)
+    finally:
+        os.umask(ancien)
+    assert action == rapatriement.RAPATRIE
+    assert _mode(dossier) == 0o700 and _mode(tmp_path / "coffre") == 0o700
+
+
+def test_le_dossier_d_un_depot_imap_est_en_700(tmp_path):
+    dossier = tmp_path / "coffre" / "vide-poches-boite"
+    ancien = os.umask(0)
+    try:
+        sources_imap.deposer(b"piece", "p.pdf", dossier, datetime(2026, 11, 24), "_{n}")
+    finally:
+        os.umask(ancien)
+    assert _mode(dossier) == 0o700 and _mode(tmp_path / "coffre") == 0o700
+
+
+def test_le_journal_d_une_execution_porte_objet_emetteur_categorie_personne_et_date(banc, monkeypatch):
+    racine, _ = banc
+    lancer(monkeypatch, "--execute")
+    session = next((racine / "coffre-a" / "logs" / "sessions").glob("session_*.jsonl"))
+    deplacements = [json.loads(ligne) for ligne in session.read_text(encoding="utf-8").splitlines()
+                    if json.loads(ligne).get("evenement") == "deplacement"]
+    assert deplacements
+    for ligne in deplacements:
+        assert {"objet", "categorie", "emetteur", "personne", "date"} <= ligne.keys()
+    assert any(ligne["categorie"] and ligne["date"] for ligne in deplacements)
+
+
+def test_le_refus_par_executer_sur_laisse_une_ligne_session_refusee(banc, monkeypatch):
+    racine, chemin_config = banc
+    configuration = json.loads(chemin_config.read_text())
+    configuration["executer_sur"] = ["une-autre-machine"]
+    chemin_config.write_text(json.dumps(configuration))
+    assert socket.gethostname() != "une-autre-machine"
+    avant = sorted(p.name for p in (racine / "source").iterdir())
+    with pytest.raises(SystemExit) as sortie:
+        lancer(monkeypatch, "--execute")
+    assert sortie.value.code == 4
+    assert sorted(p.name for p in (racine / "source").iterdir()) == avant
+    session = next((racine / "coffre-a" / "logs" / "sessions").glob("session_*.jsonl"))
+    lignes = [json.loads(ligne) for ligne in session.read_text(encoding="utf-8").splitlines()]
+    assert {"evenement": "session_refusee", "motif": "executer_sur"}.items() <= next(
+        ligne for ligne in lignes if ligne["evenement"] == "session_refusee").items()
+
+
+@pytest.mark.parametrize("forme", ["{id}", "session_{id}", "session_{id}.jsonl", "/un/dossier/session_{id}.jsonl"])
+def test_session_se_donne_par_l_identifiant_ou_par_le_nom_du_fichier(forme):
+    assert rollback.identifiant_de_session(forme.format(id="2026-11-24T19:32:08")) == "2026-11-24T19:32:08"
+    assert rollback.identifiant_de_session(None) is None
+
+
+def test_rollback_d_un_identifiant_inconnu_s_arrete_avec_un_message(banc, monkeypatch, capsys):
+    racine, _ = banc
+    lancer(monkeypatch, "--execute")
+    capsys.readouterr()
+    assert lancer(monkeypatch, "--rollback", "--session", "session_2000-01-01T00:00:00.jsonl") == 1
+    erreur = capsys.readouterr().err
+    assert "2000-01-01T00:00:00" in erreur
+
+
+def test_rollback_par_le_nom_du_fichier_annule_la_session_puis_ne_rejoue_rien(banc, monkeypatch, capsys):
+    racine, _ = banc
+    lancer(monkeypatch, "--execute")
+    session = next(ligne["session"] for ligne in journal_actions.lire_lignes(racine / "coffre-a" / "logs" / "journal.jsonl")
+                   if ligne["evenement"] == "action")
+    assert lancer(monkeypatch, "--rollback", "--session", f"session_{session}.jsonl") == 0
+    assert journal_actions.actions_actives(journal_actions.lire_lignes(racine / "coffre-a" / "logs" / "journal.jsonl")) == []
+    assert lancer(monkeypatch, "--rollback", "--session", session) == 0

@@ -75,7 +75,7 @@ def rapatrier_fichier(fichier, dossier, registre, suffixe_collision, executer, e
         return DEJA_RAPATRIE, registre.donnees[fichier.source_id][cle]
     empreinte = empreinte_distante(fichier, executer)
     dossier = Path(dossier)
-    dossier.mkdir(parents=True, exist_ok=True)
+    creer_dossiers_prives(dossier)
     final = dossier / nom_local(fichier.nom)
     if final.is_file() and empreinte_sha256(final) == empreinte:
         registre.noter(fichier.source_id, cle, empreinte)
