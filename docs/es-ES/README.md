@@ -308,6 +308,8 @@ Dibab es fruto de una colaboración entre una persona y modelos de lenguaje, con
 
 *   **Ronan Davalan**: arquitecto y árbitro; visión, decisiones, alcance, validación. Único autor de git.
 *   **Claude Code (Anthropic)**: ingeniero de realización; código Python y pruebas, y los documentos públicos (este README y sus traducciones, la página de manual, `CONTRIBUTING.md`, `SECURITY.md`), y el logotipo y el sitio web (diseño gráfico, maquetación y textos).
-*   **Gemini (Google)**: asesor de diseño; propuso el nombre original «Le Greffier» y habló del nombre Dibab con Ronan Davalan.
+*   **Gemini (Google)**: asesor de diseño; propuso el nombre original «Le Greffier» y habló del nombre Dibab con Ronan Davalan; estudios del logotipo.
 *   **Copilot (Microsoft)**: tradujo ese nombre al bretón, de ahí «Skrivagner».
-*   **Muse Spark 1.3 (Meta)**: búsqueda del nombre; planteó el eje «dibab» («elegir» en bretón), de ahí el nombre Dibab.
+*   **Muse Spark 1.3 (Meta)**: búsqueda del nombre; planteó el eje «dibab» («elegir» en bretón), de ahí el nombre Dibab; estudios del logotipo.
+*   **DeepSeek V4.1 Flash (DeepSeek)**: probador y revisor; pruebas de descubrimiento cuyos informes llevaron a correcciones, verificación del cambio de nombre y del sitio traducido, nombres genéricos en la documentación y los ejemplos, borradores de las notas de versión y de los visuales del anuncio, primeros estudios de icono.
+*   **GLM-5.3-Flash (Z.ai)**: primeros estudios de icono.

@@ -2,7 +2,7 @@
 
 [English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md)
 
-Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
+Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
 
 Licence : [GNU Affero General Public License version 3](../../LICENSE).
 
@@ -17,14 +17,14 @@ Il fait :
 Il ne fait pas :
 
 - bouger un fichier dont il n'est pas sûr : l'incertitude mène à un dossier `À_VÉRIFIER/`, jamais à un classement hasardeux ;
-- supprimer un document : il déplace et copie, il n'efface pas (il ne retire que ses propres vieux journaux, chapitre 8, « Inventaire et rotation », du manuel PDF) ;
+- supprimer un document : il déplace et copie, il n'efface pas (il ne retire que ses propres vieux journaux, chapitre 8, « Inventaire et rotation », du manuel PDF) ;
 - modifier une boîte mail ni une machine distante ;
 - tourner en tâche de fond : il se lance à la main, et le mode par défaut est la simulation (`--dry-run`) ;
 - monter, chiffrer ou synchroniser un coffre : c'est votre affaire (voir « Limites »).
 
 ## Un outil de foyer
 
-Dibab est conçu pour la gestion administrative d'un foyer, par le foyer. Une machine, un répertoire ou un compte mail n'entre dans le périmètre qu'avec l'accord, explicite ou implicite, de la personne concernée ; en cas de doute, ne l'incluez pas. Le logiciel ne peut pas garantir ce respect : c'est l'administrateur de l'instance qui s'y engage. Le journal contient des noms de fichiers et des émetteurs, qui révèlent déjà beaucoup (un courrier d'un organisme de santé suffit) : il a sa place dans le coffre, pas à côté : placez les trois clés `suivi.*` dans le coffre pour l'y garder, sinon il est écrit en clair sous `~/.local/state/dibab/`.
+Dibab est conçu pour la gestion administrative d'un foyer, par le foyer. Une machine, un répertoire ou un compte mail n'entre dans le périmètre qu'avec l'accord, explicite ou implicite, de la personne concernée ; en cas de doute, ne l'incluez pas. Le logiciel ne peut pas garantir ce respect : c'est l'administrateur de l'instance qui s'y engage. Le journal contient des noms de fichiers et des émetteurs, qui révèlent déjà beaucoup (un courrier d'un organisme de santé suffit) : il a sa place dans le coffre, pas à côté : placez les trois clés `suivi.*` dans le coffre pour l'y garder, sinon il est écrit en clair sous `~/.local/state/dibab/`.
 
 ## Prérequis
 
@@ -294,7 +294,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appl
 - Linux seulement. Le contrôle de montage repose sur `findmnt`.
 - Le classement vaut ce que valent vos modèles : sur l'instance de référence, un premier essai sur 15 documents réels en a classé 2, écarté 3 comme non administratifs et mis 10 en `À_VÉRIFIER/`, par choix de prudence. Mesurez avant de faire confiance : la mesure du domaine est dans `_outils/mesurer_domaines.py`.
 - Dibab ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface aucun document : l'espace disque et les sauvegardes sont à votre charge.
-- Les catégories et les émetteurs connus de `config.exemple.json` sont génériques ; adaptez-les à votre pays.
+- Les catégories et les émetteurs connus de `config.exemple.json` sont génériques ; adaptez-les à votre pays.
 - Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
 - Le projet est jeune : version 0.9.0-alpha, pas d'intégration continue.
 
@@ -308,6 +308,8 @@ Dibab est le fruit d'une collaboration entre une personne et des modèles de lan
 
 * **Ronan Davalan** : architecte et arbitre ; vision, décisions, périmètre, validation. Seul auteur git.
 * **Claude Code (Anthropic)** : ingénieur de réalisation ; code Python et tests, et documents publics (ce README et ses traductions, la page de manuel, `CONTRIBUTING.md`, `SECURITY.md`), logo et site (graphisme, mise en page et textes).
-* **Gemini (Google)** : conseiller de conception ; a proposé le nom d'origine « Le Greffier » et discuté le nom Dibab avec Ronan Davalan.
+* **Gemini (Google)** : conseiller de conception ; a proposé le nom d'origine « Le Greffier » et discuté le nom Dibab avec Ronan Davalan ; études du logo.
 * **Copilot (Microsoft)** : a traduit ce nom en breton, d'où « Skrivagner ».
-* **Muse Spark 1.3 (Meta)** : idéation du nom ; a soulevé l'axe « dibab » (« choisir » en breton), d'où le nom Dibab.
+* **Muse Spark 1.3 (Meta)** : idéation du nom ; a soulevé l'axe « dibab » (« choisir » en breton), d'où le nom Dibab ; études du logo.
+* **DeepSeek V4.1 Flash (DeepSeek)** : testeur et relecteur ; essais de découverte dont les retours ont conduit à des corrections, vérification du changement de nom et du site traduit, noms génériques dans la documentation et les exemples, brouillons des notes de version et des visuels d'annonce, premières études d'icône.
+* **GLM-5.3-Flash (Z.ai)** : premières études d'icône.

@@ -308,6 +308,8 @@ Dibab ist das Ergebnis einer Zusammenarbeit zwischen einer Person und Sprachmode
 
 *   **Ronan Davalan**: Architekt und Schiedsrichter; Vision, Entscheidungen, Umfang, Freigabe. Einziger Git-Autor.
 *   **Claude Code (Anthropic)**: Umsetzungsingenieur; Python-Code und Tests sowie die öffentlichen Dokumente (diese README und ihre Übersetzungen, die Handbuchseite, `CONTRIBUTING.md`, `SECURITY.md`) sowie das Logo und die Website (Grafik, Layout und Texte).
-*   **Gemini (Google)**: Entwurfsberater; schlug den ursprünglichen Namen „Le Greffier“ vor und besprach den Namen Dibab mit Ronan Davalan.
+*   **Gemini (Google)**: Entwurfsberater; schlug den ursprünglichen Namen „Le Greffier“ vor und besprach den Namen Dibab mit Ronan Davalan; Logo-Studien.
 *   **Copilot (Microsoft)**: übersetzte diesen Namen ins Bretonische, daher „Skrivagner“.
-*   **Muse Spark 1.3 (Meta)**: Namensfindung; brachte die Achse „dibab“ („wählen“ auf Bretonisch) ein, daher der Name Dibab.
+*   **Muse Spark 1.3 (Meta)**: Namensfindung; brachte die Achse „dibab“ („wählen“ auf Bretonisch) ein, daher der Name Dibab; Logo-Studien.
+*   **DeepSeek V4.1 Flash (DeepSeek)**: Tester und Prüfer; Erkundungstests, deren Berichte zu Korrekturen führten, Prüfung der Umbenennung und der übersetzten Website, neutrale Namen in Dokumentation und Beispielen, Entwürfe der Versionshinweise und der Ankündigungsgrafiken, erste Icon-Studien.
+*   **GLM-5.3-Flash (Z.ai)**: erste Icon-Studien.
