@@ -86,6 +86,14 @@ dibab - 收集、分析并归档家庭的个人行政文件，且任何文件都
 **sudo apt remove dibab** 和 **sudo apt purge dibab** 只删除软件包的文件，从不触碰配置、状态、日志和文件；清除时会列出它保留的内容。
 验证程度：安装和诊断已在容器中于这四个版本上验证；容器无法验证加密保险库的挂载，也无法验证使用您自己的 Ollama 的运行。
 
+在 Fedora 44、openSUSE Leap 16.0 和 Arch Linux 上，从网站下载的相应软件包会安装相同的文件：
+
+    sudo dnf install ./dibab-*.fc44.noarch.rpm
+    sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+    sudo pacman -U ./dibab-*-any.pkg.tar.zst
+
+卸载（**sudo dnf remove dibab**、**sudo zypper remove dibab**、**sudo pacman -R dibab**）从不触碰您的文件。验证程度：安装和诊断已在容器中于这三个系统上验证。
+
 # 文件
 
 配置取下列顺序中第一个存在的文件，且只读取该文件：
@@ -155,7 +163,7 @@ IMAP 邮箱的密码从其来源的 **mot_de_passe_env** 键指定的变量读�
 
 **ollama**(1)、**ssh**(1)、**findmnt**(8)、**pdftotext**(1)、**pdftoppm**(1)
 
-项目的 README 说明从 Debian 软件包和从源代码安装的方法、配置、通过 **ssh**、IMAP 和 Google OAuth2 访问的来源，以及局限。
+项目的 README 说明从软件包和从源代码安装的方法、配置、通过 **ssh**、IMAP 和 Google OAuth2 访问的来源，以及局限。
 
 # 许可证
 

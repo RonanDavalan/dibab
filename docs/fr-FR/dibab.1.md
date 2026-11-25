@@ -91,6 +91,14 @@ Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, le paquet Debian installe le p
 
 **sudo apt remove dibab** et **sudo apt purge dibab** suppriment les fichiers du paquet et ne touchent jamais à la configuration, à l'état, au journal ni aux documents ; la purge nomme ce qu'elle laisse. Niveau : installation et diagnostic validés en conteneur sur ces quatre versions ; un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama.
 
+Sur Fedora 44, openSUSE Leap 16.0 et Arch Linux, le paquet de la famille, téléchargé depuis le site, installe les mêmes fichiers :
+
+    sudo dnf install ./dibab-*.fc44.noarch.rpm
+    sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+    sudo pacman -U ./dibab-*-any.pkg.tar.zst
+
+Son retrait (**sudo dnf remove dibab**, **sudo zypper remove dibab**, **sudo pacman -R dibab**) ne touche jamais à vos fichiers. Niveau : installation et diagnostic validés en conteneur sur ces trois systèmes.
+
 # FICHIERS
 
 La configuration est le premier fichier existant parmi, dans cet ordre, et c'est le seul qui est lu :
@@ -163,7 +171,7 @@ Lire le même contrôle en anglais, puis annuler la dernière session :
 
 **ollama**(1), **ssh**(1), **findmnt**(8), **pdftotext**(1), **pdftoppm**(1)
 
-Le README du projet décrit l'installation depuis le paquet Debian et depuis les sources, la configuration, les sources par **ssh**, IMAP et OAuth2 pour Google,
+Le README du projet décrit l'installation depuis les paquets et depuis les sources, la configuration, les sources par **ssh**, IMAP et OAuth2 pour Google,
 et les limites.
 
 # LICENCE

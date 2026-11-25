@@ -11,7 +11,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
   <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian and Ubuntu">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu_%C2%B7_Fedora_%C2%B7_openSUSE_%C2%B7_Arch-blue.svg" alt="Debian, Ubuntu, Fedora, openSUSE and Arch">
 </p>
 
 **English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md) | [中文](docs/zh-CN/README.md)
@@ -94,6 +94,20 @@ dibab --diagnose
 The package puts the command in `/usr/bin/dibab`, the program in `/usr/lib/dibab/`, and the README files, the example configuration and the manual page (`man dibab`, in five languages) under `/usr/share/`. Removing it keeps your data: `sudo apt remove dibab` and `sudo apt purge dibab` delete the files of the package and never touch your configuration, your state, your journal or your documents; the purge names what it leaves.
 
 Level: installation and diagnostic validated in a container on Debian 12 and 13 and on Ubuntu 22.04 and 24.04 (installation, `--version`, `--diagnose`, the refusal to write without a configuration and the refusal to write into a vault that is not mounted, a simulated filing, removal and purge). A container shows neither the mounting of an encrypted vault nor a run with your own Ollama and your own documents.
+
+## Installation on Fedora, openSUSE Leap and Arch
+
+On Fedora 44, openSUSE Leap 16.0 and Arch Linux, one file also installs the program and its dependencies. Download the file of your system from the download page of [dibab.davalan.fr](https://dibab.davalan.fr/), then, from the folder that holds it, run the line of your system:
+
+```bash
+sudo dnf install ./dibab-*.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+sudo pacman -U ./dibab-*-any.pkg.tar.zst
+```
+
+The packages are not signed. The rest is the same as with the Debian package: `dibab --initialiser`, then `dibab --version` and `dibab --diagnose`. Removing the package (`sudo dnf remove dibab`, `sudo zypper remove dibab`, `sudo pacman -R dibab`) never touches your configuration, your state, your journal or your documents.
+
+Level: installation and diagnostic validated in a container on Fedora 44, openSUSE Leap 16.0 and Arch Linux (installation, `--version`, `--diagnose`, the two refusals to write, a simulated filing, reinstallation over a broken installation, removal). A container shows neither the mounting of an encrypted vault nor a run with your own Ollama and your own documents.
 
 ## Installation from the sources
 

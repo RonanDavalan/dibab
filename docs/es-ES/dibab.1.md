@@ -91,6 +91,14 @@ En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el progra
 
 **sudo apt remove dibab** y **sudo apt purge dibab** eliminan los archivos del paquete y nunca tocan la configuración, el estado, el diario ni los documentos; la purga nombra lo que deja. Nivel: instalación y diagnóstico validados en contenedor en estas cuatro versiones; un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama.
 
+En Fedora 44, openSUSE Leap 16.0 y Arch Linux, el paquete de la familia, descargado desde el sitio, instala los mismos archivos:
+
+    sudo dnf install ./dibab-*.fc44.noarch.rpm
+    sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+    sudo pacman -U ./dibab-*-any.pkg.tar.zst
+
+Su desinstalación (**sudo dnf remove dibab**, **sudo zypper remove dibab**, **sudo pacman -R dibab**) nunca toca sus archivos. Nivel: instalación y diagnóstico validados en contenedor en estos tres sistemas.
+
 # ARCHIVOS
 
 La configuración es el primer archivo existente de la lista siguiente, por este orden, y es el único que se lee:
@@ -163,7 +171,7 @@ Leer la misma comprobación en inglés y deshacer la última sesión:
 
 **ollama**(1), **ssh**(1), **findmnt**(8), **pdftotext**(1), **pdftoppm**(1)
 
-El README del proyecto describe la instalación desde el paquete Debian y desde las fuentes, la configuración, los orígenes por **ssh**, IMAP y OAuth2 para
+El README del proyecto describe la instalación desde los paquetes y desde las fuentes, la configuración, los orígenes por **ssh**, IMAP y OAuth2 para
 Google, y los límites.
 
 # LICENCIA

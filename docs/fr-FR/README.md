@@ -11,7 +11,7 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licence : AGPL v3"></a>
   <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version : 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian et Ubuntu">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu_%C2%B7_Fedora_%C2%B7_openSUSE_%C2%B7_Arch-blue.svg" alt="Debian, Ubuntu, Fedora, openSUSE et Arch">
 </p>
 
 [English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
@@ -94,6 +94,20 @@ dibab --diagnose
 Le paquet place la commande dans `/usr/bin/dibab`, le programme dans `/usr/lib/dibab/`, et les README, la configuration d'exemple et la page de manuel (`man dibab`, en cinq langues) sous `/usr/share/`. Le retrait garde vos données : `sudo apt remove dibab` et `sudo apt purge dibab` suppriment les fichiers du paquet et ne touchent jamais à votre configuration, à votre état, à votre journal ni à vos documents ; la purge nomme ce qu'elle laisse.
 
 Niveau : installation et diagnostic validés en conteneur sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04 (installation, `--version`, `--diagnose`, le refus d'écrire sans configuration et celui d'écrire dans un coffre non monté, un classement simulé, retrait et purge). Un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama et vos propres documents.
+
+## Installation sur Fedora, openSUSE Leap et Arch
+
+Sur Fedora 44, openSUSE Leap 16.0 et Arch Linux, un seul fichier installe aussi le programme et ses dépendances. Téléchargez le fichier de votre système depuis la page de téléchargement de [dibab.davalan.fr](https://dibab.davalan.fr/), puis, depuis le dossier qui le contient, lancez la ligne de votre système :
+
+```bash
+sudo dnf install ./dibab-*.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+sudo pacman -U ./dibab-*-any.pkg.tar.zst
+```
+
+Les paquets ne sont pas signés. La suite est la même qu'avec le paquet Debian : `dibab --initialiser`, puis `dibab --version` et `dibab --diagnose`. Le retrait du paquet (`sudo dnf remove dibab`, `sudo zypper remove dibab`, `sudo pacman -R dibab`) ne touche jamais à votre configuration, à votre état, à votre journal ni à vos documents.
+
+Niveau : installation et diagnostic validés en conteneur sur Fedora 44, openSUSE Leap 16.0 et Arch (installation, `--version`, `--diagnose`, les deux refus d'écrire, un classement simulé, réinstallation par-dessus une installation cassée, retrait). Un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama et vos propres documents.
 
 ## Installation depuis les sources
 

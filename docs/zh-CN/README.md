@@ -11,7 +11,7 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="许可证：AGPL v3"></a>
   <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="版本：0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian 和 Ubuntu">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu_%C2%B7_Fedora_%C2%B7_openSUSE_%C2%B7_Arch-blue.svg" alt="Debian、Ubuntu、Fedora、openSUSE 和 Arch">
 </p>
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | **中文**
@@ -94,6 +94,20 @@ dibab --diagnose
 软件包把命令放在 `/usr/bin/dibab`，程序放在 `/usr/lib/dibab/`，README、示例配置和手册页（`man dibab`，五种语言）放在 `/usr/share/` 下。卸载会保留您的数据：`sudo apt remove dibab` 和 `sudo apt purge dibab` 只删除软件包的文件，从不触碰您的配置、状态、日志和文件；清除时会列出它保留的内容。
 
 验证程度：安装和诊断已在容器中于 Debian 12 和 13 以及 Ubuntu 22.04 和 24.04 上验证（安装、`--version`、`--diagnose`、无配置时拒绝写入、保险库未挂载时拒绝写入、一次模拟归档、卸载和清除）。容器无法验证加密保险库的挂载，也无法验证使用您自己的 Ollama 和文件的运行。
+
+## 在 Fedora、openSUSE Leap 和 Arch 上安装
+
+在 Fedora 44、openSUSE Leap 16.0 和 Arch Linux 上，同样只需一个文件即可安装程序及其依赖。从 [dibab.davalan.fr](https://dibab.davalan.fr/) 的下载页面下载适用于您系统的文件，然后在该文件所在文件夹中执行您系统对应的那一行：
+
+```bash
+sudo dnf install ./dibab-*.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+sudo pacman -U ./dibab-*-any.pkg.tar.zst
+```
+
+这些软件包没有签名。其余步骤与 Debian 软件包相同：`dibab --initialiser`，然后是 `dibab --version` 和 `dibab --diagnose`。卸载软件包（`sudo dnf remove dibab`、`sudo zypper remove dibab`、`sudo pacman -R dibab`）从不触碰您的配置、状态、日志和文件。
+
+验证程度：安装和诊断已在容器中于 Fedora 44、openSUSE Leap 16.0 和 Arch Linux 上验证（安装、`--version`、`--diagnose`、两种拒绝写入的情况、一次模拟归档、覆盖损坏的安装进行重装、卸载）。容器无法验证加密保险库的挂载，也无法验证使用您自己的 Ollama 和文件的运行。
 
 ## 从源代码安装
 

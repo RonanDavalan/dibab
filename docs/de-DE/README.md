@@ -11,7 +11,7 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Lizenz: AGPL v3"></a>
   <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian und Ubuntu">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu_%C2%B7_Fedora_%C2%B7_openSUSE_%C2%B7_Arch-blue.svg" alt="Debian, Ubuntu, Fedora, openSUSE und Arch">
 </p>
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | **Deutsch** | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
@@ -94,6 +94,20 @@ dibab --diagnose
 Das Paket legt den Befehl unter `/usr/bin/dibab`, das Programm unter `/usr/lib/dibab/` sowie die README-Dateien, die Beispielkonfiguration und die Handbuchseite (`man dibab`, in fünf Sprachen) unter `/usr/share/` ab. Das Entfernen schont Ihre Daten: `sudo apt remove dibab` und `sudo apt purge dibab` löschen die Dateien des Pakets und rühren Ihre Konfiguration, Ihren Zustand, Ihr Journal und Ihre Dokumente nie an; das Purge nennt, was es zurücklässt.
 
 Stufe: Installation und Diagnose im Container validiert unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 (Installation, `--version`, `--diagnose`, die Weigerung, ohne Konfiguration zu schreiben, und die Weigerung, in einen nicht eingehängten Tresor zu schreiben, eine simulierte Ablage, Entfernen und Purge). Ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama und Ihren eigenen Dokumenten.
+
+## Installation unter Fedora, openSUSE Leap und Arch
+
+Unter Fedora 44, openSUSE Leap 16.0 und Arch Linux installiert ebenfalls eine einzige Datei das Programm und seine Abhängigkeiten. Laden Sie die Datei für Ihr System von der Download-Seite von [dibab.davalan.fr](https://dibab.davalan.fr/) herunter und führen Sie dann in dem Ordner, der die Datei enthält, die Zeile für Ihr System aus:
+
+```bash
+sudo dnf install ./dibab-*.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+sudo pacman -U ./dibab-*-any.pkg.tar.zst
+```
+
+Die Pakete sind nicht signiert. Der Rest ist derselbe wie beim Debian-Paket: `dibab --initialiser`, dann `dibab --version` und `dibab --diagnose`. Das Entfernen des Pakets (`sudo dnf remove dibab`, `sudo zypper remove dibab`, `sudo pacman -R dibab`) rührt Ihre Konfiguration, Ihren Zustand, Ihr Journal und Ihre Dokumente nie an.
+
+Stufe: Installation und Diagnose im Container validiert unter Fedora 44, openSUSE Leap 16.0 und Arch Linux (Installation, `--version`, `--diagnose`, die beiden Weigerungen zu schreiben, eine simulierte Ablage, Neuinstallation über eine defekte Installation, Entfernen). Ein Container zeigt weder das Einhängen eines verschlüsselten Tresors noch einen Lauf mit Ihrem eigenen Ollama und Ihren eigenen Dokumenten.
 
 ## Installation aus den Quellen
 

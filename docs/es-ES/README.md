@@ -11,7 +11,7 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licencia: AGPL v3"></a>
   <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Versión: 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian y Ubuntu">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu_%C2%B7_Fedora_%C2%B7_openSUSE_%C2%B7_Arch-blue.svg" alt="Debian, Ubuntu, Fedora, openSUSE y Arch">
 </p>
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | **Español** | [中文](../zh-CN/README.md)
@@ -94,6 +94,20 @@ dibab --diagnose
 El paquete coloca el comando en `/usr/bin/dibab`, el programa en `/usr/lib/dibab/`, y los README, la configuración de ejemplo y la página de manual (`man dibab`, en cinco idiomas) en `/usr/share/`. La desinstalación conserva sus datos: `sudo apt remove dibab` y `sudo apt purge dibab` eliminan los archivos del paquete y nunca tocan su configuración, su estado, su diario ni sus documentos; la purga nombra lo que deja.
 
 Nivel: instalación y diagnóstico validados en contenedor en Debian 12 y 13 y en Ubuntu 22.04 y 24.04 (instalación, `--version`, `--diagnose`, la negativa a escribir sin configuración y la de escribir en una bóveda no montada, una clasificación simulada, desinstalación y purga). Un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama y sus propios documentos.
+
+## Instalación en Fedora, openSUSE Leap y Arch
+
+En Fedora 44, openSUSE Leap 16.0 y Arch Linux, un solo archivo instala también el programa y sus dependencias. Descargue el archivo de su sistema desde la página de descarga de [dibab.davalan.fr](https://dibab.davalan.fr/) y, desde la carpeta que lo contiene, ejecute la línea de su sistema:
+
+```bash
+sudo dnf install ./dibab-*.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./dibab-*.leap160.noarch.rpm
+sudo pacman -U ./dibab-*-any.pkg.tar.zst
+```
+
+Los paquetes no están firmados. El resto es igual que con el paquete Debian: `dibab --initialiser`, después `dibab --version` y `dibab --diagnose`. La desinstalación del paquete (`sudo dnf remove dibab`, `sudo zypper remove dibab`, `sudo pacman -R dibab`) nunca toca su configuración, su estado, su diario ni sus documentos.
+
+Nivel: instalación y diagnóstico validados en contenedor en Fedora 44, openSUSE Leap 16.0 y Arch Linux (instalación, `--version`, `--diagnose`, las dos negativas a escribir, una clasificación simulada, reinstalación sobre una instalación dañada, desinstalación). Un contenedor no muestra ni el montaje de una bóveda cifrada ni una ejecución con su propio Ollama y sus propios documentos.
 
 ## Instalación desde las fuentes
 
