@@ -2,7 +2,7 @@
   "destination": {
     "sous_repertoire_logs": "logs",
     "vide_poches_prefixe": "vide-poches-",
-    "repertoire_doublon": "doublon"
+    "repertoire_doublon": "duplicate"
   },
 
   "arborescence": {
@@ -12,7 +12,7 @@
   },
 
   "inventaire": {
-    "exclusions": ["logs", "Archive", "rebut", "doublon"]
+    "exclusions": ["logs", "Archive", "rebut", "duplicate"]
   },
 
   "executer_sur": [],
@@ -22,13 +22,13 @@
       "racine": "~/Documents/dibab/personnel",
       "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Administratif",
-      "sous_repertoire_a_verifier": "À_VÉRIFIER"
+      "sous_repertoire_a_verifier": "TO_CHECK"
     },
     "professionnel": {
       "racine": "~/Documents/dibab/professionnel",
       "systemes_fichiers_acceptes": ["fuse.gocryptfs"],
       "sous_repertoire_classement": "Classement",
-      "sous_repertoire_a_verifier": "À_VÉRIFIER"
+      "sous_repertoire_a_verifier": "TO_CHECK"
     }
   },
 
@@ -81,7 +81,7 @@
   "mesure": {
     "graine": 20261020,
     "documents_par_coffre": 40,
-    "exclusions": ["Archive", "rebut", "doublon"],
+    "exclusions": ["Archive", "rebut", "duplicate"],
     "taux_erreur_max": 0.02
   },
 
@@ -94,14 +94,14 @@
     "date_inconnue_prefixe": "~",
     "emetteur_inconnu": "Inconnu",
     "espaces_vers": "-",
-    "prefixe_a_verifier": "[À_VÉRIFIER]",
+    "prefixe_a_verifier": "[TO_CHECK]",
     "format_a_verifier": "{date}_{emetteur}_{objet}_{origine}{ext}",
     "suffixe_collision": "_{n}"
   },
 
   "scan": {
     "recursif_par_defaut": true,
-    "exclusions_automatiques": ["rebut", "doublon"],
+    "exclusions_automatiques": ["rebut", "duplicate"],
     "suivre_symlinks": false,
     "ignorer_dotfiles": true
   },
