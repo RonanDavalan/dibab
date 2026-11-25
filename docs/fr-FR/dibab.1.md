@@ -76,16 +76,16 @@ Le mode par défaut est la simulation. Relisez toujours le résultat de **\--dry
 
 # LANGUE
 
-Les messages sont écrits en anglais, en français, en allemand ou en espagnol. La langue se lit une fois au démarrage, dans la première
+Les messages sont écrits en anglais, en français, en allemand, en espagnol ou en chinois simplifié. La langue se lit une fois au démarrage, dans la première
 des variables **LC_ALL**, **LC_MESSAGES** et **LANG** qui n'est pas vide : ce qui précède le premier **\_**, **.** ou **@** donne **en**,
-**fr**, **de** ou **es** ; toute autre valeur, **C**, **POSIX** ou aucune variable donne l'anglais. Les noms d'option, les jetons d'état de
+**fr**, **de**, **es** ou **zh** ; toute autre valeur, **C**, **POSIX** ou aucune variable donne l'anglais. Les noms d'option, les jetons d'état de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), les identifiants des vérifications et la ligne de
 **\--version** ne changent jamais. Les clés écrites sur le disque (journaux, plans, rapports) sont des identifiants fixes écrits en français
 (**evenement**, **horodatage**), et les textes libres qui s'y trouvent sont en anglais, quelle que soit la langue de la session ; les jetons d'action (**classe**, **a_verifier**, **doublon**) et les noms de domaine ne changent jamais.
 
 # INSTALLATION
 
-Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, le paquet Debian installe le programme, ses dépendances, les quatre pages de manuel et la configuration d'exemple *config.exemple.json* dans */usr/share/doc/dibab/examples/* :
+Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, le paquet Debian installe le programme, ses dépendances, les cinq pages de manuel et la configuration d'exemple *config.exemple.json* dans */usr/share/doc/dibab/examples/* :
 
     sudo apt install ./dibab_*_all.deb
 
@@ -109,7 +109,7 @@ session) et *dibab.log*. *rapatries.json*, *imap_deposes.json* et le verrou *dib
 *dernier_scan.json*. Les dossiers se créent en mode 700 et les fichiers en mode 600. L'état est alors en clair sur le disque : pour
 le garder dans un coffre, donnez les clés **suivi.fichier_date**, **suivi.journal** et **suivi.sessions**.
 
-Les dictionnaires de messages sont *modules/langues/en.txt*, *fr.txt*, *de.txt* et *es.txt*, dans le dossier du programme.
+Les dictionnaires de messages sont *modules/langues/en.txt*, *fr.txt*, *de.txt*, *es.txt* et *zh.txt*, dans le dossier du programme.
 
 # ENVIRONNEMENT
 

@@ -9,12 +9,12 @@
 
 <p align="center">
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licence : AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version : 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="Version : 0.9.1-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian et Ubuntu">
 </p>
 
-[English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md)
+[English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
 
 Dibab (« choisir, le choix » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
 
@@ -91,7 +91,7 @@ dibab --version
 dibab --diagnose
 ```
 
-Le paquet place la commande dans `/usr/bin/dibab`, le programme dans `/usr/lib/dibab/`, et les README, la configuration d'exemple et la page de manuel (`man dibab`, en quatre langues) sous `/usr/share/`. Le retrait garde vos données : `sudo apt remove dibab` et `sudo apt purge dibab` suppriment les fichiers du paquet et ne touchent jamais à votre configuration, à votre état, à votre journal ni à vos documents ; la purge nomme ce qu'elle laisse.
+Le paquet place la commande dans `/usr/bin/dibab`, le programme dans `/usr/lib/dibab/`, et les README, la configuration d'exemple et la page de manuel (`man dibab`, en cinq langues) sous `/usr/share/`. Le retrait garde vos données : `sudo apt remove dibab` et `sudo apt purge dibab` suppriment les fichiers du paquet et ne touchent jamais à votre configuration, à votre état, à votre journal ni à vos documents ; la purge nomme ce qu'elle laisse.
 
 Niveau : installation et diagnostic validés en conteneur sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04 (installation, `--version`, `--diagnose`, le refus d'écrire sans configuration et celui d'écrire dans un coffre non monté, un classement simulé, retrait et purge). Un conteneur ne montre ni le montage d'un coffre chiffré, ni un passage avec votre propre Ollama et vos propres documents.
 
@@ -103,7 +103,7 @@ Arborescence finale (`~` est votre répertoire personnel ; adaptez les chemins
 ~/applications/dibab/               le dépôt cloné
 ├── dibab.py                        le point d'entrée
 ├── modules/                             un fichier par responsabilité
-│   └── langues/                         les dictionnaires de messages : en, fr, de, es
+│   └── langues/                         les dictionnaires de messages : en, fr, de, es, zh
 ├── docs/                                les traductions de ce README et la page de manuel
 ├── tests/                               les tests
 ├── config.exemple.json                  la configuration d'exemple, versionnée
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `574 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `581 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -204,13 +204,13 @@ Le seul avertissement est l'état et le journal en clair sous `~/.local/state/di
 
 ## Langue des messages
 
-Dibab écrit ses messages en anglais, en français, en allemand ou en espagnol. La langue se lit une fois au démarrage, dans la première des variables `LC_ALL`, `LC_MESSAGES` et `LANG` qui n'est pas vide : `fr_FR.UTF-8` donne le français, `de_DE.UTF-8` l'allemand, `es_ES.UTF-8` l'espagnol, `en_US.UTF-8` l'anglais, et toute autre valeur, ou aucune, l'anglais. Pour lire le même contrôle dans une autre langue :
+Dibab écrit ses messages en anglais, en français, en allemand, en espagnol ou en chinois simplifié. La langue se lit une fois au démarrage, dans la première des variables `LC_ALL`, `LC_MESSAGES` et `LANG` qui n'est pas vide : `fr_FR.UTF-8` donne le français, `de_DE.UTF-8` l'allemand, `es_ES.UTF-8` l'espagnol, toute locale `zh_*` comme `zh_CN.UTF-8` le chinois simplifié, `en_US.UTF-8` l'anglais, et toute autre valeur, ou aucune, l'anglais. Pour lire le même contrôle dans une autre langue :
 
 ```bash
 LC_ALL=de_DE.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-Les noms d'option, les jetons d'état, les identifiants, les journaux et les fichiers de plan ne changent jamais avec la langue : les clés des journaux et des fichiers de plan (`evenement`, `horodatage`…) et les valeurs qui nomment un évènement ou une catégorie (`session_demarree`, `administratif`…) sont des identifiants techniques fixes, écrits en français, pour qu'un journal écrit dans une langue se rejoue par `--rollback` dans n'importe quelle autre. Les dictionnaires de messages sont les fichiers `modules/langues/en.txt`, `fr.txt`, `de.txt` et `es.txt`.
+Les noms d'option, les jetons d'état, les identifiants, les journaux et les fichiers de plan ne changent jamais avec la langue : les clés des journaux et des fichiers de plan (`evenement`, `horodatage`…) et les valeurs qui nomment un évènement ou une catégorie (`session_demarree`, `administratif`…) sont des identifiants techniques fixes, écrits en français, pour qu'un journal écrit dans une langue se rejoue par `--rollback` dans n'importe quelle autre. Les dictionnaires de messages sont les fichiers `modules/langues/en.txt`, `fr.txt`, `de.txt`, `es.txt` et `zh.txt`.
 
 Les noms du dossier à vérifier, de son préfixe et du dossier des doublons sont écrits à l'initialisation dans la langue de la session ; ils sont réglables par `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` et `destination.repertoire_doublon`, et une session ultérieure dans une autre langue ne les renomme pas.
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # liste toutes les options, dans la langu
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Dibab 0.9.0-alpha — session 2026-11-25T20:50:08-2
+Dibab 0.9.0-alpha — session 2026-11-25T23:54:24
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:08-2.jsonl
+  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T23:54:24.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M
@@ -271,7 +271,7 @@ Un document dont l'empreinte est déjà classée est copié dans le dossier `dou
 
 ### Page de manuel
 
-La page de manuel est écrite en Markdown dans `docs/dibab.1.md`, avec ses traductions dans `docs/fr-FR/`, `docs/de-DE/` et `docs/es-ES/`. Pour la lire depuis les sources :
+La page de manuel est écrite en Markdown dans `docs/dibab.1.md`, avec ses traductions dans `docs/fr-FR/`, `docs/de-DE/`, `docs/es-ES/` et `docs/zh-CN/`. Pour la lire depuis les sources :
 
 ```bash
 pandoc --standalone --from markdown-smart --to man docs/fr-FR/dibab.1.md | man -l -
@@ -314,7 +314,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appl
 - Dibab ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface aucun document : l'espace disque et les sauvegardes sont à votre charge.
 - Les catégories et les émetteurs connus de `config.exemple.json` sont génériques ; adaptez-les à votre pays.
 - Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
-- Le projet est jeune : version 0.9.0-alpha, pas d'intégration continue.
+- Le projet est jeune : version 0.9.1-alpha, pas d'intégration continue.
 
 ## Contribuer, signaler une faille
 
@@ -327,7 +327,6 @@ Dibab est le fruit d'une collaboration entre une personne et des modèles de lan
 * **Ronan Davalan** : architecte et arbitre ; vision, décisions, périmètre, validation. Seul auteur git.
 * **Claude Code (Anthropic)** : ingénieur de réalisation ; code Python et tests, et documents publics (ce README et ses traductions, la page de manuel, `CONTRIBUTING.md`, `SECURITY.md`), logo et site (graphisme, mise en page et textes).
 * **Gemini (Google)** : conseiller de conception ; a proposé le nom d'origine « Le Greffier » et discuté le nom Dibab avec Ronan Davalan ; études du logo.
-* **Copilot (Microsoft)** : a traduit ce nom en breton, d'où « Skrivagner ».
 * **Muse Spark 1.3 (Meta)** : idéation du nom ; a soulevé l'axe « dibab » (« choisir » en breton), d'où le nom Dibab ; études du logo.
 * **DeepSeek V4.1 Flash (DeepSeek)** : testeur et relecteur ; essais de découverte dont les retours ont conduit à des corrections, vérification du changement de nom et du site traduit, noms génériques dans la documentation et les exemples, brouillons des notes de version et des visuels d'annonce, premières études d'icône.
 * **GLM-5.3-Flash (Z.ai)** : premières études d'icône.

@@ -9,12 +9,12 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="Version: 0.9.1-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian and Ubuntu">
 </p>
 
-**English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
+**English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md) | [中文](docs/zh-CN/README.md)
 
 Dibab ("to choose" in Breton) collects, analyses and files the personal administrative documents of a household (invoices, letters, contracts, notices from public bodies) into a normalised tree, and keeps a journal of everything it does. It runs in sovereign mode: no document and no text of a document leaves the local network, with no remote model and no cloud. The only connections to the outside are the ones you declare: the IMAP mailbox that Dibab reads, and Google's OAuth2 consent when that mailbox is a Google account. The language models are those of [Ollama](https://ollama.com/), on your own machine.
 
@@ -91,7 +91,7 @@ dibab --version
 dibab --diagnose
 ```
 
-The package puts the command in `/usr/bin/dibab`, the program in `/usr/lib/dibab/`, and the README files, the example configuration and the manual page (`man dibab`, in four languages) under `/usr/share/`. Removing it keeps your data: `sudo apt remove dibab` and `sudo apt purge dibab` delete the files of the package and never touch your configuration, your state, your journal or your documents; the purge names what it leaves.
+The package puts the command in `/usr/bin/dibab`, the program in `/usr/lib/dibab/`, and the README files, the example configuration and the manual page (`man dibab`, in five languages) under `/usr/share/`. Removing it keeps your data: `sudo apt remove dibab` and `sudo apt purge dibab` delete the files of the package and never touch your configuration, your state, your journal or your documents; the purge names what it leaves.
 
 Level: installation and diagnostic validated in a container on Debian 12 and 13 and on Ubuntu 22.04 and 24.04 (installation, `--version`, `--diagnose`, the refusal to write without a configuration and the refusal to write into a vault that is not mounted, a simulated filing, removal and purge). A container shows neither the mounting of an encrypted vault nor a run with your own Ollama and your own documents.
 
@@ -103,7 +103,7 @@ Final tree (`~` is your home directory; adapt the paths to your installation):
 ~/applications/dibab/               the cloned repository
 ├── dibab.py                        the entry point
 ├── modules/                             one file per responsibility
-│   └── langues/                         the message dictionaries: en, fr, de, es
+│   └── langues/                         the message dictionaries: en, fr, de, es, zh
 ├── docs/                                the translations of this README and the manual page
 ├── tests/                               the tests
 ├── config.exemple.json                  the example configuration, versioned
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `574 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `581 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -204,13 +204,13 @@ With the configuration used here the diagnostic gives one warning: the state and
 
 ## Language of the messages
 
-Dibab writes its messages in English, French, German or Spanish. The language is read once at start, in the first of `LC_ALL`, `LC_MESSAGES` and `LANG` that is not empty: `fr_FR.UTF-8` gives French, `de_DE.UTF-8` German, `es_ES.UTF-8` Spanish, `en_US.UTF-8` English, and any other value, or none, English. To read the same check in another language:
+Dibab writes its messages in English, French, German, Spanish or Simplified Chinese. The language is read once at start, in the first of `LC_ALL`, `LC_MESSAGES` and `LANG` that is not empty: `fr_FR.UTF-8` gives French, `de_DE.UTF-8` German, `es_ES.UTF-8` Spanish, any `zh_*` locale such as `zh_CN.UTF-8` Simplified Chinese, `en_US.UTF-8` English, and any other value, or none, English. To read the same check in another language:
 
 ```bash
 LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
-The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the keys of the journals and the plan files (`evenement`, `horodatage`…) and the values that name an event or a category (`session_demarree`, `administratif`…) are fixed technical identifiers, written in French. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
+The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the keys of the journals and the plan files (`evenement`, `horodatage`…) and the values that name an event or a category (`session_demarree`, `administratif`…) are fixed technical identifiers, written in French. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt`, `es.txt` and `zh.txt`.
 
 The names of the check folder, its prefix and the duplicate folder are written at initialisation in the language of the session; `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` and `destination.repertoire_doublon` set them, and a later session in another language does not rename them.
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # lists every option, in the language of 
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Dibab 0.9.0-alpha — session 2026-11-25T20:50:08
+Dibab 0.9.0-alpha — session 2026-11-25T23:54:23
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:08.jsonl
+  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T23:54:23.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M
@@ -271,7 +271,7 @@ A document whose fingerprint is already filed is copied to the `duplicate/` fold
 
 ### Manual page
 
-The manual page is written in Markdown in `docs/dibab.1.md`, with its translations in `docs/fr-FR/`, `docs/de-DE/` and `docs/es-ES/`. To read it from the sources:
+The manual page is written in Markdown in `docs/dibab.1.md`, with its translations in `docs/fr-FR/`, `docs/de-DE/`, `docs/es-ES/` and `docs/zh-CN/`. To read it from the sources:
 
 ```bash
 pandoc --standalone --from markdown-smart --to man docs/dibab.1.md | man -l -
@@ -314,7 +314,7 @@ Open the address that is printed in a browser, accept the "unverified applicatio
 - Dibab does not mount, encrypt or synchronise any vault, and erases no document: disk space and backups are up to you.
 - The categories and the known senders of `config.exemple.json` are generic; adapt them to your country.
 - The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.
-- The project is young: version 0.9.0-alpha, no continuous integration.
+- The project is young: version 0.9.1-alpha, no continuous integration.
 
 ## Contributing, reporting a vulnerability
 
@@ -327,7 +327,6 @@ Dibab is the fruit of a collaboration between a person and language models, with
 *   **Ronan Davalan**: architect and arbiter; vision, decisions, scope, validation. Sole git author.
 *   **Claude Code (Anthropic)**: implementation engineer; Python code and tests, and the public documents (this README and its translations, the manual page, `CONTRIBUTING.md`, `SECURITY.md`), and the logo and the website (graphic design, layout and texts).
 *   **Gemini (Google)**: design adviser; proposed the original name "Le Greffier" and discussed the name Dibab with Ronan Davalan; logo studies.
-*   **Copilot (Microsoft)**: translated that name into Breton, hence "Skrivagner".
 *   **Muse Spark 1.3 (Meta)**: name ideation; raised the "dibab" axis ("to choose" in Breton), hence the name Dibab; logo studies.
 *   **DeepSeek V4.1 Flash (DeepSeek)**: tester and reviewer; discovery testing whose reports led to fixes, checks of the renaming and of the translated website, generic names in the documentation and examples, drafts of the release notes and of the announcement visuals, early icon studies.
 *   **GLM-5.3-Flash (Z.ai)**: early icon studies.

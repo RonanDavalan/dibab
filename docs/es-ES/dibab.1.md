@@ -75,8 +75,8 @@ El modo por defecto es la simulación. Lea siempre el resultado de **\--dry-run*
 
 # IDIOMA
 
-Los mensajes se escriben en inglés, francés, alemán o español. El idioma se lee una vez al arrancar, en la primera de las variables
-**LC_ALL**, **LC_MESSAGES** y **LANG** que no esté vacía: lo que precede al primer **\_**, **.** o **@** da **en**, **fr**, **de** o **es**;
+Los mensajes se escriben en inglés, francés, alemán, español o chino simplificado. El idioma se lee una vez al arrancar, en la primera de las variables
+**LC_ALL**, **LC_MESSAGES** y **LANG** que no esté vacía: lo que precede al primer **\_**, **.** o **@** da **en**, **fr**, **de**, **es** o **zh**;
 cualquier otro valor, **C**, **POSIX** o ninguna variable da inglés. Los nombres de las opciones, los símbolos de estado de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), los identificadores de las comprobaciones y la
 línea de **\--version** nunca cambian. Las claves que se escriben en el disco (diarios, planes, informes) son identificadores fijos escritos
@@ -85,7 +85,7 @@ nunca cambian.
 
 # INSTALACIÓN
 
-En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el programa, sus dependencias, las cuatro páginas de manual y la configuración de ejemplo *config.exemple.json* en */usr/share/doc/dibab/examples/*:
+En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, el paquete Debian instala el programa, sus dependencias, las cinco páginas de manual y la configuración de ejemplo *config.exemple.json* en */usr/share/doc/dibab/examples/*:
 
     sudo apt install ./dibab_*_all.deb
 
@@ -109,7 +109,7 @@ sesión) y *dibab.log*. *rapatries.json*, *imap_deposes.json* y el bloqueo *diba
 Las carpetas se crean con modo 700 y los archivos con modo 600. El estado queda entonces sin cifrar en el disco: para guardarlo en una
 bóveda, indique las claves **suivi.fichier_date**, **suivi.journal** y **suivi.sessions**.
 
-Los diccionarios de mensajes son *modules/langues/en.txt*, *fr.txt*, *de.txt* y *es.txt*, en la carpeta del programa.
+Los diccionarios de mensajes son *modules/langues/en.txt*, *fr.txt*, *de.txt*, *es.txt* y *zh.txt*, en la carpeta del programa.
 
 # ENTORNO
 

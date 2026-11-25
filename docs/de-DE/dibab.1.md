@@ -76,9 +76,9 @@ Der Standardmodus ist die Simulation. Lesen Sie das Ergebnis von **\--dry-run** 
 
 # SPRACHE
 
-Meldungen werden auf Englisch, Französisch, Deutsch oder Spanisch geschrieben. Die Sprache wird einmal beim Start gelesen, aus der
+Meldungen werden auf Englisch, Französisch, Deutsch, Spanisch oder vereinfachtem Chinesisch geschrieben. Die Sprache wird einmal beim Start gelesen, aus der
 ersten nicht leeren der Variablen **LC_ALL**, **LC_MESSAGES** und **LANG**: Der Teil vor dem ersten **\_**, **.** oder **@** ergibt **en**,
-**fr**, **de** oder **es**; jeder andere Wert, **C**, **POSIX** oder keine Variable ergibt Englisch. Die Optionsnamen, die Zustandskürzel
+**fr**, **de**, **es** oder **zh**; jeder andere Wert, **C**, **POSIX** oder keine Variable ergibt Englisch. Die Optionsnamen, die Zustandskürzel
 von **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), die Kennungen der Prüfungen und die
 Zeile von **\--version** ändern sich nie. Die Schlüssel, die auf die Platte geschrieben werden (Journale, Pläne, Berichte), sind feste Bezeichner
 auf Französisch (**evenement**, **horodatage**), und die freien Texte dort sind Englisch, in welcher Sprache die Sitzung auch läuft; die Aktionskürzel (**classe**, **a_verifier**, **doublon**) und die
@@ -86,7 +86,7 @@ Bereichsnamen ändern sich nie.
 
 # INSTALLATION
 
-Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert das Debian-Paket das Programm, seine Abhängigkeiten, die vier Handbuchseiten und die Beispielkonfiguration *config.exemple.json* in */usr/share/doc/dibab/examples/*:
+Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert das Debian-Paket das Programm, seine Abhängigkeiten, die fünf Handbuchseiten und die Beispielkonfiguration *config.exemple.json* in */usr/share/doc/dibab/examples/*:
 
     sudo apt install ./dibab_*_all.deb
 
@@ -110,7 +110,7 @@ Bericht pro Sitzung) und *dibab.log*. *rapatries.json*, *imap_deposes.json* und 
 *dernier_scan.json*. Die Ordner werden mit Modus 700 und die Dateien mit Modus 600 angelegt. Der Zustand liegt dann unverschlüsselt auf
 der Platte: Um ihn in einem Tresor zu halten, geben Sie die Schlüssel **suivi.fichier_date**, **suivi.journal** und **suivi.sessions** an.
 
-Die Meldungswörterbücher sind *modules/langues/en.txt*, *fr.txt*, *de.txt* und *es.txt*, im Ordner des Programms.
+Die Meldungswörterbücher sind *modules/langues/en.txt*, *fr.txt*, *de.txt*, *es.txt* und *zh.txt*, im Ordner des Programms.
 
 # UMGEBUNG
 
