@@ -169,7 +169,7 @@ venv/bin/python dibab.py --diagnose
 `--version` prints one line and stops:
 
 ```
-dibab 0.9.1-alpha
+dibab 0.9.0-alpha
 ```
 
 `--diagnose` prints one line per check, `<STATE> <identifier> : <message>`, then a summary. In a new home directory, with no configuration and no Ollama, the output is the following and the exit code is `0`:
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # lists every option, in the language of 
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Dibab 0.9.1-alpha — session 2026-11-26T00:07:08
+Dibab 0.9.0-alpha — session 2026-11-26T00:11:35
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-26T00:07:08.jsonl
+  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-26T00:11:35.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M

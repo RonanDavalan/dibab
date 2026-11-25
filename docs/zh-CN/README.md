@@ -169,7 +169,7 @@ venv/bin/python dibab.py --diagnose
 `--version` 输出一行后停止：
 
 ```
-dibab 0.9.1-alpha
+dibab 0.9.0-alpha
 ```
 
 `--diagnose` 每项检查输出一行 `<STATE> <identifier> : <message>`，最后给出汇总。在没有配置也没有 Ollama 的全新主目录中，输出如下，退出码为 `0`：
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # 以会话语言列出所有选项
 始终先用 `--dry-run`，逐一阅读建议的目标位置，然后再运行 `--execute`。第一次处理较慢（每份文件由多个模型阅读）；错误输出显示进度，即模型序号与文件序号。下面是对一个空的来源文件夹执行 `--dry-run` 的结果，需要 Ollama 和三个角色的模型：
 
 ```
-Dibab 0.9.1-alpha — 本次运行 2026-11-26T00:07:10
+Dibab 0.9.0-alpha — 本次运行 2026-11-26T00:11:37
   模式：dry-run
   配置：~/.config/dibab/config.json
   保险库 personnel     ：~/Classement/Personnel — 已挂载
   保险库 professionnel ：~/Classement/Professionnel — 已挂载
-  运行日志：~/.local/state/dibab/sessions/session_2026-11-26T00:07:10.jsonl
+  运行日志：~/.local/state/dibab/sessions/session_2026-11-26T00:11:37.jsonl
   模型 ocr           ：glm-ocr:latest
   模型 tri_rapide    ：gemma3:4b
   模型 classification：granite4.2:8b-Q5_K_M
