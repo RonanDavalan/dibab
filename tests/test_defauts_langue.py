@@ -72,3 +72,16 @@ def test_l_exemple_reste_neutre():
     for destination in configuration["destinations"].values():
         assert destination["sous_repertoire_a_verifier"] == "TO_CHECK"
     assert "À_VÉRIFIER" not in json.dumps(configuration, ensure_ascii=False)
+
+
+def test_le_diagnostic_voit_le_dossier_et_le_prefixe_a_verifier_manquants():
+    import dibab
+
+    configuration = exemple()
+    assert dibab.cles_absentes_classement(configuration) == []
+    del configuration["nommage"]["prefixe_a_verifier"]
+    del configuration["destinations"]["personnel"]["sous_repertoire_a_verifier"]
+    absentes = dibab.cles_absentes_classement(configuration)
+    assert "nommage.prefixe_a_verifier" in absentes
+    assert "destinations.personnel.sous_repertoire_a_verifier" in absentes
+    assert dibab.cles_configuration_absentes(configuration).count("nommage.prefixe_a_verifier") == 1

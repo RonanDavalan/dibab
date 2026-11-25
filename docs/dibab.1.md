@@ -79,8 +79,8 @@ Messages are written in English, French, German or Spanish. The language is read
 **LC_MESSAGES** and **LANG** that is not empty: the part before the first **\_**, **.** or **@** gives **en**, **fr**, **de** or **es**;
 any other value, **C**, **POSIX** or no variable gives English. The option names, the state tokens of **\--diagnose** (**OK**,
 **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), the identifiers of the checks and the **\--version** line never change.
-The keys and the free text written on disk (journals, plans, reports) are in English, whatever the language of the session; the
-action tokens (**classe**, **a_verifier**, **doublon**) and the domain names never change.
+The keys written on disk (journals, plans, reports) are fixed identifiers written in French (**evenement**, **horodatage**), and the
+free text written there is in English, whatever the language of the session; the action tokens (**classe**, **a_verifier**, **doublon**) and the domain names never change.
 
 # INSTALLATION
 

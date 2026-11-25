@@ -76,13 +76,13 @@ En Debian 12 y 13 y en Ubuntu 22.04 y 24.04, un solo archivo instala el programa
 sudo apt install ./dibab_*_all.deb
 ```
 
-Cree la configuración a partir del ejemplo que instala el paquete, con el modo `600`, y siga luego los pasos 4 y 5 de la instalación desde las fuentes que figura más abajo (la bóveda de cada dominio, las claves de la configuración):
+Escriba la configuración en el idioma de su sesión y siga luego los pasos 4 y 5 de la instalación desde las fuentes que figura más abajo (la bóveda de cada dominio, las claves de la configuración):
 
 ```bash
-mkdir -p ~/.config/dibab
-cp /usr/share/doc/dibab/examples/config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+dibab --initialiser
 ```
+
+`--initialiser` escribe la configuración en el idioma de su sesión: la carpeta de verificación, su prefijo y la carpeta de duplicados toman los nombres de ese idioma. Crea el archivo con modo `600` en una carpeta con modo `700` y nunca reescribe un archivo que ya existe; una sesión posterior en otro idioma no los renombra.
 
 Compruebe la instalación, sin escribir nada:
 
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Crear el entorno de Python y comprobar las pruebas (esperado: `573 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
+2. Crear el entorno de Python y comprobar las pruebas (esperado: `574 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
 
 ```bash
 python3 -m venv venv
@@ -129,13 +129,13 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Crear la configuración, con modo `600`. Dibab lee el primer archivo que encuentra entre: la opción `--config <ruta>`, la variable de entorno `DIBAB_CONFIG`, `~/.config/dibab/config.json` (o `$XDG_CONFIG_HOME/dibab/config.json`), y después `config.json` junto a `dibab.py`. Una opción o variable que designe un archivo ausente detiene el programa: nunca recurre a otro archivo.
+3. Escribir la configuración en el idioma de la sesión. Dibab lee el primer archivo que encuentra entre: la opción `--config <ruta>`, la variable de entorno `DIBAB_CONFIG`, `~/.config/dibab/config.json` (o `$XDG_CONFIG_HOME/dibab/config.json`), y después `config.json` junto a `dibab.py`. Una opción o variable que designe un archivo ausente detiene el programa: nunca recurre a otro archivo.
 
 ```bash
-mkdir -p ~/.config/dibab
-cp config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+venv/bin/python dibab.py --initialiser
 ```
+
+`--initialiser` escribe la configuración en el idioma de su sesión: la carpeta de verificación, su prefijo y la carpeta de duplicados toman los nombres de ese idioma. Crea el archivo con modo `600` en una carpeta con modo `700` y nunca reescribe un archivo que ya existe; una sesión posterior en otro idioma no los renombra.
 
 4. Crear las dos bóvedas y leer el tipo de su sistema de archivos:
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # lista todas las opciones, en el idioma 
 Empiece siempre con `--dry-run`, revise cada destino propuesto y después lance `--execute`. La primera pasada es lenta (varios modelos leen cada documento); la salida de error muestra el avance, `modelo i/n, documento j/m`. Aquí tiene un `--dry-run` sobre una carpeta de origen vacía, que necesita Ollama y los tres modelos de los roles:
 
 ```
-Dibab 0.9.0-alpha — sesión 2026-11-25T19:36:09-2
+Dibab 0.9.0-alpha — sesión 2026-11-25T20:50:10
   Modo               : dry-run
   Configuración      : ~/.config/dibab/config.json
   Bóveda personnel     : ~/Classement/Personnel — montada
   Bóveda professionnel : ~/Classement/Professionnel — montada
-  Diario de sesión   : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:09-2.jsonl
+  Diario de sesión   : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:10.jsonl
   Modelo ocr           : glm-ocr:latest
   Modelo tri_rapide    : gemma3:4b
   Modelo classification: granite4.2:8b-Q5_K_M

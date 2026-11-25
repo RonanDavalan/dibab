@@ -80,8 +80,8 @@ Meldungen werden auf Englisch, Französisch, Deutsch oder Spanisch geschrieben. 
 ersten nicht leeren der Variablen **LC_ALL**, **LC_MESSAGES** und **LANG**: Der Teil vor dem ersten **\_**, **.** oder **@** ergibt **en**,
 **fr**, **de** oder **es**; jeder andere Wert, **C**, **POSIX** oder keine Variable ergibt Englisch. Die Optionsnamen, die Zustandskürzel
 von **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), die Kennungen der Prüfungen und die
-Zeile von **\--version** ändern sich nie. Die Schlüssel und die freien Texte, die auf die Platte geschrieben werden (Journale, Pläne,
-Berichte), sind Englisch, in welcher Sprache die Sitzung auch läuft; die Aktionskürzel (**classe**, **a_verifier**, **doublon**) und die
+Zeile von **\--version** ändern sich nie. Die Schlüssel, die auf die Platte geschrieben werden (Journale, Pläne, Berichte), sind feste Bezeichner
+auf Französisch (**evenement**, **horodatage**), und die freien Texte dort sind Englisch, in welcher Sprache die Sitzung auch läuft; die Aktionskürzel (**classe**, **a_verifier**, **doublon**) und die
 Bereichsnamen ändern sich nie.
 
 # INSTALLATION

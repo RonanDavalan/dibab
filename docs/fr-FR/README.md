@@ -76,13 +76,13 @@ Sur Debian 12 et 13 et sur Ubuntu 22.04 et 24.04, un seul fichier installe le pr
 sudo apt install ./dibab_*_all.deb
 ```
 
-Créez la configuration à partir de l'exemple que le paquet installe, avec le mode `600`, puis suivez les étapes 4 et 5 de l'installation depuis les sources ci-dessous (le coffre de chaque domaine, les clés de la configuration) :
+Écrivez la configuration, dans la langue de votre session, puis suivez les étapes 4 et 5 de l'installation depuis les sources ci-dessous (le coffre de chaque domaine, les clés de la configuration) :
 
 ```bash
-mkdir -p ~/.config/dibab
-cp /usr/share/doc/dibab/examples/config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+dibab --initialiser
 ```
+
+`--initialiser` écrit la configuration dans la langue de votre session : le dossier de vérification, son préfixe et le dossier des doublons prennent les noms de cette langue. Il crée le fichier en `600` dans un dossier en `700` et ne réécrit jamais un fichier qui existe ; une session ultérieure dans une autre langue ne les renomme pas.
 
 Vérifiez l'installation, sans rien écrire :
 
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `573 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `574 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -129,13 +129,13 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Créer la configuration, en `600`. Dibab lit le premier fichier trouvé parmi : l'option `--config <chemin>`, la variable d'environnement `DIBAB_CONFIG`, `~/.config/dibab/config.json` (ou `$XDG_CONFIG_HOME/dibab/config.json`), puis `config.json` à côté de `dibab.py`. Une option ou une variable qui désigne un fichier absent arrête le programme : il ne retombe jamais sur un autre fichier.
+3. Écrire la configuration dans la langue de la session. Dibab lit le premier fichier trouvé parmi : l'option `--config <chemin>`, la variable d'environnement `DIBAB_CONFIG`, `~/.config/dibab/config.json` (ou `$XDG_CONFIG_HOME/dibab/config.json`), puis `config.json` à côté de `dibab.py`. Une option ou une variable qui désigne un fichier absent arrête le programme : il ne retombe jamais sur un autre fichier.
 
 ```bash
-mkdir -p ~/.config/dibab
-cp config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+venv/bin/python dibab.py --initialiser
 ```
+
+`--initialiser` écrit la configuration dans la langue de votre session : le dossier de vérification, son préfixe et le dossier des doublons prennent les noms de cette langue. Il crée le fichier en `600` dans un dossier en `700` et ne réécrit jamais un fichier qui existe ; une session ultérieure dans une autre langue ne les renomme pas.
 
 4. Créer les deux coffres et lire le type de leur système de fichiers :
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # liste toutes les options, dans la langu
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Dibab 0.9.0-alpha — session 2026-11-25T19:36:08-2
+Dibab 0.9.0-alpha — session 2026-11-25T20:50:08-2
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:08-2.jsonl
+  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:08-2.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M

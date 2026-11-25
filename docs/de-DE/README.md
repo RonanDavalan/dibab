@@ -76,13 +76,13 @@ Unter Debian 12 und 13 sowie unter Ubuntu 22.04 und 24.04 installiert eine einzi
 sudo apt install ./dibab_*_all.deb
 ```
 
-Legen Sie die Konfiguration aus dem Beispiel an, das das Paket installiert, mit dem Modus `600`, und folgen Sie dann den Schritten 4 und 5 der Installation aus den Quellen weiter unten (der Tresor jeder Domäne, die Schlüssel der Konfiguration):
+Schreiben Sie die Konfiguration in der Sprache Ihrer Sitzung und folgen Sie dann den Schritten 4 und 5 der Installation aus den Quellen weiter unten (der Tresor jeder Domäne, die Schlüssel der Konfiguration):
 
 ```bash
-mkdir -p ~/.config/dibab
-cp /usr/share/doc/dibab/examples/config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+dibab --initialiser
 ```
+
+`--initialiser` schreibt die Konfiguration in der Sprache Ihrer Sitzung: der Prüfordner, sein Präfix und der Ordner für Duplikate erhalten die Namen dieser Sprache. Es legt die Datei mit Modus `600` in einem Ordner mit Modus `700` an und überschreibt nie eine vorhandene Datei; eine spätere Sitzung in einer anderen Sprache benennt sie nicht um.
 
 Prüfen Sie die Installation, ohne etwas zu schreiben:
 
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `573 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
+2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `574 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
 
 ```bash
 python3 -m venv venv
@@ -129,13 +129,13 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Die Konfiguration mit Modus `600` anlegen. Dibab liest die erste gefundene Datei aus: der Option `--config <Pfad>`, der Umgebungsvariablen `DIBAB_CONFIG`, `~/.config/dibab/config.json` (oder `$XDG_CONFIG_HOME/dibab/config.json`), dann `config.json` neben `dibab.py`. Eine Option oder Variable, die auf eine fehlende Datei zeigt, beendet das Programm: Es fällt nie auf eine andere Datei zurück.
+3. Die Konfiguration in der Sprache der Sitzung schreiben. Dibab liest die erste gefundene Datei aus: der Option `--config <Pfad>`, der Umgebungsvariablen `DIBAB_CONFIG`, `~/.config/dibab/config.json` (oder `$XDG_CONFIG_HOME/dibab/config.json`), dann `config.json` neben `dibab.py`. Eine Option oder Variable, die auf eine fehlende Datei zeigt, beendet das Programm: Es fällt nie auf eine andere Datei zurück.
 
 ```bash
-mkdir -p ~/.config/dibab
-cp config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+venv/bin/python dibab.py --initialiser
 ```
+
+`--initialiser` schreibt die Konfiguration in der Sprache Ihrer Sitzung: der Prüfordner, sein Präfix und der Ordner für Duplikate erhalten die Namen dieser Sprache. Es legt die Datei mit Modus `600` in einem Ordner mit Modus `700` an und überschreibt nie eine vorhandene Datei; eine spätere Sitzung in einer anderen Sprache benennt sie nicht um.
 
 4. Die beiden Tresore anlegen und den Typ ihres Dateisystems lesen:
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # listet alle Optionen, in der Sprache de
 Beginnen Sie immer mit `--dry-run`, prüfen Sie jedes vorgeschlagene Ziel und starten Sie dann `--execute`. Der erste Durchlauf ist langsam (mehrere Modelle lesen jedes Dokument); die Fehlerausgabe zeigt den Fortschritt, `Modell i/n, Dokument j/m`. Hier ein `--dry-run` auf einem leeren Quellordner, der Ollama und die drei Modelle der Rollen voraussetzt:
 
 ```
-Dibab 0.9.0-alpha — Sitzung 2026-11-25T19:36:09
+Dibab 0.9.0-alpha — Sitzung 2026-11-25T20:50:09
   Modus              : dry-run
   Konfiguration      : ~/.config/dibab/config.json
   Tresor personnel     : ~/Classement/Personnel — eingehängt
   Tresor professionnel : ~/Classement/Professionnel — eingehängt
-  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:09.jsonl
+  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:09.jsonl
   Modell ocr           : glm-ocr:latest
   Modell tri_rapide    : gemma3:4b
   Modell classification: granite4.2:8b-Q5_K_M

@@ -76,13 +76,13 @@ On Debian 12 and 13 and on Ubuntu 22.04 and 24.04, one file installs the program
 sudo apt install ./dibab_*_all.deb
 ```
 
-Create the configuration from the example that the package installs, with mode `600`, then follow steps 4 and 5 of the installation from the sources below (the vault of each domain, the keys of the configuration):
+Write the configuration, in the language of your session, then follow steps 4 and 5 of the installation from the sources below (the vault of each domain, the keys of the configuration):
 
 ```bash
-mkdir -p ~/.config/dibab
-cp /usr/share/doc/dibab/examples/config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+dibab --initialiser
 ```
+
+`--initialiser` writes the configuration in the language of your session: the check folder, its prefix and the duplicate folder take the names of that language. It creates the file with mode `600` in a folder with mode `700` and never rewrites a file that already exists; a later session in another language does not rename them.
 
 Check the installation, without writing anything:
 
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `573 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `574 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -129,13 +129,13 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q tests
 ```
 
-3. Create the configuration, with mode `600`. Dibab reads the first file found among: the `--config <path>` option, the `DIBAB_CONFIG` environment variable, `~/.config/dibab/config.json` (or `$XDG_CONFIG_HOME/dibab/config.json`), then `config.json` next to `dibab.py`. An option or a variable that names a missing file stops the program: it never falls back on another file.
+3. Write the configuration in the language of your session. Dibab reads the first file found among: the `--config <path>` option, the `DIBAB_CONFIG` environment variable, `~/.config/dibab/config.json` (or `$XDG_CONFIG_HOME/dibab/config.json`), then `config.json` next to `dibab.py`. An option or a variable that names a missing file stops the program: it never falls back on another file.
 
 ```bash
-mkdir -p ~/.config/dibab
-cp config.exemple.json ~/.config/dibab/config.json
-chmod 600 ~/.config/dibab/config.json
+venv/bin/python dibab.py --initialiser
 ```
+
+`--initialiser` writes the configuration in the language of your session: the check folder, its prefix and the duplicate folder take the names of that language. It creates the file with mode `600` in a folder with mode `700` and never rewrites a file that already exists; a later session in another language does not rename them.
 
 4. Create the vault of each domain and read the type of its file system:
 
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # lists every option, in the language of 
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Dibab 0.9.0-alpha — session 2026-11-25T19:36:08
+Dibab 0.9.0-alpha — session 2026-11-25T20:50:08
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:08.jsonl
+  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T20:50:08.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M

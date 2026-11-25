@@ -79,8 +79,8 @@ Los mensajes se escriben en inglés, francés, alemán o español. El idioma se 
 **LC_ALL**, **LC_MESSAGES** y **LANG** que no esté vacía: lo que precede al primer **\_**, **.** o **@** da **en**, **fr**, **de** o **es**;
 cualquier otro valor, **C**, **POSIX** o ninguna variable da inglés. Los nombres de las opciones, los símbolos de estado de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), los identificadores de las comprobaciones y la
-línea de **\--version** nunca cambian. Las claves y los textos libres que se escriben en el disco (diarios, planes, informes) están en
-inglés, sea cual sea el idioma de la sesión; los símbolos de acción (**classe**, **a_verifier**, **doublon**) y los nombres de ámbito
+línea de **\--version** nunca cambian. Las claves que se escriben en el disco (diarios, planes, informes) son identificadores fijos escritos
+en francés (**evenement**, **horodatage**), y los textos libres que contienen están en inglés, sea cual sea el idioma de la sesión; los símbolos de acción (**classe**, **a_verifier**, **doublon**) y los nombres de ámbito
 nunca cambian.
 
 # INSTALACIÓN

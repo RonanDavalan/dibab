@@ -80,8 +80,8 @@ Les messages sont écrits en anglais, en français, en allemand ou en espagnol. 
 des variables **LC_ALL**, **LC_MESSAGES** et **LANG** qui n'est pas vide : ce qui précède le premier **\_**, **.** ou **@** donne **en**,
 **fr**, **de** ou **es** ; toute autre valeur, **C**, **POSIX** ou aucune variable donne l'anglais. Les noms d'option, les jetons d'état de
 **\--diagnose** (**OK**, **AVERTISSEMENT**, **ÉCHEC**, **NON_CONFIGURÉ**, **NON_VÉRIFIÉ**), les identifiants des vérifications et la ligne de
-**\--version** ne changent jamais. Les clés et les textes libres écrits sur le disque (journaux, plans, rapports) sont en anglais, quelle
-que soit la langue de la session ; les jetons d'action (**classe**, **a_verifier**, **doublon**) et les noms de domaine ne changent jamais.
+**\--version** ne changent jamais. Les clés écrites sur le disque (journaux, plans, rapports) sont des identifiants fixes écrits en français
+(**evenement**, **horodatage**), et les textes libres qui s'y trouvent sont en anglais, quelle que soit la langue de la session ; les jetons d'action (**classe**, **a_verifier**, **doublon**) et les noms de domaine ne changent jamais.
 
 # INSTALLATION
 

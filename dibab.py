@@ -183,8 +183,12 @@ def parametres_classification_ou_sortir(configuration):
 def cles_absentes_classement(configuration):
     requis = [("destination", "repertoire_doublon"), ("destination", "sous_repertoire_logs"),
               ("destination", "vide_poches_prefixe"), ("nommage", "suffixe_collision"),
+              ("nommage", "prefixe_a_verifier"),
               ("arborescence", "personne_inconnue"), ("inventaire", "exclusions")]
     absents = [".".join(cle) for cle in requis if cle[1] not in configuration.get(cle[0], {})]
+    for domaine, destination in configuration.get("destinations", {}).items():
+        absents += [f"destinations.{domaine}.{cle}" for cle in ("sous_repertoire_classement", "sous_repertoire_a_verifier")
+                    if cle not in destination]
     absents += [f"arborescence.{domaine}" for domaine in mod_domaines.COFFRES
                 if domaine not in configuration.get("arborescence", {})]
     return absents
