@@ -248,6 +248,8 @@ def analyser_arguments():
                         help=traduire("aide_autoriser_google"))
     groupe.add_argument("--diagnose", action="store_true",
                         help=traduire("aide_diagnose"))
+    groupe.add_argument("--initialiser", action="store_true",
+                        help=traduire("aide_initialiser"))
     parseur.add_argument("--version", action="version", version=f"dibab {VERSION}",
                          help=traduire("aide_version"))
     parseur.add_argument("--config", type=Path, default=None, metavar=traduire("aide_meta_chemin"),
@@ -497,7 +499,7 @@ def extraire_candidats(configuration, parametres, candidats, modele_ocr, journal
 
 
 def libelles_motifs():
-    """Le libellé de chaque motif d'`À_VÉRIFIER/`, liste fermée de la cascade."""
+    """Le libellé de chaque motif de la zone à vérifier, liste fermée de la cascade."""
     return {mod_cascade.MOTIF_AUCUN_TEXTE: traduire("motif_aucun_texte"),
             mod_cascade.MOTIF_TRI_INCERTAIN: traduire("motif_tri_incertain"),
             mod_cascade.MOTIF_PIECE_COMMUNE: traduire("motif_piece_commune"),
@@ -546,7 +548,7 @@ def classer_candidats(configuration, candidats, extractions, modeles, journal):
         for cible, chemin in zip(plan.cibles if plan else (), plan.chemins if plan else ()):
             suite = " " + traduire("suite_non_deplace") if cible.zone == mod_domaines.A_VERIFIER else ""
             if mod_deplacement.prevoir(resultat.chemin, plan, configuration, registre) == mod_deplacement.DOUBLON:
-                suite += " " + traduire("suite_doublon")
+                suite += " " + traduire("suite_doublon", repertoire=configuration["destination"]["repertoire_doublon"])
             ecrire(traduire("routage_destination", coffre=cible.coffre, zone=cible.zone, chemin=chemin, suite=suite), 6)
         fine = resultat.classification
         journal.ajouter(
@@ -604,7 +606,8 @@ def classer_et_deplacer(configuration, candidats, extractions, modeles, journal,
             ecrire(traduire("classement_echec", nom=resultat.chemin.name, raison=deplacement.raison), 2)
         else:
             if deplacement.action == mod_deplacement.DOUBLON:
-                ecrire(traduire("classement_doublon", nom=resultat.chemin.name), 2)
+                ecrire(traduire("classement_doublon", nom=resultat.chemin.name,
+                                repertoire=configuration["destination"]["repertoire_doublon"]), 2)
             else:
                 ecrire(traduire("classement_action", nom=resultat.chemin.name, action=deplacement.action), 2)
             for destination in deplacement.destinations:
@@ -638,7 +641,8 @@ def executer_inventaire(configuration, journal):
         resume = plan["resume"]
         ecrire(traduire("inventaire_coffre", domaine=f"{domaine:<14s}", documents=resume["documents"], conserver=resume["conserver"],
                         a_classer=resume["a_classer"], doublons=resume["doublons_internes"],
-                        presents=resume["presents_dans_autre_coffre"], a_verifier=resume["a_verifier_non_listes"]), 2)
+                        presents=resume["presents_dans_autre_coffre"], a_verifier=resume["a_verifier_non_listes"],
+                        sous_repertoire=configuration["destinations"][domaine]["sous_repertoire_a_verifier"]), 2)
         ecrire(traduire("inventaire_plan_ecrit", chemin=ecrits[domaine]), 6)
         journal.ajouter("inventaire", coffre=domaine, **resume)
     print()
@@ -684,6 +688,25 @@ def diagnostiquer_installation(option):
     return mod_diagnostic.code_de_retour(verifications)
 
 
+def initialiser_installation(option):
+    """`--initialiser` : écrit la configuration de la langue de la session, sans jamais réécrire un fichier existant."""
+    destination = mod_installation.destination_initialisation(option, os.environ)
+    exemple = mod_installation.trouver_exemple(__file__)
+    if exemple is None:
+        erreur_console(traduire("initialiser_exemple_absent"))
+        return 1
+    try:
+        ecrit = mod_installation.initialiser_configuration(destination, exemple, mod_messages.langue())
+    except (OSError, mod_installation.ErreurConfiguration) as erreur:
+        erreur_console(traduire("initialiser_echec", chemin=destination, erreur=texte_de(erreur)))
+        return 1
+    if ecrit:
+        ecrire(traduire("initialiser_ecrit", chemin=destination))
+    else:
+        ecrire(traduire("initialiser_existante", chemin=destination))
+    return 0
+
+
 def main():
     """Lance la session, puis ramène les modes de l'état par défaut quelle qu'en soit l'issue."""
     global DOSSIER_ETAT_PAR_DEFAUT
@@ -698,6 +721,8 @@ def main():
 
 def principal():
     arguments = analyser_arguments()
+    if arguments.initialiser:
+        return initialiser_installation(arguments.config)
     if arguments.diagnose:
         return diagnostiquer_installation(arguments.config)
     if arguments.autoriser_google:

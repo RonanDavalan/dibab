@@ -8,11 +8,15 @@ qui ferait travailler le produit sur d'autres coffres que ceux désignés.
 
 import json
 import os
+import tempfile
 from pathlib import Path
+
+from modules import defauts_langue
 from modules.messages import texte_de, traduire
 
 NOM_DOSSIER = "dibab"
 VARIABLE_CONFIGURATION = "DIBAB_CONFIG"
+EXEMPLE_PAQUET = Path("/usr/share/doc/dibab/examples/config.exemple.json")
 DEFAUTS_SUIVI = {
     "fichier_date": "dernier_scan.json",
     "journal": "journal.jsonl",
@@ -84,6 +88,51 @@ def lire_configuration(chemin):
     if not isinstance(configuration, dict):
         raise ErreurConfiguration(traduire("config_objet_absent", chemin=chemin))
     return configuration
+
+
+def trouver_exemple(chemin_du_script):
+    """Rend `config.exemple.json` du dépôt ou du paquet, ou None s'il n'existe à aucun des deux endroits."""
+    for candidat in (Path(chemin_du_script).resolve().parent / "config.exemple.json", EXEMPLE_PAQUET):
+        if candidat.is_file():
+            return candidat
+    return None
+
+
+def destination_initialisation(option, environ):
+    """Rend le fichier que `--initialiser` écrit : l'option, puis `DIBAB_CONFIG`, puis l'emplacement XDG."""
+    if option:
+        return Path(option)
+    variable = environ.get(VARIABLE_CONFIGURATION)
+    if variable:
+        return Path(variable)
+    return dossier_configuration_xdg(environ) / "config.json"
+
+
+def initialiser_configuration(destination, exemple, langue=None):
+    """Écrit la configuration initiale de `langue` ; rend True si elle est écrite, False si le fichier existe déjà.
+
+    Le fichier est créé en 600 dans un dossier en 700 ; une configuration existante n'est jamais réécrite.
+    """
+    configuration = defauts_langue.appliquer(lire_configuration(exemple), langue)
+    destination = Path(destination)
+    if not destination.parent.exists():
+        destination.parent.mkdir(parents=True)
+        destination.parent.chmod(0o700)
+    descripteur, provisoire = tempfile.mkstemp(dir=destination.parent, prefix=".config-", suffix=".json")
+    try:
+        with os.fdopen(descripteur, "w", encoding="utf-8") as fichier:
+            json.dump(configuration, fichier, ensure_ascii=False, indent=2)
+            fichier.write("\n")
+            fichier.flush()
+            os.fsync(fichier.fileno())
+        os.chmod(provisoire, 0o600)
+        try:
+            os.link(provisoire, destination)
+        except FileExistsError:
+            return False
+        return True
+    finally:
+        Path(provisoire).unlink(missing_ok=True)
 
 
 def appliquer_defauts_suivi(configuration, environ):

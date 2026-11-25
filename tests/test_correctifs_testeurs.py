@@ -12,7 +12,7 @@ from types import SimpleNamespace
 import pytest
 
 import dibab
-from modules import deplacement, inventaire, journal_actions, messages, rapatriement, rollback, sources_imap, verrou
+from modules import defauts_langue, deplacement, inventaire, journal_actions, messages, rapatriement, rollback, sources_imap, verrou
 from modules.pieces_communes import empreinte_sha256
 from tests.test_classement_execute import banc, lancer  # noqa: F401
 
@@ -81,15 +81,18 @@ def test_le_verrou_pris_dit_que_le_processus_vit_et_son_nom(tmp_path):
 
 @pytest.mark.parametrize("langue", messages.LANGUES)
 def test_la_ligne_d_inventaire_nomme_a_verifier_et_son_compte(langue):
+    valeurs = defauts_langue.valeurs(langue)
     ligne = messages.dictionnaire(langue)["inventaire_coffre"].format(
-        domaine="personnel", documents=4, conserver=3, a_classer=1, doublons=1, presents=1, a_verifier=7)
-    assert "À_VÉRIFIER" in ligne and "7" in ligne
+        domaine="personnel", documents=4, conserver=3, a_classer=1, doublons=1, presents=1, a_verifier=7,
+        sous_repertoire=valeurs["sous_repertoire_a_verifier"])
+    assert valeurs["sous_repertoire_a_verifier"] in ligne and "7" in ligne
 
 
 @pytest.mark.parametrize("langue", messages.LANGUES)
 def test_le_message_du_doublon_dit_que_la_source_est_retiree(langue):
-    texte = messages.dictionnaire(langue)["classement_doublon"].format(nom="facture.pdf")
-    assert "doublon/" in texte and "facture.pdf" in texte
+    repertoire = defauts_langue.valeurs(langue)["repertoire_doublon"]
+    texte = messages.dictionnaire(langue)["classement_doublon"].format(nom="facture.pdf", repertoire=repertoire)
+    assert f"{repertoire}/" in texte and "facture.pdf" in texte
 
 
 def test_le_journal_et_le_suivi_sont_prives(tmp_path):

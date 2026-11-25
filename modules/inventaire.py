@@ -64,7 +64,7 @@ def lister(domaine, configuration):
 
 
 def compter_a_verifier(racine, sous_repertoire, extensions):
-    """Compte les documents du dossier À_VÉRIFIER, que l'inventaire ne liste pas : ils attendent un verdict, pas une migration."""
+    """Compte les documents du dossier à vérifier, que l'inventaire ne liste pas : ils attendent un verdict, pas une migration."""
     dossier = Path(racine) / sous_repertoire
     if not dossier.is_dir():
         return 0
@@ -106,7 +106,8 @@ def construire_plans(configuration, maintenant=None):
             elif empreinte:
                 premiers[empreinte] = str(relatif)
             if action["doublon_de"]:
-                proposition = traduire("inventaire_proposition_doublon", doublon_de=action["doublon_de"])
+                proposition = traduire("inventaire_proposition_doublon", doublon_de=action["doublon_de"],
+                                       repertoire=configuration["destination"]["repertoire_doublon"])
             elif classe:
                 proposition = traduire("inventaire_proposition_conserver")
             else:
