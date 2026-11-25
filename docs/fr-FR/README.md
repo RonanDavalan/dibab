@@ -107,7 +107,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `557 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `558 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
