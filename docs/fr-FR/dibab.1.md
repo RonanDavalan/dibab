@@ -27,7 +27,7 @@ extrait le texte de chaque document, écarte ce qui n'est pas administratif, pui
 personnel ou professionnel, par consensus de plusieurs modèles de langage. Chaque document est renommé et déplacé dans le coffre de
 son domaine, avec un journal que **\--rollback** peut défaire. Il ne détruit jamais un document : l'original n'est retiré qu'après une
 copie vérifiée ; il ne modifie jamais une boîte mail ni une machine distante, et ne déplace rien dont il n'est pas sûr : le doute mène à
-un dossier nommé *À_VÉRIFIER*, réglable par `sous_repertoire_a_verifier`.
+un dossier nommé *À_VÉRIFIER*, réglable par `sous_repertoire_a_verifier`. Un document dont l'empreinte est déjà classée est copié, après vérification, dans le dossier nommé par `destination.repertoire_doublon`, `doublon/`.
 
 Les modèles de langage sont ceux d'Ollama, qui tourne sur la même machine. Ollama et ses modèles s'installent à part, par
 l'utilisateur, depuis le site d'Ollama : Dibab ne contient ni l'un ni les autres. Listez les modèles avec **ollama list**, puis

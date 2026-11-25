@@ -27,7 +27,7 @@ extrahiert den Text jedes Dokuments, sondert aus, was nicht administrativ ist, u
 oder beruflich, im Konsens mehrerer Sprachmodelle ein. Jedes Dokument wird umbenannt und in den Tresor seines Bereichs verschoben,
 mit einem Journal, das **\--rollback** rückgängig machen kann. Es zerstört nie ein Dokument: Das Original wird erst nach einer geprüften
 Kopie entfernt; es verändert nie ein Postfach oder eine entfernte Maschine und bewegt nichts, bei dem es nicht sicher ist: Zweifel führen
-in einen Ordner namens *ZU_PRÜFEN*, einstellbar über `sous_repertoire_a_verifier`.
+in einen Ordner namens *ZU_PRÜFEN*, einstellbar über `sous_repertoire_a_verifier`. Ein Dokument, dessen Fingerabdruck bereits abgelegt ist, wird nach einer Prüfung in den durch `destination.repertoire_doublon` benannten Ordner `Duplikat/` kopiert.
 
 Die Sprachmodelle sind die von Ollama, das auf derselben Maschine läuft. Ollama und seine Modelle werden vom Benutzer getrennt von der
 Ollama-Website installiert: Dibab enthält weder das eine noch die anderen. Listen Sie die Modelle mit **ollama list** auf und
