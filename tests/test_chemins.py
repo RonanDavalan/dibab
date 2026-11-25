@@ -1,6 +1,5 @@
 """Tests de modules/chemins.py."""
 
-import os
 
 from modules import chemins
 

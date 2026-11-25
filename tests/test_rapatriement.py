@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import dibab
-from modules import journal_actions, rapatriement, rapport, scanner_ssh, sources_distantes
+from modules import journal_actions, rapatriement, rapport, sources_distantes
 from tests.faux_ssh import installer
 from tests.test_classement_execute import LOT, TEXTES, arbre, banc, lancer  # noqa: F401
 

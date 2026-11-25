@@ -1,7 +1,6 @@
 # Tests du module suivi — persistance de dernier_scan.json.
 
 from datetime import datetime
-from pathlib import Path
 
 from modules import suivi
 

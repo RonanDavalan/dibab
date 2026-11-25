@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from modules import cascade, domaines
+from modules import cascade
 from modules.domaines import A_VERIFIER, CLASSEMENT, PERSONNEL, PROFESSIONNEL, Cible, router
 from tests.textes_factices import CATEGORIES, EMETTEURS_CONNUS, PERSONNES, TEXTES
 

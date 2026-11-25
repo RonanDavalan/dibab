@@ -2,13 +2,12 @@
 
 import json
 import socket
-from datetime import datetime
 from functools import partial
 
 import pytest
 
 import dibab
-from modules import classification, verrou
+from modules import verrou
 from modules.extraction import Extraction
 from tests.textes_factices import CATEGORIES, CONFIG_CLASSEMENT, EMETTEURS_CONNUS, PERSONNES, TEXTES
 
