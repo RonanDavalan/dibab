@@ -1,5 +1,19 @@
 # Dibab
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://dibab.davalan.fr/images/logo-sombre.svg">
+    <img src="https://dibab.davalan.fr/images/logo-clair.svg" alt="Logotipo de Dibab" width="320">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licencia: AGPL v3"></a>
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Versión: 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian y Ubuntu">
+</p>
+
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | **Español**
 
 Dibab («elegir» en bretón) recopila, analiza y clasifica los documentos administrativos personales de un hogar (facturas, cartas, contratos, avisos de organismos) en un árbol normalizado, y lleva un diario de todo lo que hace. Funciona en modo soberano: ningún documento ni texto de documento sale de la red local, sin modelo remoto ni nube. Las únicas conexiones hacia el exterior son las que usted declara: el buzón IMAP que Dibab lee, y el consentimiento OAuth2 de Google cuando ese buzón es una cuenta Google. Los modelos de lenguaje son los de [Ollama](https://ollama.com/), en su propia máquina.
@@ -250,6 +264,8 @@ Códigos de salida:
 | `5` | otra ejecución mantiene el bloqueo `dibab.verrou` (junto a `suivi.fichier_date`) |
 
 Cada traslado se anota en el diario de acciones (`suivi.journal`, una línea JSON por acción, sin texto de documento) y cada sesión deja un informe en `suivi.sessions`. `--rollback --session <marca de tiempo>` deshace una sesión concreta: el documento vuelve a su lugar de origen, copia verificada por huella.
+
+Un documento cuya huella ya está archivada se copia en la carpeta `doublon` en la raíz de la bóveda, se verifica la copia y se retira de la fuente, como un documento archivado; vaciar esa carpeta le corresponde a usted. Una ejecución rechazada porque otra mantiene el bloqueo deja una línea `session_refusee` en su diario de sesión.
 
 ### Página de manual
 

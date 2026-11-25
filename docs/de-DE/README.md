@@ -1,5 +1,19 @@
 # Dibab
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://dibab.davalan.fr/images/logo-sombre.svg">
+    <img src="https://dibab.davalan.fr/images/logo-clair.svg" alt="Dibab-Logo" width="320">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Lizenz: AGPL v3"></a>
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian und Ubuntu">
+</p>
+
 [English](../../README.md) | [Français](../fr-FR/README.md) | **Deutsch** | [Español](../es-ES/README.md)
 
 Dibab („wählen“ auf Bretonisch) sammelt, analysiert und archiviert die persönlichen Verwaltungsdokumente eines Haushalts (Rechnungen, Briefe, Verträge, Bescheide von Behörden) in einer einheitlichen Ordnerstruktur und führt ein Journal über alles, was es tut. Es arbeitet souverän: Kein Dokument und kein Dokumenttext verlässt das lokale Netz, ohne Remote-Modell und ohne Cloud. Nach außen gehen nur die Verbindungen, die Sie angeben: das IMAP-Postfach, das Dibab liest, und die OAuth2-Zustimmung von Google, wenn dieses Postfach ein Google-Konto ist. Die Sprachmodelle sind die von [Ollama](https://ollama.com/) auf Ihrem eigenen Rechner.
@@ -250,6 +264,8 @@ Exit-Codes:
 | `5` | ein anderer Lauf hält die Sperre `dibab.verrou` (neben `suivi.fichier_date`) |
 
 Jede Verschiebung wird im Aktionsjournal festgehalten (`suivi.journal`, eine JSON-Zeile pro Aktion, ohne Dokumenttext), und jede Sitzung hinterlässt einen Bericht in `suivi.sessions`. `--rollback --session <Zeitstempel>` macht eine bestimmte Sitzung rückgängig: Das Dokument kehrt an seinen ursprünglichen Platz zurück, die Kopie per Fingerabdruck geprüft.
+
+Ein Dokument, dessen Fingerabdruck bereits abgelegt ist, wird in den Ordner `doublon` im Stammverzeichnis des Tresors kopiert, die Kopie wird geprüft, und das Dokument wird wie ein abgelegtes aus der Quelle entfernt; diesen Ordner zu leeren, liegt bei Ihnen. Ein Lauf, der abgelehnt wird, weil ein anderer die Sperre hält, hinterlässt eine Zeile `session_refusee` in seinem Sitzungsjournal.
 
 ### Handbuchseite
 

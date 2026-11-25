@@ -1,5 +1,19 @@
 # Dibab
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://dibab.davalan.fr/images/logo-sombre.svg">
+    <img src="https://dibab.davalan.fr/images/logo-clair.svg" alt="Dibab logo" width="320">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian and Ubuntu">
+</p>
+
 **English** | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
 
 Dibab ("to choose" in Breton) collects, analyses and files the personal administrative documents of a household (invoices, letters, contracts, notices from public bodies) into a normalised tree, and keeps a journal of everything it does. It runs in sovereign mode: no document and no text of a document leaves the local network, with no remote model and no cloud. The only connections to the outside are the ones you declare: the IMAP mailbox that Dibab reads, and Google's OAuth2 consent when that mailbox is a Google account. The language models are those of [Ollama](https://ollama.com/), on your own machine.

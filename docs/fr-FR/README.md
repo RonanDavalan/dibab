@@ -1,5 +1,19 @@
 # Dibab
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://dibab.davalan.fr/images/logo-sombre.svg">
+    <img src="https://dibab.davalan.fr/images/logo-clair.svg" alt="Logo de Dibab" width="320">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licence : AGPL v3"></a>
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version : 0.9.0-alpha">
+  <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian et Ubuntu">
+</p>
+
 [English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md)
 
 Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
@@ -250,6 +264,8 @@ Codes de sortie :
 | `5` | une autre exécution tient le verrou `dibab.verrou` (à côté de `suivi.fichier_date`) |
 
 Chaque déplacement s'inscrit dans le journal des actions (`suivi.journal`, une ligne JSON par action, sans texte de document) et chaque session laisse un rapport dans `suivi.sessions`. `--rollback --session <horodatage>` annule une session précise : le document revient à sa place d'origine, copie vérifiée par empreinte.
+
+Un document dont l'empreinte est déjà classée est copié dans le dossier `doublon` à la racine du coffre, la copie est vérifiée, puis il est retiré de la source, comme un document classé ; vider ce dossier vous revient. Une exécution refusée parce qu'une autre tient le verrou laisse une ligne `session_refusee` dans son journal de session.
 
 ### Page de manuel
 
