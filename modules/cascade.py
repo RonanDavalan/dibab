@@ -40,7 +40,7 @@ def _domaine_rendu(fine):
 
 
 def motif_a_verifier(resultat, pieces_communes=()):
-    """Rend, dans la liste fermée `MOTIFS`, la raison pour laquelle un document va en `À_VÉRIFIER/`.
+    """Rend, dans la liste fermée `MOTIFS`, la raison pour laquelle un document va dans la zone à vérifier.
 
     Le motif ne cite rien du document : la liste est fermée pour que l'écran et le journal ne puissent
     porter ni destinataire ni extrait.
@@ -85,7 +85,7 @@ def _choisir_classification(fines, seuil):
     """Rend (classification retenue, confiance) d'après l'accord des modèles de classification.
 
     Un domaine sous le seuil, une égalité ou une sortie invalide valent incertain : le signal reste
-    visible pour orienter l'`À_VÉRIFIER/`, le document n'entre jamais dans `Classement/`.
+    visible pour orienter la zone à vérifier, le document n'entre jamais dans la zone classée.
     """
     domaine, confiance = domaines.consensus([f.verdict.domaine if f.valide else domaines.INCERTAIN for f in fines])
     if domaine in domaines.DOMAINES and domaine != domaines.INCERTAIN and confiance >= seuil:

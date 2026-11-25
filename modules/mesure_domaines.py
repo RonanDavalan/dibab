@@ -32,6 +32,8 @@ def cles_absentes(configuration):
     absentes = [f"mesure.{cle}" for cle in CLES_MESURE if cle not in mesure]
     absentes += [f"ollama.roles.{role}" for role in ("ocr", "tri_rapide", "classification")
                  if role not in configuration.get("ollama", {}).get("roles", {})]
+    if "vide_poches_prefixe" not in configuration.get("destination", {}):
+        absentes.append("destination.vide_poches_prefixe")
     return absentes + [cle for cle in ("extraction", "classification", "extensions_cibles", "destinations")
                        if cle not in configuration]
 
@@ -48,7 +50,7 @@ def dossiers_exclus(configuration):
 def lister_candidats(racine, configuration):
     """Rend, triés, les PDF et images de la zone classée d'un coffre ; vide-poches et exclusions écartés."""
     extensions = {extension.lower() for extension in configuration["extensions_cibles"]}
-    prefixe = configuration.get("destination", {}).get("vide_poches_prefixe", "vide-poches-")
+    prefixe = configuration["destination"]["vide_poches_prefixe"]
     exclus = dossiers_exclus(configuration)
     candidats = []
     for dossier, sous_dossiers, fichiers in os.walk(racine, followlinks=False):

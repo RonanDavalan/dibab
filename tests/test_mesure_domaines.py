@@ -41,6 +41,12 @@ def ecrire(chemin, contenu=b"x"):
     return chemin
 
 
+def test_sans_prefixe_de_vide_poches_la_mesure_nomme_la_cle(tmp_path):
+    reglages = configuration(tmp_path / "a", tmp_path / "b")
+    del reglages["destination"]["vide_poches_prefixe"]
+    assert "destination.vide_poches_prefixe" in mesure_domaines.cles_absentes(reglages)
+
+
 def test_les_dossiers_exclus_ne_sont_pas_tires(tmp_path):
     racine = tmp_path / "coffre"
     gardes = [ecrire(racine / "R" / "a.pdf"), ecrire(racine / "R" / "sous" / "b.PNG")]
