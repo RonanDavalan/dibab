@@ -100,18 +100,18 @@ dibab --diagnose
 最终目录树（`~` 是您的主目录；请按您的安装调整路径）：
 
 ```
-~/applications/dibab/               the cloned repository
-├── dibab.py                        the entry point
-├── modules/                             one file per responsibility
-│   └── langues/                         the message dictionaries: en, fr, de, es, zh
-├── docs/                                the translations of this README and the manual page
-├── tests/                               the tests
-├── config.exemple.json                  the example configuration, versioned
-└── venv/                                the Python environment, created at step 2
-~/.config/dibab/config.json         your configuration, created at step 3, never versioned
-~/.local/state/dibab/               the state, the journal and the session reports (default location)
-~/Classement/Personnel/                  the vault of the personal domain
-~/Classement/Professionnel/              the vault of the professional domain
+~/applications/dibab/               克隆的仓库
+├── dibab.py                        入口文件
+├── modules/                             每项职责一个文件
+│   └── langues/                         消息词典： en, fr, de, es, zh
+├── docs/                                本 README 和手册页的译文
+├── tests/                               测试
+├── config.exemple.json                  示例配置，纳入版本管理
+└── venv/                                Python 环境，在第 2 步创建
+~/.config/dibab/config.json         您的配置，在第 3 步创建，从不纳入版本管理
+~/.local/state/dibab/               状态、日志和运行报告（默认位置）
+~/Classement/Personnel/                  个人领域的保险库
+~/Classement/Professionnel/              业务领域的保险库
 ```
 
 1. 克隆仓库：
@@ -169,7 +169,7 @@ venv/bin/python dibab.py --diagnose
 `--version` 输出一行后停止：
 
 ```
-dibab 0.9.0-alpha
+dibab 0.9.1-alpha
 ```
 
 `--diagnose` 每项检查输出一行 `<STATE> <identifier> : <message>`，最后给出汇总。在没有配置也没有 Ollama 的全新主目录中，输出如下，退出码为 `0`：
@@ -218,25 +218,25 @@ LC_ALL=zh_CN.UTF-8 venv/bin/python dibab.py --diagnose
 
 ```bash
 cd ~/applications/dibab
-venv/bin/python dibab.py --dry-run     # simulation (default): nothing moves
-venv/bin/python dibab.py --execute     # real filing
-venv/bin/python dibab.py --rollback    # undoes the last filing session
-venv/bin/python dibab.py --inventaire  # reads what each vault already holds, nothing is moved
-venv/bin/python dibab.py --diagnose    # checks the installation, the configuration, Ollama and the vault of each domain, writes nothing
-venv/bin/python dibab.py --version     # prints one line, `dibab <version>`, and stops
-venv/bin/python dibab.py --dry-run --config ~/other/config.json   # reads that configuration
-venv/bin/python dibab.py --help        # lists every option, in the language of the session
+venv/bin/python dibab.py --dry-run     # 模拟（默认）：不移动任何内容
+venv/bin/python dibab.py --execute     # 实际归档
+venv/bin/python dibab.py --rollback    # 撤销最近一次归档
+venv/bin/python dibab.py --inventaire  # 读取各保险库中已有的内容，不移动任何文件
+venv/bin/python dibab.py --diagnose    # 检查安装、配置、Ollama 和各领域的保险库，不写入任何内容
+venv/bin/python dibab.py --version     # 输出一行 `dibab <version>` 后停止
+venv/bin/python dibab.py --dry-run --config ~/other/config.json   # 读取该配置
+venv/bin/python dibab.py --help        # 以会话语言列出所有选项
 ```
 
 始终先用 `--dry-run`，逐一阅读建议的目标位置，然后再运行 `--execute`。第一次处理较慢（每份文件由多个模型阅读）；错误输出显示进度，即模型序号与文件序号。下面是对一个空的来源文件夹执行 `--dry-run` 的结果，需要 Ollama 和三个角色的模型：
 
 ```
-Dibab 0.9.0-alpha — 本次运行 2026-11-25T23:54:26
+Dibab 0.9.1-alpha — 本次运行 2026-11-25T23:57:38
   模式：dry-run
   配置：~/.config/dibab/config.json
   保险库 personnel     ：~/Classement/Personnel — 已挂载
   保险库 professionnel ：~/Classement/Professionnel — 已挂载
-  运行日志：~/.local/state/dibab/sessions/session_2026-11-25T23:54:26.jsonl
+  运行日志：~/.local/state/dibab/sessions/session_2026-11-25T23:57:38.jsonl
   模型 ocr           ：glm-ocr:latest
   模型 tri_rapide    ：gemma3:4b
   模型 classification：granite4.2:8b-Q5_K_M
