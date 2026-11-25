@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="Version: 0.9.1-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian and Ubuntu">
 </p>
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # lists every option, in the language of 
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Dibab 0.9.1-alpha — session 2026-11-25T23:57:35
+Dibab 0.9.1-alpha — session 2026-11-26T00:07:08
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T23:57:35.jsonl
+  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-26T00:07:08.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M
@@ -314,7 +314,7 @@ Open the address that is printed in a browser, accept the "unverified applicatio
 - Dibab does not mount, encrypt or synchronise any vault, and erases no document: disk space and backups are up to you.
 - The categories and the known senders of `config.exemple.json` are generic; adapt them to your country.
 - The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.
-- The project is young: version 0.9.1-alpha, no continuous integration.
+- The project is young: version 0.9.0-alpha, no continuous integration.
 
 ## Contributing, reporting a vulnerability
 

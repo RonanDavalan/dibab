@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="许可证：AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="版本：0.9.1-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="版本：0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian 和 Ubuntu">
 </p>
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # 以会话语言列出所有选项
 始终先用 `--dry-run`，逐一阅读建议的目标位置，然后再运行 `--execute`。第一次处理较慢（每份文件由多个模型阅读）；错误输出显示进度，即模型序号与文件序号。下面是对一个空的来源文件夹执行 `--dry-run` 的结果，需要 Ollama 和三个角色的模型：
 
 ```
-Dibab 0.9.1-alpha — 本次运行 2026-11-25T23:57:38
+Dibab 0.9.1-alpha — 本次运行 2026-11-26T00:07:10
   模式：dry-run
   配置：~/.config/dibab/config.json
   保险库 personnel     ：~/Classement/Personnel — 已挂载
   保险库 professionnel ：~/Classement/Professionnel — 已挂载
-  运行日志：~/.local/state/dibab/sessions/session_2026-11-25T23:57:38.jsonl
+  运行日志：~/.local/state/dibab/sessions/session_2026-11-26T00:07:10.jsonl
   模型 ocr           ：glm-ocr:latest
   模型 tri_rapide    ：gemma3:4b
   模型 classification：granite4.2:8b-Q5_K_M
@@ -314,7 +314,7 @@ venv/bin/python dibab.py --autoriser-google imap-google-exemple
 - Dibab 不挂载、不加密、不同步任何保险库，也不抹除任何文件：磁盘空间和备份由您负责。
 - `config.exemple.json` 中的类别和已知发件机构是通用的，请按您所在国家调整。
 - Google 控制台中的步骤取决于 Google 的界面，界面会变化：概念仍以其 OAuth2 文档为准。
-- 项目尚年轻：版本 0.9.1-alpha，没有持续集成。
+- 项目尚年轻：版本 0.9.0-alpha，没有持续集成。
 
 ## 参与贡献与报告漏洞
 

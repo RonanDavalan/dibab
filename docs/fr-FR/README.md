@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Licence : AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="Version : 0.9.1-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version : 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian et Ubuntu">
 </p>
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # liste toutes les options, dans la langu
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Dibab 0.9.1-alpha — session 2026-11-25T23:57:36
+Dibab 0.9.1-alpha — session 2026-11-26T00:07:08-2
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T23:57:36.jsonl
+  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-26T00:07:08-2.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M
@@ -314,7 +314,7 @@ Ouvrez l'adresse affichée dans un navigateur, acceptez l'avertissement « appl
 - Dibab ne monte, ne chiffre et ne synchronise aucun coffre, et n'efface aucun document : l'espace disque et les sauvegardes sont à votre charge.
 - Les catégories et les émetteurs connus de `config.exemple.json` sont génériques ; adaptez-les à votre pays.
 - Les gestes sur la console Google dépendent de l'interface de Google, qui change : les notions restent celles de sa documentation OAuth2.
-- Le projet est jeune : version 0.9.1-alpha, pas d'intégration continue.
+- Le projet est jeune : version 0.9.0-alpha, pas d'intégration continue.
 
 ## Contribuer, signaler une faille
 

@@ -40,7 +40,7 @@ from modules import verrou as mod_verrou
 from modules.messages import ParseurTraduit, ecrire, texte_de, traduire
 
 
-VERSION = "0.9.1-alpha"
+VERSION = "0.9.0-alpha"
 
 SUITE = "\n" + " " * 8
 

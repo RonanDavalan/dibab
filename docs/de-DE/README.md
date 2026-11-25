@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg" alt="Lizenz: AGPL v3"></a>
-  <img src="https://img.shields.io/badge/Version-0.9.1--alpha-yellow.svg" alt="Version: 0.9.1-alpha">
+  <img src="https://img.shields.io/badge/Version-0.9.0--alpha-yellow.svg" alt="Version: 0.9.0-alpha">
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Linux-Debian_%C2%B7_Ubuntu-blue.svg" alt="Debian und Ubuntu">
 </p>
@@ -231,12 +231,12 @@ venv/bin/python dibab.py --help        # listet alle Optionen, in der Sprache de
 Beginnen Sie immer mit `--dry-run`, prüfen Sie jedes vorgeschlagene Ziel und starten Sie dann `--execute`. Der erste Durchlauf ist langsam (mehrere Modelle lesen jedes Dokument); die Fehlerausgabe zeigt den Fortschritt, `Modell i/n, Dokument j/m`. Hier ein `--dry-run` auf einem leeren Quellordner, der Ollama und die drei Modelle der Rollen voraussetzt:
 
 ```
-Dibab 0.9.1-alpha — Sitzung 2026-11-25T23:57:37
+Dibab 0.9.1-alpha — Sitzung 2026-11-26T00:07:09
   Modus              : dry-run
   Konfiguration      : ~/.config/dibab/config.json
   Tresor personnel     : ~/Classement/Personnel — eingehängt
   Tresor professionnel : ~/Classement/Professionnel — eingehängt
-  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-11-25T23:57:37.jsonl
+  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-11-26T00:07:09.jsonl
   Modell ocr           : glm-ocr:latest
   Modell tri_rapide    : gemma3:4b
   Modell classification: granite4.2:8b-Q5_K_M
@@ -314,7 +314,7 @@ venv/bin/python dibab.py --autoriser-google imap-google-exemple
 - Dibab hängt keinen Tresor ein, verschlüsselt und synchronisiert keinen und löscht kein Dokument: Speicherplatz und Sicherungen liegen in Ihrer Verantwortung.
 - Die Kategorien und die bekannten Absender in `config.exemple.json` sind generisch; passen Sie sie an Ihr Land an.
 - Die Schritte in der Google-Konsole hängen von Googles Oberfläche ab, die sich ändert: Die Begriffe bleiben die seiner OAuth2-Dokumentation.
-- Das Projekt ist jung: Version 0.9.1-alpha, keine kontinuierliche Integration.
+- Das Projekt ist jung: Version 0.9.0-alpha, keine kontinuierliche Integration.
 
 ## Beitragen, eine Sicherheitslücke melden
 
