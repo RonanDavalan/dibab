@@ -34,4 +34,4 @@ For instance: a write or a deletion outside the declared scope, a modification o
 - versions older than the latest published;
 - the configuration of the user: an unencrypted vault, a `config.json` readable by everyone, an `ssh` access opened to too many keys;
 - Ollama, the language models, `ssh`, the IMAP servers and the services of Google, which have their own reporting channels;
-- a wrong classification by a model: it is a known limit (the document goes to `À_VÉRIFIER/` and `--rollback` puts it back), not a flaw.
+- a wrong classification by a model: it is a known limit (the document goes to `TO_CHECK/` and `--rollback` puts it back), not a flaw.

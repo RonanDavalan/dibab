@@ -30,7 +30,7 @@ It does:
 
 It does not:
 
-- move a file it is not sure about: doubt leads to a `À_VÉRIFIER/` folder, never to a risky filing;
+- move a file it is not sure about: doubt leads to a `TO_CHECK/` folder, never to a risky filing;
 - delete a document: it moves and copies, it does not erase (it only prunes its own old journals, chapter 8, "Inventory and rotation", of the PDF manual);
 - modify a mailbox or a remote machine;
 - run in the background: you start it by hand, and the default mode is the simulation (`--dry-run`);
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Create the Python environment and check the tests (expected: `558 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
+2. Create the Python environment and check the tests (expected: `573 passed, 9 skipped`; the 9 skipped are the trials against a running Ollama):
 
 ```bash
 python3 -m venv venv
@@ -200,7 +200,7 @@ The state tokens (`OK`, `AVERTISSEMENT`, `ÉCHEC`, `NON_CONFIGURÉ`, `NON_VÉRIF
 Diagnostic: 12 OK, 1 warning(s), 0 failure(s), 1 not configured, 0 not checked
 ```
 
-With the example configuration the diagnostic gives two warnings: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault, and the IMAP password variable, not set until you export it. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it and Ollama answers: the triage then goes through `tri_rapide`. When Ollama does not answer, it is `NON_VÉRIFIÉ` like the other models, and the three failures of that run are Ollama and the two vault folders.
+With the configuration used here the diagnostic gives one warning: the state and the journal in clear text under `~/.local/state/dibab/`, until you move them into a vault. The decision triage (`ollama.roles.tri_decision`) stays `NON_CONFIGURÉ` as long as you do not declare it and Ollama answers: the triage then goes through `tri_rapide`. When Ollama does not answer, it is `NON_VÉRIFIÉ` like the other models, and the three failures of that run are Ollama and the two vault folders.
 
 ## Language of the messages
 
@@ -211,6 +211,8 @@ LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 ```
 
 The option names, the state tokens, the identifiers, the journals and the plan files never change with the language: what is written on disk does not depend on it, so that a journal written in one language is replayed by `--rollback` in any other: the keys of the journals and the plan files (`evenement`, `horodatage`…) and the values that name an event or a category (`session_demarree`, `administratif`…) are fixed technical identifiers, written in French. The message dictionaries are the files `modules/langues/en.txt`, `fr.txt`, `de.txt` and `es.txt`.
+
+The names of the check folder, its prefix and the duplicate folder are written at initialisation in the language of the session; `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` and `destination.repertoire_doublon` set them, and a later session in another language does not rename them.
 
 ## Usage
 
@@ -229,12 +231,12 @@ venv/bin/python dibab.py --help        # lists every option, in the language of 
 Always start with `--dry-run`, read each proposed destination, then run `--execute`. The first pass is slow (several models read each document); the error output shows the progress, `model i/n, document j/m`. Here is a `--dry-run` on an empty source folder, which needs Ollama and the three models of the roles:
 
 ```
-Dibab 0.9.0-alpha — session 2026-10-29T17:33:28
+Dibab 0.9.0-alpha — session 2026-11-25T19:36:08
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Vault personnel     : ~/Classement/Personnel — mounted
   Vault professionnel : ~/Classement/Professionnel — mounted
-  Session journal    : ~/.local/state/dibab/sessions/session_2026-10-29T17:33:28.jsonl
+  Session journal    : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:08.jsonl
   Model ocr           : glm-ocr:latest
   Model tri_rapide    : gemma3:4b
   Model classification: granite4.2:8b-Q5_K_M
@@ -250,7 +252,6 @@ Scan total: 0 candidate file(s), 0 B
 Text extraction (the text is neither shown nor written)
 
 Classification (dry-run, nothing is moved; the text is neither shown nor written)
-
 ```
 
 Exit codes:
@@ -266,7 +267,7 @@ Exit codes:
 
 Every move is written in the action journal (`suivi.journal`, one JSON line per action, no document text) and every session leaves a report in `suivi.sessions`. `--rollback --session <timestamp>` undoes a given session: the document returns to its original place, the copy checked by fingerprint.
 
-A document whose fingerprint is already filed is copied to the `doublon` folder at the root of the vault, checked, then removed from the source, like a filed document; emptying that folder is up to you. A run refused because another one holds the lock leaves a `session_refusee` line in its session journal.
+A document whose fingerprint is already filed is copied to the `duplicate/` folder at the root of the vault, checked, then removed from the source, like a filed document; emptying that folder is up to you. A run refused because another one holds the lock leaves a `session_refusee` line in its session journal.
 
 ### Manual page
 
@@ -309,7 +310,7 @@ Open the address that is printed in a browser, accept the "unverified applicatio
 ## Limits
 
 - Linux only. The mount check relies on `findmnt`.
-- The filing is worth what your models are worth: on the reference instance, a first trial on 15 real documents filed 2, set 3 aside as not administrative and put 10 in `À_VÉRIFIER/`, as a matter of caution. Measure before trusting: the domain measurement is in `_outils/mesurer_domaines.py`.
+- The filing is worth what your models are worth: on the reference instance, a first trial on 15 real documents filed 2, set 3 aside as not administrative and put 10 in `TO_CHECK/`, as a matter of caution. Measure before trusting: the domain measurement is in `_outils/mesurer_domaines.py`.
 - Dibab does not mount, encrypt or synchronise any vault, and erases no document: disk space and backups are up to you.
 - The categories and the known senders of `config.exemple.json` are generic; adapt them to your country.
 - The steps in the Google console depend on Google's interface, which changes: the notions remain those of its OAuth2 documentation.

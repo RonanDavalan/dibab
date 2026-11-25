@@ -26,7 +26,7 @@ dibab - collects, analyses and files the personal administrative documents of a 
 each document, sets aside what is not administrative, then files the rest by category and by domain, personal or professional,
 by the consensus of several language models. Each document is renamed and moved into the vault of its domain, with a journal that
 **\--rollback** can undo. It never destroys a document: the original is removed only after a checked copy; it never modifies a
-mailbox or a remote machine, and moves nothing it is not sure about: doubt leads to a folder named *À_VÉRIFIER*.
+mailbox or a remote machine, and moves nothing it is not sure about: doubt leads to a folder named *TO_CHECK*, set by `sous_repertoire_a_verifier`.
 
 The language models are those of Ollama, which runs on the same machine. Ollama and its models are installed separately, by the
 user, from the Ollama website: Dibab contains neither. List the models with **ollama list**, then write them, role by role,

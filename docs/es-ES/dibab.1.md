@@ -26,7 +26,7 @@ dibab - recopila, analiza y clasifica los documentos administrativos personales 
 texto de cada documento, aparta lo que no es administrativo y clasifica el resto por categoría y por ámbito, personal o profesional,
 por consenso de varios modelos de lenguaje. Cada documento se renombra y se mueve a la bóveda de su ámbito, con un diario que
 **\--rollback** puede deshacer. Nunca destruye un documento: el original se retira solo tras una copia verificada; nunca modifica un
-buzón ni una máquina remota, y no mueve nada de lo que no esté seguro: la duda lleva a una carpeta llamada *À_VÉRIFIER*.
+buzón ni una máquina remota, y no mueve nada de lo que no esté seguro: la duda lleva a una carpeta llamada *POR_VERIFICAR*, se ajusta con `sous_repertoire_a_verifier`.
 
 Los modelos de lenguaje son los de Ollama, que se ejecuta en la misma máquina. Ollama y sus modelos se instalan aparte, por el usuario,
 desde el sitio de Ollama: Dibab no contiene ni lo uno ni lo otro. Liste los modelos con **ollama list** y escríbalos, rol por rol,

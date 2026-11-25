@@ -16,7 +16,7 @@
 
 [English](../../README.md) | **Français** | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md)
 
-Dibab (« scribe » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
+Dibab (« choisir, le choix » en breton) collecte, analyse et classe les documents administratifs personnels d'un foyer (factures, courriers, contrats, avis d'organismes) dans une arborescence normalisée, et tient un journal de tout ce qu'il fait. Il tourne en mode souverain : aucun document et aucun texte de document ne quitte le réseau local, sans modèle distant ni nuage. Les seules connexions vers l'extérieur sont celles que vous déclarez : la boîte IMAP que Dibab lit, et le consentement OAuth2 de Google quand cette boîte est un compte Google. Les modèles de langage sont ceux d'[Ollama](https://ollama.com/), sur votre machine.
 
 Licence : [GNU Affero General Public License version 3](../../LICENSE).
 
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Créer l'environnement Python et vérifier les tests (attendu : `558 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
+2. Créer l'environnement Python et vérifier les tests (attendu : `573 passed, 9 skipped` ; les 9 sautés sont les essais contre un Ollama qui répond) :
 
 ```bash
 python3 -m venv venv
@@ -212,6 +212,8 @@ LC_ALL=de_DE.UTF-8 venv/bin/python dibab.py --diagnose
 
 Les noms d'option, les jetons d'état, les identifiants, les journaux et les fichiers de plan ne changent jamais avec la langue : les clés des journaux et des fichiers de plan (`evenement`, `horodatage`…) et les valeurs qui nomment un évènement ou une catégorie (`session_demarree`, `administratif`…) sont des identifiants techniques fixes, écrits en français, pour qu'un journal écrit dans une langue se rejoue par `--rollback` dans n'importe quelle autre. Les dictionnaires de messages sont les fichiers `modules/langues/en.txt`, `fr.txt`, `de.txt` et `es.txt`.
 
+Les noms du dossier à vérifier, de son préfixe et du dossier des doublons sont écrits à l'initialisation dans la langue de la session ; ils sont réglables par `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` et `destination.repertoire_doublon`, et une session ultérieure dans une autre langue ne les renomme pas.
+
 ## Usage
 
 ```bash
@@ -229,12 +231,12 @@ venv/bin/python dibab.py --help        # liste toutes les options, dans la langu
 Commencez toujours par `--dry-run`, relisez chaque destination proposée, puis lancez `--execute`. Le premier passage est lent (plusieurs modèles lisent chaque document) ; la sortie d'erreur affiche l'avancement, `modèle i/n, document j/m`. Voici un `--dry-run` sur un dossier source vide, qui demande Ollama et les trois modèles des rôles :
 
 ```
-Dibab 0.9.0-alpha — session 2026-10-29T17:33:29
+Dibab 0.9.0-alpha — session 2026-11-25T19:36:08-2
   Mode               : dry-run
   Configuration      : ~/.config/dibab/config.json
   Coffre personnel     : ~/Classement/Personnel — monté
   Coffre professionnel : ~/Classement/Professionnel — monté
-  Journal de session : ~/.local/state/dibab/sessions/session_2026-10-29T17:33:29.jsonl
+  Journal de session : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:08-2.jsonl
   Modèle ocr           : glm-ocr:latest
   Modèle tri_rapide    : gemma3:4b
   Modèle classification: granite4.2:8b-Q5_K_M
@@ -265,7 +267,7 @@ Codes de sortie :
 
 Chaque déplacement s'inscrit dans le journal des actions (`suivi.journal`, une ligne JSON par action, sans texte de document) et chaque session laisse un rapport dans `suivi.sessions`. `--rollback --session <horodatage>` annule une session précise : le document revient à sa place d'origine, copie vérifiée par empreinte.
 
-Un document dont l'empreinte est déjà classée est copié dans le dossier `doublon` à la racine du coffre, la copie est vérifiée, puis il est retiré de la source, comme un document classé ; vider ce dossier vous revient. Une exécution refusée parce qu'une autre tient le verrou laisse une ligne `session_refusee` dans son journal de session.
+Un document dont l'empreinte est déjà classée est copié dans le dossier `doublon/` à la racine du coffre, la copie est vérifiée, puis il est retiré de la source, comme un document classé ; vider ce dossier vous revient. Une exécution refusée parce qu'une autre tient le verrou laisse une ligne `session_refusee` dans son journal de session.
 
 ### Page de manuel
 

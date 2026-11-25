@@ -30,7 +30,7 @@ Hace:
 
 No hace:
 
-- mover un archivo del que no está seguro: la duda lleva a una carpeta `À_VÉRIFIER/`, nunca a una clasificación arriesgada;
+- mover un archivo del que no está seguro: la duda lleva a una carpeta `POR_VERIFICAR/`, nunca a una clasificación arriesgada;
 - borrar un documento: mueve y copia, no borra (solo poda sus propios diarios antiguos, capítulo 8 «Inventario y rotación» del manual PDF);
 - modificar un buzón de correo ni una máquina remota;
 - ejecutarse en segundo plano: se lanza a mano, y el modo por defecto es la simulación (`--dry-run`);
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Crear el entorno de Python y comprobar las pruebas (esperado: `558 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
+2. Crear el entorno de Python y comprobar las pruebas (esperado: `573 passed, 9 skipped`; los 9 omitidos son los ensayos contra un Ollama que responde):
 
 ```bash
 python3 -m venv venv
@@ -212,6 +212,8 @@ LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 
 Los nombres de las opciones, los símbolos de estado, los identificadores, los diarios y los archivos de plan nunca cambian con el idioma: las claves de los diarios y de los archivos de plan (`evenement`, `horodatage`…) y los valores que nombran un evento o una categoría (`session_demarree`, `administratif`…) son identificadores técnicos fijos, escritos en francés, para que un diario escrito en un idioma se reproduzca con `--rollback` en cualquier otro. Los diccionarios de mensajes son los archivos `modules/langues/en.txt`, `fr.txt`, `de.txt` y `es.txt`.
 
+Los nombres de la carpeta por verificar, de su prefijo y de la carpeta de duplicados se escriben en la inicialización en el idioma de la sesión; `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` y `destination.repertoire_doublon` los fijan, y una sesión posterior en otro idioma no los renombra.
+
 ## Uso
 
 ```bash
@@ -229,12 +231,12 @@ venv/bin/python dibab.py --help        # lista todas las opciones, en el idioma 
 Empiece siempre con `--dry-run`, revise cada destino propuesto y después lance `--execute`. La primera pasada es lenta (varios modelos leen cada documento); la salida de error muestra el avance, `modelo i/n, documento j/m`. Aquí tiene un `--dry-run` sobre una carpeta de origen vacía, que necesita Ollama y los tres modelos de los roles:
 
 ```
-Dibab 0.9.0-alpha — sesión 2026-10-29T17:33:30
+Dibab 0.9.0-alpha — sesión 2026-11-25T19:36:09-2
   Modo               : dry-run
   Configuración      : ~/.config/dibab/config.json
   Bóveda personnel     : ~/Classement/Personnel — montada
   Bóveda professionnel : ~/Classement/Professionnel — montada
-  Diario de sesión   : ~/.local/state/dibab/sessions/session_2026-10-29T17:33:30.jsonl
+  Diario de sesión   : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:09-2.jsonl
   Modelo ocr           : glm-ocr:latest
   Modelo tri_rapide    : gemma3:4b
   Modelo classification: granite4.2:8b-Q5_K_M
@@ -265,7 +267,7 @@ Códigos de salida:
 
 Cada traslado se anota en el diario de acciones (`suivi.journal`, una línea JSON por acción, sin texto de documento) y cada sesión deja un informe en `suivi.sessions`. `--rollback --session <marca de tiempo>` deshace una sesión concreta: el documento vuelve a su lugar de origen, copia verificada por huella.
 
-Un documento cuya huella ya está archivada se copia en la carpeta `doublon` en la raíz de la bóveda, se verifica la copia y se retira de la fuente, como un documento archivado; vaciar esa carpeta le corresponde a usted. Una ejecución rechazada porque otra mantiene el bloqueo deja una línea `session_refusee` en su diario de sesión.
+Un documento cuya huella ya está archivada se copia en la carpeta `duplicado/` en la raíz de la bóveda, se verifica la copia y se retira de la fuente, como un documento archivado; vaciar esa carpeta le corresponde a usted. Una ejecución rechazada porque otra mantiene el bloqueo deja una línea `session_refusee` en su diario de sesión.
 
 ### Página de manual
 
@@ -308,7 +310,7 @@ Abra la dirección mostrada en un navegador, acepte la advertencia «aplicación
 ## Límites
 
 - Solo Linux. La comprobación de montaje se apoya en `findmnt`.
-- La clasificación vale lo que valen sus modelos: en la instancia de referencia, un primer ensayo con 15 documentos reales clasificó 2, apartó 3 como no administrativos y dejó 10 en `À_VÉRIFIER/`, por prudencia. Mida antes de confiar: la medición del ámbito está en `_outils/mesurer_domaines.py`.
+- La clasificación vale lo que valen sus modelos: en la instancia de referencia, un primer ensayo con 15 documentos reales clasificó 2, apartó 3 como no administrativos y dejó 10 en `POR_VERIFICAR/`, por prudencia. Mida antes de confiar: la medición del ámbito está en `_outils/mesurer_domaines.py`.
 - Dibab no monta, no cifra ni sincroniza ninguna bóveda, y no borra ningún documento: el espacio en disco y las copias de seguridad corren por su cuenta.
 - Las categorías y los remitentes conocidos de `config.exemple.json` son genéricos; adáptelos a su país.
 - Los pasos en la consola de Google dependen de la interfaz de Google, que cambia: las nociones siguen siendo las de su documentación OAuth2.

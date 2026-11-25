@@ -30,7 +30,7 @@ Es tut:
 
 Es tut nicht:
 
-- eine Datei bewegen, bei der es nicht sicher ist: Unsicherheit führt in einen Ordner `À_VÉRIFIER/`, nie zu einer riskanten Ablage;
+- eine Datei bewegen, bei der es nicht sicher ist: Unsicherheit führt in einen Ordner `ZU_PRÜFEN/`, nie zu einer riskanten Ablage;
 - ein Dokument löschen: Es verschiebt und kopiert, es löscht nicht (es entfernt nur seine eigenen alten Journale, Kapitel 8 „Inventur und Rotation“ des PDF-Handbuchs);
 - ein Postfach oder eine entfernte Maschine verändern;
 - im Hintergrund laufen: Es wird von Hand gestartet, und der Standardmodus ist die Simulation (`--dry-run`);
@@ -121,7 +121,7 @@ mkdir -p ~/applications && git clone https://github.com/RonanDavalan/dibab.git ~
 cd ~/applications/dibab
 ```
 
-2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `558 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
+2. Die Python-Umgebung anlegen und die Tests prüfen (erwartet: `573 passed, 9 skipped`; die 9 übersprungenen sind die Versuche gegen ein laufendes Ollama):
 
 ```bash
 python3 -m venv venv
@@ -212,6 +212,8 @@ LC_ALL=fr_FR.UTF-8 venv/bin/python dibab.py --diagnose
 
 Optionsnamen, Zustandskürzel, Kennungen, Journale und Plandateien ändern sich nie mit der Sprache: Die Schlüssel der Journale und Plandateien (`evenement`, `horodatage`…) und die Werte, die ein Ereignis oder eine Kategorie benennen (`session_demarree`, `administratif`…), sind feste technische Kennungen auf Französisch, damit ein in einer Sprache geschriebenes Journal von `--rollback` in jeder anderen wieder abgespielt wird. Die Meldungswörterbücher sind die Dateien `modules/langues/en.txt`, `fr.txt`, `de.txt` und `es.txt`.
 
+Die Namen des Prüfordners, seines Präfixes und des Duplikatordners werden bei der Initialisierung in der Sprache der Sitzung geschrieben; `sous_repertoire_a_verifier`, `nommage.prefixe_a_verifier` und `destination.repertoire_doublon` setzen sie, und eine spätere Sitzung in einer anderen Sprache benennt sie nicht um.
+
 ## Verwendung
 
 ```bash
@@ -229,12 +231,12 @@ venv/bin/python dibab.py --help        # listet alle Optionen, in der Sprache de
 Beginnen Sie immer mit `--dry-run`, prüfen Sie jedes vorgeschlagene Ziel und starten Sie dann `--execute`. Der erste Durchlauf ist langsam (mehrere Modelle lesen jedes Dokument); die Fehlerausgabe zeigt den Fortschritt, `Modell i/n, Dokument j/m`. Hier ein `--dry-run` auf einem leeren Quellordner, der Ollama und die drei Modelle der Rollen voraussetzt:
 
 ```
-Dibab 0.9.0-alpha — Sitzung 2026-10-29T17:33:29
+Dibab 0.9.0-alpha — Sitzung 2026-11-25T19:36:09
   Modus              : dry-run
   Konfiguration      : ~/.config/dibab/config.json
   Tresor personnel     : ~/Classement/Personnel — eingehängt
   Tresor professionnel : ~/Classement/Professionnel — eingehängt
-  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-10-29T17:33:29.jsonl
+  Sitzungsjournal    : ~/.local/state/dibab/sessions/session_2026-11-25T19:36:09.jsonl
   Modell ocr           : glm-ocr:latest
   Modell tri_rapide    : gemma3:4b
   Modell classification: granite4.2:8b-Q5_K_M
@@ -265,7 +267,7 @@ Exit-Codes:
 
 Jede Verschiebung wird im Aktionsjournal festgehalten (`suivi.journal`, eine JSON-Zeile pro Aktion, ohne Dokumenttext), und jede Sitzung hinterlässt einen Bericht in `suivi.sessions`. `--rollback --session <Zeitstempel>` macht eine bestimmte Sitzung rückgängig: Das Dokument kehrt an seinen ursprünglichen Platz zurück, die Kopie per Fingerabdruck geprüft.
 
-Ein Dokument, dessen Fingerabdruck bereits abgelegt ist, wird in den Ordner `doublon` im Stammverzeichnis des Tresors kopiert, die Kopie wird geprüft, und das Dokument wird wie ein abgelegtes aus der Quelle entfernt; diesen Ordner zu leeren, liegt bei Ihnen. Ein Lauf, der abgelehnt wird, weil ein anderer die Sperre hält, hinterlässt eine Zeile `session_refusee` in seinem Sitzungsjournal.
+Ein Dokument, dessen Fingerabdruck bereits abgelegt ist, wird in den Ordner `Duplikat/` im Stammverzeichnis des Tresors kopiert, die Kopie wird geprüft, und das Dokument wird wie ein abgelegtes aus der Quelle entfernt; diesen Ordner zu leeren, liegt bei Ihnen. Ein Lauf, der abgelehnt wird, weil ein anderer die Sperre hält, hinterlässt eine Zeile `session_refusee` in seinem Sitzungsjournal.
 
 ### Handbuchseite
 
@@ -308,7 +310,7 @@ venv/bin/python dibab.py --autoriser-google imap-google-exemple
 ## Grenzen
 
 - Nur Linux. Die Einhängeprüfung beruht auf `findmnt`.
-- Die Einordnung ist so gut wie Ihre Modelle: Auf der Referenzinstanz hat ein erster Versuch mit 15 echten Dokumenten 2 eingeordnet, 3 als nicht administrativ ausgesondert und 10 aus Vorsicht in `À_VÉRIFIER/` gelegt. Messen Sie, bevor Sie vertrauen: Die Messung des Bereichs liegt in `_outils/mesurer_domaines.py`.
+- Die Einordnung ist so gut wie Ihre Modelle: Auf der Referenzinstanz hat ein erster Versuch mit 15 echten Dokumenten 2 eingeordnet, 3 als nicht administrativ ausgesondert und 10 aus Vorsicht in `ZU_PRÜFEN/` gelegt. Messen Sie, bevor Sie vertrauen: Die Messung des Bereichs liegt in `_outils/mesurer_domaines.py`.
 - Dibab hängt keinen Tresor ein, verschlüsselt und synchronisiert keinen und löscht kein Dokument: Speicherplatz und Sicherungen liegen in Ihrer Verantwortung.
 - Die Kategorien und die bekannten Absender in `config.exemple.json` sind generisch; passen Sie sie an Ihr Land an.
 - Die Schritte in der Google-Konsole hängen von Googles Oberfläche ab, die sich ändert: Die Begriffe bleiben die seiner OAuth2-Dokumentation.
