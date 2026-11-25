@@ -207,7 +207,7 @@ def autoriser(client_fichier, token_fichier, utilisateur, parametres, afficher_a
         reponse = recepteur.reponse
     if reponse is None:
         raise ErreurOAuth2(traduire("oauth2_aucune_reponse"))
-    if not secrets.compare_digest(reponse.get("state", ""), etat):
+    if not secrets.compare_digest(reponse.get("state", "").encode("utf-8"), etat.encode("utf-8")):
         raise ErreurOAuth2(traduire("oauth2_state_different"))
     if reponse.get("error") or not reponse.get("code"):
         raise ErreurOAuth2(traduire("oauth2_consentement_refuse") if reponse.get("error") == "access_denied" else traduire("oauth2_consentement_sans_code"))

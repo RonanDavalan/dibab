@@ -327,6 +327,7 @@ def test_le_consentement_ecrit_le_jeton_apres_verification_du_pkce(tmp_path, aut
 
 @pytest.mark.parametrize("cas, motif", [
     ({"etat_force": "autre-state"}, "state différent"),
+    ({"etat_force": "état-é"}, "state différent"),
     ({"parametres_reponse": {"error": "access_denied"}}, "consentement refusé"),
     ({"parametres_reponse": {}}, "sans code"),
 ])
