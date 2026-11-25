@@ -12,15 +12,16 @@ ATTENDUS = {
     "en": ("TO_CHECK", "[TO_CHECK]", "duplicate"),
     "de": ("ZU_PRÜFEN", "[ZU_PRÜFEN]", "Duplikat"),
     "es": ("POR_VERIFICAR", "[POR_VERIFICAR]", "duplicado"),
+    "zh": ("待核实", "[待核实]", "重复"),
 }
-LOCALES = {"fr": "fr_FR.UTF-8", "en": "en_US.UTF-8", "de": "de_DE.UTF-8", "es": "es_ES.UTF-8"}
+LOCALES = {"fr": "fr_FR.UTF-8", "en": "en_US.UTF-8", "de": "de_DE.UTF-8", "es": "es_ES.UTF-8", "zh": "zh_CN.UTF-8"}
 
 
 def exemple():
     return json.loads((RACINE / "config.exemple.json").read_text(encoding="utf-8"))
 
 
-def test_la_table_porte_les_quatre_langues_et_les_valeurs_decidees():
+def test_la_table_porte_les_cinq_langues_et_les_valeurs_decidees():
     for langue, attendu in ATTENDUS.items():
         valeurs = defauts_langue.valeurs(langue)
         assert (valeurs["sous_repertoire_a_verifier"], valeurs["prefixe_a_verifier"],

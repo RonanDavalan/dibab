@@ -30,6 +30,11 @@ DEFAUTS = {
         "prefixe_a_verifier": "[POR_VERIFICAR]",
         "repertoire_doublon": "duplicado",
     },
+    "zh": {
+        "sous_repertoire_a_verifier": "待核实",
+        "prefixe_a_verifier": "[待核实]",
+        "repertoire_doublon": "重复",
+    },
 }
 
 # Les listes qui doivent exclure le dossier des doublons : le nom est une donnée de l'utilisateur, donc

@@ -10,7 +10,7 @@ import re
 import sys
 from pathlib import Path
 
-LANGUES = ("en", "fr", "de", "es")
+LANGUES = ("en", "fr", "de", "es", "zh")
 LANGUE_SOURCE = "en"
 DOSSIER = Path(__file__).resolve().parent / "langues"
 
@@ -21,7 +21,7 @@ _dictionnaires = {}
 
 
 def code_langue(environ):
-    """Rend la langue des messages d'après l'environnement : `en` hors des quatre langues et pour C ou POSIX."""
+    """Rend la langue des messages d'après l'environnement : `en` hors des cinq langues et pour C ou POSIX."""
     for variable in _VARIABLES_LANGUE:
         valeur = environ.get(variable, "")
         if valeur:

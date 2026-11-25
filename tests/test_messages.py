@@ -163,7 +163,7 @@ MOTS_D_ARGPARSE = ("usage:", "options:", "show this help message and exit")
 
 @pytest.mark.parametrize("environ, langue", [
     ({"LC_ALL": "en_US.UTF-8"}, "en"), ({"LC_ALL": "fr_FR.UTF-8"}, "fr"), ({"LC_ALL": "de_DE.UTF-8"}, "de"),
-    ({"LC_ALL": "es_ES.UTF-8"}, "es"), ({"LC_ALL": "C"}, "en"), ({"LC_ALL": "pt_BR.UTF-8"}, "en"), ({}, "en")])
+    ({"LC_ALL": "es_ES.UTF-8"}, "es"), ({"LC_ALL": "zh_CN.UTF-8"}, "zh"), ({"LC_ALL": "C"}, "en"), ({"LC_ALL": "pt_BR.UTF-8"}, "en"), ({}, "en")])
 def test_l_aide_et_le_diagnostic_sont_dans_la_langue_choisie(environ, langue, tmp_path):
     aide = lancer_processus(["--help"], environ, tmp_path)
     assert aide.returncode == 0 and all(option in aide.stdout for option in OPTIONS)
